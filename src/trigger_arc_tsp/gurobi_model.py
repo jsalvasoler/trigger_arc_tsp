@@ -6,8 +6,28 @@ from trigger_arc_tsp.instance import Instance
 from trigger_arc_tsp.utils import INSTANCES_DIR
 
 
-def main() -> None:
-    instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples", "example_1.txt"))
+def cleanup_instance_name(instance: str) -> str:
+    if not instance.endswith(".txt"):
+        error_msg = "Instance file must be a .txt file"
+        raise ValueError(error_msg)
+    if instance.startswith("instances/"):
+        instance = instance[10:]
+
+    if instance.count("/") != 1:
+        instance = f"instances_release_1/{instance}"
+
+    # check if file exists
+    if not os.path.exists(os.path.join(INSTANCES_DIR, instance)):
+        error_msg = f"Instance file {instance} not found"
+        raise FileNotFoundError(error_msg)
+
+    return instance
+
+
+def main(instance_name: str) -> None:
+    instance_name = cleanup_instance_name(instance_name)
+
+    instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, instance_name))
     print(instance)
 
     model = gp.Model("TriggerArcTSP")
@@ -89,6 +109,8 @@ def main() -> None:
     # model.addConstr(u[4] == 3)
     # model.addConstr(u[3] == 4)
 
+    # set time limit to two minutes
+    model.setParam(gp.GRB.Param.TimeLimit, 120)
     model.optimize()
 
     status = model.status

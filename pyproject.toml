@@ -26,6 +26,7 @@ classifiers = [
 ]
 dependencies = [
   "gurobipy",
+  "click",
 ]
 
 [project.urls]
@@ -36,6 +37,9 @@ Source = "https://github.com/jsalvasoler/trigger-arc-tsp"
 [tool.hatch.version]
 path = "src/trigger_arc_tsp/__about__.py"
 
+[tool.hatch.envs.default]
+python = "3.11"
+
 [tool.hatch.envs.types]
 extra-dependencies = [
   "mypy>=1.0.0",
@@ -43,6 +47,10 @@ extra-dependencies = [
 ]
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/trigger_arc_tsp tests}"
+
+[tool.hatch.envs.default.scripts]
+interactive = "ipython"
+trigger_arc_tsp = "python3 -m trigger_arc_tsp {args}"
 
 [tool.coverage.run]
 source_pkgs = ["trigger_arc_tsp", "tests"]
