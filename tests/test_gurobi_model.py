@@ -262,3 +262,21 @@ def test_gurobi_model_sample_12() -> None:
         model.solve_model_with_parameters()
 
     assert model.get_model().Status == gp.GRB.INFEASIBLE
+
+
+def test_gurobi_model_sample_13() -> None:
+    N = 10
+    edges = [(i, j) for i in range(N) for j in range(N) if i != j]
+    edges = {e: 1 for e in edges}
+    trigger = (4, 5)
+    relations = {(*trigger, i, j): 0 for i in range(N) for j in range(N) if i != j and (i, j) != trigger}
+
+    inst = Instance(N=N, edges=edges, relations=relations, name="test")
+    model = GurobiModel(inst)
+    model.formulate()
+    model.solve_model_with_parameters()
+
+    assert model.get_model().Status == gp.GRB.OPTIMAL
+    tour, cost = model.get_original_objective()
+    assert cost == 2.0  # The cost of 0->4 and 4->5
+    assert tour[:3] == [0, 4, 5]
