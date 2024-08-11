@@ -8,7 +8,7 @@ from trigger_arc_tsp.utils import SOLUTIONS_DIR
 
 
 class Instance:
-    def __init__(self, N: int, edges: list, relations: list, name: str) -> None:
+    def __init__(self, N: int, edges: dict, relations: dict, name: str) -> None:
         self.name = name
 
         self.edges = edges
@@ -33,11 +33,12 @@ class Instance:
 
     def rescale_costs_of_relations(self) -> None:
         relative_costs = {rel: self.relations[rel] - self.edges[(rel[2], rel[3])] for rel in self.relations}
-        max_rel_cost = max(relative_costs.values())
-        if max_rel_cost > 0:
-            for rel in self.relations:
-                self.relations[rel] = relative_costs[rel] - max_rel_cost - 1
-        self.offset = -max_rel_cost - 1
+        max_rel_cost = max(relative_costs.values()) if relative_costs else 0
+        for rel in self.relations:
+            self.relations[rel] = relative_costs[rel]
+            if max_rel_cost >= 0:
+                self.relations[rel] -= max_rel_cost + 1
+        self.offset = -max_rel_cost - 1 if max_rel_cost >= 0 else 0
 
     @staticmethod
     def load_instance_from_file(file_path: os.PathLike) -> Instance:
