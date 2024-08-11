@@ -7,7 +7,7 @@ from trigger_arc_tsp.utils import INSTANCES_DIR
 
 
 def main() -> None:
-    instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "instances_release_1", "grf5.txt"))
+    instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples", "example_1.txt"))
     print(instance)
 
     model = gp.Model("TriggerArcTSP")
@@ -98,26 +98,33 @@ def main() -> None:
         model.write("model.ilp")
         return
 
-    print("\n\n")
-    print(" - Solution:")
+    # print("\n\n")
+    # print(" - Solution:")
     baseline_cost = 0
     for i, j in instance.edges:
         if x[i, j].x > 0.5:
-            print(f"Edge ({i}, {j}) is used")
+            # print(f"Edge ({i}, {j}) is used")
             baseline_cost += instance.edges[i, j]
 
-    print(f" - Baseline cost: {baseline_cost}")
+    # print(f" - Baseline cost: {baseline_cost}")
     for i, j, r, s in instance.relations:
         if y[i, j, r, s].x > 0.5:
-            print(
-                f" - Relation ({i}, {j}) -> ({r}, {s}) triggers cost "
-                f"change + {instance.relations[i, j, r, s] - instance.offset}"
-            )
+            # print(
+            #     f" - Relation ({i}, {j}) -> ({r}, {s}) triggers cost "
+            #     f"change + {instance.relations[i, j, r, s] - instance.offset}"
+            # )
             baseline_cost += instance.relations[i, j, r, s] - instance.offset
         else:
-            print(f" - Relation ({i}, {j}) -> ({r}, {s}) is inactive")
+            # print(f" - Relation ({i}, {j}) -> ({r}, {s}) is inactive")
+            pass
 
-    print(f" - Total cost: {baseline_cost}")
+    # print(f" - Total cost: {baseline_cost}")
+
+    tour = sorted([i for i in instance.nodes if i != 0], key=lambda i: u[i].x)
+    tour = [0, *tour, 0]
+
+    instance.test_solution(tour, baseline_cost)
+    instance.save_solution(tour, baseline_cost)
 
 
 if __name__ == "__main__":
