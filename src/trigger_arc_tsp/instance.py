@@ -78,15 +78,19 @@ class Instance:
                     continue
                 # sort the triggering relations by their index in the path (higher index last)
                 triggering = sorted(triggering, key=lambda x: path.index(x))
+                # remove the triggering arcs that happen after the arc a
+                triggering = [rel for rel in triggering if path.index(rel) < path.index(a)]
+                if not triggering:
+                    continue
                 # the last relation in the list is the one that triggers the arc a
-                trigger_rel_cost = self.relations[*triggering[-1], *a] + self.offset
+                trigger_rel_cost = self.relations[*triggering[-1], *a] - self.offset
                 # add the relative cost of the triggering relation to the cost of the arc a
                 cost += trigger_rel_cost
 
         return cost
 
     def check_solution_correctness(self, tour: list) -> bool:
-        if tour[0] == 0:
+        if tour[-1] == 0:
             tour = tour[:-1]
 
         if len(tour) != self.N or len(set(tour)) != self.N or not set(tour).issubset(self.nodes):
@@ -110,8 +114,12 @@ class Instance:
             msg = f"Solution {tour} is not a valid solution for instance {self.name}"
             raise ValueError(msg)
 
-        if not objective:
+        if objective is None:
             objective = self.compute_objective(tour)
+        if not self.test_solution(tour, objective):
+            msg = f"Solution {tour} does not have the correct objective value for instance {self.name}"
+            msg += f" (computed: {self.compute_objective(tour)}, proposed: {objective})"
+            raise ValueError(msg)
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # noqa: DTZ005
         os.makedirs(os.path.join(SOLUTIONS_DIR, *self.name.split("/")[:-1]), exist_ok=True)
@@ -119,7 +127,8 @@ class Instance:
         with open(os.path.join(SOLUTIONS_DIR, *self.name.split("/")), "a") as file:
             if file.tell() != 0:
                 file.write("\n")
-            tour = tour[:-1]
+            assert tour[0] == 0
+            assert tour[-1] != 0
             file.write(",".join(map(str, tour)))
             file.write(f" | {objective} | {timestamp}")
 
