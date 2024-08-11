@@ -88,27 +88,23 @@ class GurobiModel:
 
         # For different relations r=(b,a) and r'=(c,a) in R_a, if c comes after b
         # in the tour, then y[b, a] <= y[c, a] (1 <= 1 or 0 <= 0 or 0 <= 1)
-        z_1, z_2 = {}, {}
-        for a in self.instance.R_a:
-            for b in self.instance.R_a[a]:
-                for c in self.instance.R_a[a]:
-                    if b == c:
-                        continue
-                    # add two binary variables z_1 and z_2 to self.model the implication
-                    z_1[a, b, c] = self.model.addVar(
-                        vtype=gp.GRB.BINARY,
-                        name=f"z_1_{b}_{c}_{a}",
-                    )
-                    z_2[a, b, c] = self.model.addVar(
-                        vtype=gp.GRB.BINARY,
-                        name=f"z_2_{b}_{c}_{a}",
-                    )
-                    # If in the tour we have b -> c -> a, then y[b, a] = 0
-                    self.model.addConstr(self.u[b[0]] + 1 <= self.u[c[0]] + self.instance.N * (z_1[a, b, c]))
-                    self.model.addConstr(self.u[c[0]] <= self.u[b[0]] + self.instance.N * (1 - z_1[a, b, c]))
-                    self.model.addConstr(self.u[c[0]] + 1 <= self.u[a[0]] + self.instance.N * (z_2[a, b, c]))
-                    self.model.addConstr(self.u[a[0]] <= self.u[c[0]] + self.instance.N * (1 - z_2[a, b, c]))
-                    self.model.addConstr(self.y[*b, *a] <= z_1[a, b, c] + z_2[a, b, c])
+        z_indices = [
+            (a, b, c) for a in self.instance.R_a for b in self.instance.R_a[a] for c in self.instance.R_a[a] if b != c
+        ]
+        z_1 = self.model.addVars(z_indices, vtype=gp.GRB.BINARY, name="z_1")
+        z_2 = self.model.addVars(z_indices, vtype=gp.GRB.BINARY, name="z_2")
+
+        self.model.addConstrs(
+            (self.u[c[0]] <= self.u[b[0]] + (self.instance.N - 1) * (1 - z_1[a, b, c]) for a, b, c in z_indices),
+            name="relation_order_1",
+        )
+        self.model.addConstrs(
+            (self.u[a[0]] <= self.u[c[0]] + (self.instance.N - 1) * (1 - z_2[a, b, c]) for a, b, c in z_indices),
+            name="relation_order_2",
+        )
+        self.model.addConstrs(
+            (self.y[*b, *a] <= z_1[a, b, c] + z_2[a, b, c] for a, b, c in z_indices), name="relation_order_3"
+        )
 
         # Set the objective function
         self.model.setObjective(
@@ -176,6 +172,15 @@ def gurobi_main(instance_name: str) -> None:
 
     instance.test_solution(tour, cost)
     instance.save_solution(tour, cost)
+
+    # tour = [0,8,6,4,18,19,5,14,3,1,15,13,10,7,9,2,16,12,11,17]
+    # cost = instance.compute_objective(tour)
+
+    print("-" * 40)
+    print(f"Instance: {instance_name}")
+    print(f"Tour: {tour}")
+    print(f"Cost: {cost}")
+    print("-" * 40)
 
 
 if __name__ == "__main__":
