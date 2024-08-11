@@ -176,3 +176,89 @@ def test_gurobi_model_sample_8() -> None:
 
     assert inst.compute_objective([0, 4, 3, 2, 1]) == 50.0
     assert inst.compute_objective([0, 1, 2, 3, 4]) == 60.0
+
+
+def test_gurobi_model_sample_9() -> None:
+    N = 5
+    edges_1 = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
+    edge_costs_1 = {e: 1 for e in edges_1}
+    edges_2 = [(0, 4), (4, 3), (3, 2), (2, 1), (1, 0)]
+    edge_costs_2 = {e: 2 for e in edges_2}
+    edges = {**edge_costs_1, **edge_costs_2}
+    relations = {}
+
+    inst = Instance(N=N, edges=edges, relations=relations, name="test")
+    model = GurobiModel(inst)
+    model.formulate()
+    model.solve_model_with_parameters()
+
+    # Make sure that TSP is solved correctly when no relations
+    assert model.get_model().Status == gp.GRB.OPTIMAL
+    tour, cost = model.get_original_objective()
+
+    assert inst.compute_objective(tour) == cost
+
+    assert cost == 5.0
+    assert tour == [0, 1, 2, 3, 4]
+
+
+def test_gurobi_model_sample_10() -> None:
+    inst_1 = Instance.load_instance_from_file("instances/examples/example_1.txt")
+    inst_2 = Instance(inst_1.N, inst_1.edges, relations={}, name="test")
+    model = GurobiModel(inst_2)
+    model.formulate()
+    model.solve_model_with_parameters()
+
+    # Make sure that TSP is solved correctly when no relations
+    assert model.get_model().Status == gp.GRB.OPTIMAL
+    tour, cost = model.get_original_objective()
+
+    assert inst_2.compute_objective(tour) == cost
+    assert cost == 65.0
+    assert tour == [0, 3, 2, 1, 4]
+
+
+def test_gurobi_model_sample_11() -> None:
+    N = 10
+    edges = [(i, j) for i in range(N) for j in range(N) if i != j]
+    edges = {e: 1 for e in edges}
+    inst = Instance(N=N, edges=edges, relations={}, name="test")
+    model = GurobiModel(inst)
+    model.formulate()
+    model.solve_model_with_parameters()
+
+    # Make sure that TSP is solved correctly when no relations
+    # Regardless of the solution, the cost should be 10
+    assert model.get_model().Status == gp.GRB.OPTIMAL
+    _, cost = model.get_original_objective()
+    assert cost == 10.0
+
+    # Let's introduce one relation that allows us to reduce the cost
+    relations = {(0, 1, 1, 2): 0}
+    inst = Instance(N=N, edges=edges, relations=relations, name="test")
+    model = GurobiModel(inst)
+    model.formulate()
+    model.solve_model_with_parameters()
+
+    assert model.get_model().Status == gp.GRB.OPTIMAL
+    _, cost = model.get_original_objective()
+    assert cost == 9.0
+    x = model.get_x()
+    assert x[0, 1].x == 1.0
+    assert x[1, 2].x == 1.0
+
+
+def test_gurobi_model_sample_12() -> None:
+    N = 3
+    edges = [(0, 1), (1, 0), (0, 2), (2, 0)]
+    edges = {e: 1 for e in edges}
+    relations = {(0, 1, 1, 0): 0, (0, 2, 1, 0): 0}
+
+    inst = Instance(N=N, edges=edges, relations=relations, name="test")
+    model = GurobiModel(inst)
+    model.formulate()
+
+    with pytest.raises(ValueError, match="Model is infeasible"):
+        model.solve_model_with_parameters()
+
+    assert model.get_model().Status == gp.GRB.INFEASIBLE
