@@ -24,7 +24,9 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+  "gurobipy",
+]
 
 [project.urls]
 Documentation = "https://github.com/jsalvasoler/trigger-arc-tsp#readme"
@@ -59,4 +61,11 @@ exclude_lines = [
   "no cov",
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
+]
+
+ignore = [
+    "T201",
+    "ANN101",
+    "ANN003",
+    "S101"
 ]
