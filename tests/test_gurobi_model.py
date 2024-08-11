@@ -55,7 +55,7 @@ def test_gurobi_model_sample_2() -> None:
     y = model.get_y()
     assert y[0, 1, 1, 2].x == 1.0
 
-    tour, cost = model.get_original_objective()
+    tour, cost = model.get_original_solution()
     assert cost == 5.0
     assert tour == [0, 1, 2, 3]
 
@@ -74,7 +74,7 @@ def test_gurobi_model_sample_3() -> None:
     model.solve_model_with_parameters()
 
     assert model.get_model().Status == gp.GRB.OPTIMAL
-    tour, cost = model.get_original_objective()
+    tour, cost = model.get_original_solution()
 
     # The only feasible tour has the active edge (1, 2)
     assert tour == [0, 1, 2, 3]
@@ -95,7 +95,7 @@ def test_gurobi_model_sample_4() -> None:
     model.solve_model_with_parameters()
 
     assert model.get_model().Status == gp.GRB.OPTIMAL
-    tour, cost = model.get_original_objective()
+    tour, cost = model.get_original_solution()
 
     # The only feasible tour has the active edge (1, 2)
     assert tour == [0, 1, 2, 3]
@@ -116,7 +116,7 @@ def test_gurobi_model_sample_5() -> None:
     model.solve_model_with_parameters()
 
     assert model.get_model().Status == gp.GRB.OPTIMAL
-    tour, cost = model.get_original_objective()
+    tour, cost = model.get_original_solution()
 
     # The only feasible tour has the active edge (0, 1)
     assert tour == [0, 1]
@@ -132,7 +132,7 @@ def test_gurobi_model_sample_6() -> None:
     model.solve_model_with_parameters()
 
     assert model.get_model().Status == gp.GRB.OPTIMAL
-    tour, cost = model.get_original_objective()
+    tour, cost = model.get_original_solution()
 
     assert inst.compute_objective(tour) == cost
 
@@ -149,7 +149,7 @@ def test_gurobi_model_sample_7() -> None:
     model.solve_model_with_parameters()
 
     assert model.get_model().Status == gp.GRB.OPTIMAL
-    tour, cost = model.get_original_objective()
+    tour, cost = model.get_original_solution()
 
     assert inst.compute_objective(tour) == cost
 
@@ -167,7 +167,7 @@ def test_gurobi_model_sample_8() -> None:
     model.solve_model_with_parameters()
 
     assert model.get_model().Status == gp.GRB.OPTIMAL
-    tour, cost = model.get_original_objective()
+    tour, cost = model.get_original_solution()
 
     assert inst.compute_objective(tour) == cost
 
@@ -194,7 +194,7 @@ def test_gurobi_model_sample_9() -> None:
 
     # Make sure that TSP is solved correctly when no relations
     assert model.get_model().Status == gp.GRB.OPTIMAL
-    tour, cost = model.get_original_objective()
+    tour, cost = model.get_original_solution()
 
     assert inst.compute_objective(tour) == cost
 
@@ -211,7 +211,7 @@ def test_gurobi_model_sample_10() -> None:
 
     # Make sure that TSP is solved correctly when no relations
     assert model.get_model().Status == gp.GRB.OPTIMAL
-    tour, cost = model.get_original_objective()
+    tour, cost = model.get_original_solution()
 
     assert inst_2.compute_objective(tour) == cost
     assert cost == 65.0
@@ -230,7 +230,7 @@ def test_gurobi_model_sample_11() -> None:
     # Make sure that TSP is solved correctly when no relations
     # Regardless of the solution, the cost should be 10
     assert model.get_model().Status == gp.GRB.OPTIMAL
-    _, cost = model.get_original_objective()
+    _, cost = model.get_original_solution()
     assert cost == 10.0
 
     # Let's introduce one relation that allows us to reduce the cost
@@ -241,7 +241,7 @@ def test_gurobi_model_sample_11() -> None:
     model.solve_model_with_parameters()
 
     assert model.get_model().Status == gp.GRB.OPTIMAL
-    _, cost = model.get_original_objective()
+    _, cost = model.get_original_solution()
     assert cost == 9.0
     x = model.get_x()
     assert x[0, 1].x == 1.0
@@ -277,6 +277,6 @@ def test_gurobi_model_sample_13() -> None:
     model.solve_model_with_parameters()
 
     assert model.get_model().Status == gp.GRB.OPTIMAL
-    tour, cost = model.get_original_objective()
+    tour, cost = model.get_original_solution()
     assert cost == 2.0  # The cost of 0->4 and 4->5
     assert tour[:3] == [0, 4, 5]

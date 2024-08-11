@@ -136,7 +136,7 @@ class GurobiModel:
             error_msg = "Model is infeasible"
             raise ValueError(error_msg)
 
-    def get_original_objective(self) -> list[list, float]:
+    def get_original_solution(self) -> list[list, float]:
         tour = sorted([i for i in self.instance.nodes if i != 0], key=lambda i: self.u[i].X)
         tour = [0, *tour]
 
@@ -169,10 +169,10 @@ def gurobi_main(instance_name: str) -> None:
 
     instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, instance_name))
 
-    gurobi_model = GurobiModel(instance)
-    model = gurobi_model.formulate()
-    model = gurobi_model.solve_model_with_parameters(model)
-    tour, cost = gurobi_model.get_original_objective(model)
+    model = GurobiModel(instance)
+    model.formulate()
+    model.solve_model_with_parameters()
+    tour, cost = model.get_original_solution()
 
     instance.test_solution(tour, cost)
     instance.save_solution(tour, cost)
