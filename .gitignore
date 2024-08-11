@@ -1,6 +1,7 @@
 # Data
 /instances/
 /solutions/
+model.ilp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
