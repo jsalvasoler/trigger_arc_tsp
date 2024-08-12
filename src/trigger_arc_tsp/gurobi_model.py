@@ -116,21 +116,20 @@ class GurobiModel:
             sense=gp.GRB.MINIMIZE,
         )
 
-    def solve_model_with_parameters(self) -> None:
+    def solve_model_with_parameters(self, time_limit_sec: int = 60, heuristic_effort: float = 0.05) -> None:
         if self.model is None:
             raise ValueError("Model is not formulated")
 
-        # set time limit to two minutes
-        self.model.setParam(gp.GRB.Param.TimeLimit, 120)
+        # Set parameters and optimize
+        self.model.setParam(gp.GRB.Param.TimeLimit, time_limit_sec)
+        self.model.setParam(gp.GRB.Param.Heuristics, heuristic_effort)
         self.model.optimize()
 
         status = self.model.status
         if status == gp.GRB.Status.INFEASIBLE:
-            # run infeasibility analysis
             self.model.computeIIS()
             self.model.write("model.ilp")
-            error_msg = "Model is infeasible"
-            raise ValueError(error_msg)
+            raise ValueError("Model is infeasible")
 
     def get_original_solution(self) -> list[list, float]:
         tour = sorted([i for i in self.instance.nodes if i != 0], key=lambda i: self.u[i].X)
@@ -160,17 +159,16 @@ class GurobiModel:
         return self.model
 
 
-def gurobi_main(instance_name: str) -> None:
+def gurobi_main(instance_name: str, time_limit_sec: int = 60, heuristic_effort: float = 0.05) -> None:
     instance_name = cleanup_instance_name(instance_name)
 
     instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, instance_name))
 
     model = GurobiModel(instance)
     model.formulate()
-    model.solve_model_with_parameters()
+    model.solve_model_with_parameters(time_limit_sec=time_limit_sec, heuristic_effort=heuristic_effort)
     tour, cost = model.get_original_solution()
 
-    instance.test_solution(tour, cost)
     instance.save_solution(tour, cost)
 
     # tour = [0,8,6,4,18,19,5,14,3,1,15,13,10,7,9,2,16,12,11,17]

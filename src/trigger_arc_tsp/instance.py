@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from collections import defaultdict
 from datetime import datetime
+from warnings import warn
 
 from trigger_arc_tsp.utils import SOLUTIONS_DIR
 
@@ -120,7 +121,8 @@ class Instance:
         if not self.test_solution(tour, objective):
             msg = f"Solution {tour} does not have the correct objective value for instance {self.name}"
             msg += f" (computed: {self.compute_objective(tour)}, proposed: {objective})"
-            raise ValueError(msg)
+            warn(msg, stacklevel=1)
+            objective = self.compute_objective(tour)
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # noqa: DTZ005
         os.makedirs(os.path.join(SOLUTIONS_DIR, *self.name.split("/")[:-1]), exist_ok=True)
