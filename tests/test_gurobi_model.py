@@ -71,6 +71,7 @@ def test_gurobi_model_sample_3() -> None:
     inst = Instance(N=N, edges=edges, relations=relations, name="test")
     model = GurobiModel(inst)
     model.formulate()
+
     model.solve_model_with_parameters()
 
     assert model.get_model().Status == gp.GRB.OPTIMAL
@@ -280,3 +281,27 @@ def test_gurobi_model_sample_13() -> None:
     tour, cost = model.get_original_solution()
     assert cost == 2.0  # The cost of 0->4 and 4->5
     assert tour[:3] == [0, 4, 5]
+
+
+def test_gurobi_model_sample_14() -> None:
+    N = 5
+    edges = [(0, 1), (1, 2), (1, 4), (2, 3), (3, 4), (4, 0)]
+    edges = {e: 1 for e in edges}
+    relations = {
+        (0, 1, 2, 3): 0,
+        (1, 4, 2, 3): 0,
+    }
+
+    inst = Instance(N=N, edges=edges, relations=relations, name="test")
+
+    model = GurobiModel(inst)
+    model.formulate()
+
+    model.solve_model_with_parameters()
+
+    assert model.get_model().Status == gp.GRB.OPTIMAL
+
+    tour, cost = model.get_original_solution()
+    assert tour == [0, 1, 2, 3, 4]
+    assert cost == 4.0
+    assert model.get_y()[0, 1, 2, 3].x == 1.0

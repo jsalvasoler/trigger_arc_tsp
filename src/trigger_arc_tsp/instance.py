@@ -5,6 +5,7 @@ from collections import defaultdict
 from datetime import datetime
 from warnings import warn
 
+from trigger_arc_tsp.gurobi_tsp_model import GurobiTSPModel
 from trigger_arc_tsp.utils import SOLUTIONS_DIR
 
 
@@ -73,21 +74,22 @@ class Instance:
         cost = sum(self.edges[a] for a in path)
 
         for a in path:
-            if self.R_a.get(a):
-                # find the relations that could trigger the arc a
-                triggering = set(self.R_a[a]).intersection(path_set)
-                if not triggering:
-                    continue
-                # sort the triggering relations by their index in the path (higher index last)
-                triggering = sorted(triggering, key=lambda x: path.index(x))
-                # remove the triggering arcs that happen after the arc a
-                triggering = [rel for rel in triggering if path.index(rel) < path.index(a)]
-                if not triggering:
-                    continue
-                # the last relation in the list is the one that triggers the arc a
-                trigger_rel_cost = self.relations[*triggering[-1], *a] - self.offset
-                # add the relative cost of the triggering relation to the cost of the arc a
-                cost += trigger_rel_cost
+            if not self.R_a.get(a):
+                continue
+            # find the relations that could trigger the arc a
+            triggering = set(self.R_a[a]).intersection(path_set)
+            if not triggering:
+                continue
+            # sort the triggering relations by their index in the path (higher index last)
+            triggering = sorted(triggering, key=lambda x: path.index(x))
+            # remove the triggering arcs that happen after the arc a
+            triggering = [rel for rel in triggering if path.index(rel) < path.index(a)]
+            if not triggering:
+                continue
+            # the last relation in the list is the one that triggers the arc a
+            trigger_rel_cost = self.relations[*triggering[-1], *a] - self.offset
+            # add the relative cost of the triggering relation to the cost of the arc a
+            cost += trigger_rel_cost
 
         return cost
 
@@ -130,10 +132,49 @@ class Instance:
         with open(os.path.join(SOLUTIONS_DIR, *self.name.split("/")), "a") as file:
             if file.tell() != 0:
                 file.write("\n")
-            assert tour[0] == 0
-            assert tour[-1] != 0
+            assert tour[0] == 0, "Tour should start at 0"
+            assert tour[-1] != 0, "Tour should not end at 0"
             file.write(",".join(map(str, tour)))
             file.write(f" | {objective} | {timestamp}")
 
     def __str__(self) -> str:
         return f"Instance(N={self.N}, A={self.A}, R={self.R})"
+
+    def get_mip_start(self) -> list[dict, dict, dict, dict]:
+        tour = self.tsp_solution()
+        return self.get_variables_from_tour(tour)
+
+    def get_variables_from_tour(self, tour: list) -> list[dict, dict, dict, dict, dict]:
+        tour_edges = [(tour[i], tour[i + 1] if i < self.N - 1 else 0) for i in range(self.N)]
+        assert len(tour_edges) == self.N
+        x = {edge: 1 if edge in tour_edges else 0 for edge in self.edges}
+        u = {node: i for i, node in enumerate(tour)}
+        y = {rel: 0 for rel in self.relations}
+        for a in tour_edges:
+            assert u[a[0]] < u[a[1]] or a[1] == 0
+            if a not in self.R_a:
+                continue
+            # find the relations that could trigger the arc a
+            triggering = set(self.R_a[a]).intersection(tour_edges)
+            if not triggering:
+                continue
+            # sort the triggering relations by their index in the path (higher index last)
+            triggering = sorted(triggering, key=lambda x: tour_edges.index(x))
+            # remove the triggering arcs that happen after the arc a
+            triggering = [rel for rel in triggering if tour_edges.index(rel) < tour_edges.index(a)]
+            if not triggering:
+                continue
+            # the last relation in the list is the one that triggers the arc a
+            y[*triggering[-1], *a] = 1
+
+        z_indices = [(a, b, c) for a in self.R_a for b in self.R_a[a] for c in self.R_a[a] if b != c]
+        z_1 = {(a, b, c): not u[c[0]] >= u[b[0]] + 1 for a, b, c in z_indices}
+        z_2 = {(a, b, c): not u[a[0]] >= u[c[0]] + 1 for a, b, c in z_indices}
+
+        return x, y, u, z_1, z_2
+
+    def tsp_solution(self) -> list:
+        model = GurobiTSPModel(self)
+        model.formulate()
+        model.solve_to_feasible_solution()
+        return model.get_tour()

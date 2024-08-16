@@ -86,25 +86,40 @@ class GurobiModel:
             name="trigger_before_arc",
         )
 
-        # For different relations r=(b,a) and r'=(c,a) in R_a, if c comes after b
-        # in the tour, then y[b, a] <= y[c, a] (1 <= 1 or 0 <= 0 or 0 <= 1)
+        # For different relations r=(b,a) and r'=(c,a) in R_a, if we have u[b] < u[c] < u[a] in the tour,
+        # then y[b, a] <= y[c, a]
         z_indices = [
             (a, b, c) for a in self.instance.R_a for b in self.instance.R_a[a] for c in self.instance.R_a[a] if b != c
         ]
-        z_1 = self.model.addVars(z_indices, vtype=gp.GRB.BINARY, name="z_1")
-        z_2 = self.model.addVars(z_indices, vtype=gp.GRB.BINARY, name="z_2")
+        self.z_1 = self.model.addVars(z_indices, vtype=gp.GRB.BINARY, name="z_1")
+        self.z_2 = self.model.addVars(z_indices, vtype=gp.GRB.BINARY, name="z_2")
 
         self.model.addConstrs(
-            (self.u[c[0]] <= self.u[b[0]] + (self.instance.N - 1) * (1 - z_1[a, b, c]) for a, b, c in z_indices),
+            (self.u[c[0]] <= self.u[b[0]] + (self.instance.N - 1) * (1 - self.z_1[a, b, c]) for a, b, c in z_indices),
             name="relation_order_1",
         )
         self.model.addConstrs(
-            (self.u[a[0]] <= self.u[c[0]] + (self.instance.N - 1) * (1 - z_2[a, b, c]) for a, b, c in z_indices),
+            (self.u[a[0]] <= self.u[c[0]] + (self.instance.N - 1) * (1 - self.z_2[a, b, c]) for a, b, c in z_indices),
             name="relation_order_2",
         )
         self.model.addConstrs(
-            (self.y[*b, *a] <= z_1[a, b, c] + z_2[a, b, c] for a, b, c in z_indices), name="relation_order_3"
+            (
+                self.y[*b, *a]
+                <= self.y[*c, *a]
+                + self.z_1[a, b, c]
+                + self.z_2[a, b, c]
+                + (1 - self.x[c])
+                + (1 - self.x[b])
+                + (1 - self.x[a])
+                for a, b, c in z_indices
+            ),
+            name="relation_order_3",
         )
+        # TODO: fix the case in which c is not selected in the path. this should be y[*b, *a] <= y[*c, *a]
+        # TODO: fix the case in which c comes after b in the tour. then the constraint should not be binding
+
+        # Set u_0 = 0
+        self.model.addConstr(self.u[0] == 0, name="depot_starts_sequence_at_zero")
 
         # Set the objective function
         self.model.setObjective(
@@ -116,9 +131,22 @@ class GurobiModel:
             sense=gp.GRB.MINIMIZE,
         )
 
-    def solve_model_with_parameters(self, time_limit_sec: int = 60, heuristic_effort: float = 0.05) -> None:
+    def provide_mip_start(self, vars_: list[dict]) -> None:
+        assert len(vars_) == 5
+        for var_name, var in zip(["x", "y", "u", "z_1", "z_2"], vars_):
+            gb_var = getattr(self, var_name)
+            for key, val in var.items():
+                gb_var[key].Start = val
+
+    def solve_model_with_parameters(
+        self, time_limit_sec: int = 60, heuristic_effort: float = 0.05, *, mip_start: bool = False
+    ) -> None:
         if self.model is None:
             raise ValueError("Model is not formulated")
+
+        if mip_start:
+            vars_ = self.instance.get_mip_start()
+            self.provide_mip_start(vars_)
 
         # Set parameters and optimize
         self.model.setParam(gp.GRB.Param.TimeLimit, time_limit_sec)
@@ -159,14 +187,18 @@ class GurobiModel:
         return self.model
 
 
-def gurobi_main(instance_name: str, time_limit_sec: int = 60, heuristic_effort: float = 0.05) -> None:
+def gurobi_main(
+    instance_name: str, time_limit_sec: int = 60, heuristic_effort: float = 0.05, *, mip_start: bool = False
+) -> None:
     instance_name = cleanup_instance_name(instance_name)
 
     instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, instance_name))
 
     model = GurobiModel(instance)
     model.formulate()
-    model.solve_model_with_parameters(time_limit_sec=time_limit_sec, heuristic_effort=heuristic_effort)
+    model.solve_model_with_parameters(
+        time_limit_sec=time_limit_sec, heuristic_effort=heuristic_effort, mip_start=mip_start
+    )
     tour, cost = model.get_original_solution()
 
     instance.save_solution(tour, cost)

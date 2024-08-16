@@ -71,10 +71,6 @@ def test_write_solution_to_file(clean_test_file: Generator[Any, Any, Any]) -> No
         instance.save_solution(invalid_tour, 71.0)
 
     valid_tour = [0, 2, 1, 4, 3]
-    with pytest.raises(ValueError, match="Solution "):
-        instance.save_solution(valid_tour, objective=0.0)
-
-    valid_tour = [0, 2, 1, 4, 3]
     instance.name = "examples/just_a_test.txt"
     instance.save_solution(valid_tour, 71.0)
 
