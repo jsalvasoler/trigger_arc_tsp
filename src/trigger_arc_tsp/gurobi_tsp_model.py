@@ -48,13 +48,27 @@ class GurobiTSPModel:
         )
 
     def solve_to_feasible_solution(self) -> None:
-        if self.model is None:
-            raise ValueError("Model is not formulated")
+        self.check_model_is_formulated()
 
         # Set parameters and optimize
         self.model.setParam(gp.GRB.Param.SolutionLimit, 1)
         self.model.optimize()
 
+        self.check_model_status()
+
+    def solve_to_optimality(self) -> None:
+        self.check_model_is_formulated()
+
+        # Set parameters and optimize
+        self.model.optimize()
+
+        self.check_model_status()
+
+    def check_model_is_formulated(self) -> None:
+        if self.model is None:
+            raise ValueError("Model is not formulated")
+
+    def check_model_status(self) -> None:
         status = self.model.status
         if status == gp.GRB.Status.INFEASIBLE:
             self.model.computeIIS()

@@ -27,6 +27,9 @@ classifiers = [
 dependencies = [
   "gurobipy",
   "click",
+  "ipython",
+  "tdqm",
+  "pandas",
 ]
 
 [project.urls]
