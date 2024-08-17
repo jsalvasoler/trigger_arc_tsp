@@ -115,8 +115,6 @@ class GurobiModel:
             ),
             name="relation_order_3",
         )
-        # TODO: fix the case in which c is not selected in the path. this should be y[*b, *a] <= y[*c, *a]
-        # TODO: fix the case in which c comes after b in the tour. then the constraint should not be binding
 
         # Set u_0 = 0
         self.model.addConstr(self.u[0] == 0, name="depot_starts_sequence_at_zero")
@@ -214,4 +212,4 @@ def gurobi_main(
 
 
 if __name__ == "__main__":
-    gurobi_main()
+    gurobi_main(instance_name="instances_release_1/grf5.txt", mip_start=True)

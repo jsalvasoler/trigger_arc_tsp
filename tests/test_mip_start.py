@@ -37,13 +37,17 @@ def test_get_variables_from_tour() -> None:
     assert z_2 == {(a, b, c): u[a[0]] <= u[c[0]] for a, b, c in z_2}
 
 
-def test_get_mip_start() -> None:
+def test_get_mip_start_from_saved_solution() -> None:
     inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
 
-    x, y, _, _, _ = inst.get_mip_start()
+    # we know that we saved the solution [0, 3, 2, 1, 4] for this instance
+    x, y, u, _, _ = inst.get_mip_start()
 
     assert sum(v for v in y.values()) <= 2
     assert sum(v for v in x.values()) == 5
+
+    tour = sorted(u.keys(), key=lambda i: u[i])
+    assert tour == [0, 3, 2, 1, 4]
 
 
 def test_provide_mip_start_1() -> None:
@@ -69,7 +73,7 @@ def test_provide_mip_start_2() -> None:
     model = GurobiModel(inst)
     model.formulate()
 
-    vars_ = inst.get_mip_start()
+    vars_ = inst.get_mip_start(use_tsp_only=True)
     model.provide_mip_start(vars_)
 
     gb_model = model.get_model()
