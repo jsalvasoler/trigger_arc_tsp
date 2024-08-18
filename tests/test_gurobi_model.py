@@ -324,3 +324,14 @@ def test_arc_after_target_does_not_trigger() -> None:
     assert tour == [0, 1, 2]
     assert cost == 3.0
     assert model.get_y()[1, 2, 0, 1].x == 0.0
+
+
+def test_solve_with_parameters() -> None:
+    inst = Instance.load_instance_from_file("instances/examples/example_4.txt")
+    model = GurobiModel(inst)
+    model.formulate()
+    model.solve_model_with_parameters(time_limit_sec=1)
+    assert model.get_model().Runtime <= 1.5
+    model.solve_model_with_parameters(heuristic_effort=0.658)
+    # check that heuristics = 0.658
+    assert model.get_model().getParamInfo("Heuristics")[2] == 0.658
