@@ -31,19 +31,8 @@ class Instance:
             self.delta_in[j].add(i)
             self.delta_out[i].add(j)
 
-        # self.rescale_costs_of_relations()
+        self.relations = {rel: self.relations[rel] - self.edges[(rel[2], rel[3])] for rel in self.relations}
         self.offset = 0
-
-        # def rescale_costs_of_relations(self) -> None:
-        relative_costs = {rel: self.relations[rel] - self.edges[(rel[2], rel[3])] for rel in self.relations}
-        max_rel_cost = max(relative_costs.values()) if relative_costs else 0
-        self.offset = -max_rel_cost - 1 if max_rel_cost >= 0 else 0
-        for rel in self.relations:
-            self.relations[rel] = relative_costs[rel]
-            if max_rel_cost >= 0:
-                self.relations[rel] += self.offset
-
-        assert all(self.relations[rel] < 0 for rel in self.relations)
 
     @staticmethod
     def load_instance_from_file(file_path: os.PathLike) -> Instance:
