@@ -5,7 +5,7 @@ import os
 import gurobipy as gp
 
 from trigger_arc_tsp.instance import Instance
-from trigger_arc_tsp.utils import INSTANCES_DIR
+from trigger_arc_tsp.utils import INSTANCES_DIR, MODELS_DIR
 
 
 def cleanup_instance_name(instance: str) -> str:
@@ -32,9 +32,34 @@ class GurobiModel:
         self.model = None
 
         self.x, self.y, self.u, self.z = None, None, None, None
-        self.z_indices = [(a, b) for a in self.instance.edges for b in self.instance.edges if a != b]
+        self.z_indices = [(*a, *b) for a in self.instance.edges for b in self.instance.edges if a != b]
 
-    def formulate(self, *, relax_obj_modeling: bool = False) -> None:
+    def get_model_from_model_file(self) -> None | gp.Model:
+        model_path = os.path.join(MODELS_DIR, self.instance.model_name)
+        if not os.path.exists(model_path):
+            return None
+        return gp.read(model_path)
+
+    def define_variables_from_model(self) -> None:
+        self.x = {key: self.model.getVars()[idx] for idx, key in enumerate(self.instance.edges)}
+        self.u = {key: self.model.getVars()[len(self.x) + idx] for idx, key in enumerate(self.instance.nodes)}
+        self.y = {
+            key: self.model.getVars()[len(self.x) + len(self.u) + idx]
+            for idx, key in enumerate(self.instance.relations)
+        }
+        self.z = {
+            key: self.model.getVars()[len(self.x) + len(self.u) + len(self.y) + idx]
+            for idx, key in enumerate(self.z_indices)
+        }
+        assert len(self.x) + len(self.y) + len(self.u) + len(self.z) == len(self.model.getVars())
+
+    def formulate(self, *, relax_obj_modeling: bool = False, read_model: bool = False) -> None:
+        if read_model:
+            self.model = self.get_model_from_model_file()
+            if self.model is not None:
+                self.define_variables_from_model()
+                return
+
         self.model = gp.Model("TriggerArcTSP")
 
         self.x = self.model.addVars(self.instance.edges, vtype=gp.GRB.BINARY, name="x")
@@ -97,7 +122,7 @@ class GurobiModel:
         # If we have u[b] < u[a] in the tour, and x[a] == x[b] == 1, then sum(y[c, a] for c in R_a) == 1
         # (at least one relation is active)
         self.model.addConstrs(
-            (1 - self.z[a, b])
+            (1 - self.z[*a, *b])
             <= gp.quicksum(self.y[*b, *a] for b in self.instance.R_a[a]) + (1 - self.x[a]) + (1 - self.x[b])
             for a in self.instance.R_a
             for b in self.instance.R_a[a]
@@ -107,8 +132,8 @@ class GurobiModel:
         # u[a_2] + 1 <= u[a_1] implies z[a_1, a_2] == 0
         self.model.addConstrs(
             (
-                self.u[a_1[0]] <= self.u[a_2[0]] + (self.instance.N - 1) * (1 - self.z[a_1, a_2])
-                for a_1, a_2 in self.z_indices
+                self.u[a10] <= self.u[a20] + (self.instance.N - 1) * (1 - self.z[a10, a11, a20, a21])
+                for a10, a11, a20, a21 in self.z_indices
             ),
             name="model_z_variables",
         )
@@ -118,8 +143,8 @@ class GurobiModel:
             (
                 self.y[*b, *a]
                 <= self.y[*c, *a]
-                + self.z[c, b]  # u[b] + 1 < u[c] implies z[c, b] == 0
-                + self.z[a, c]  # u[c] + 1 < u[a] implies z[c, a] == 0
+                + self.z[*c, *b]  # u[b] + 1 < u[c] implies z[c, b] == 0
+                + self.z[*a, *c]  # u[c] + 1 < u[a] implies z[c, a] == 0
                 + (1 - self.x[c])
                 + (1 - self.x[b])
                 + (1 - self.x[a])
@@ -141,6 +166,8 @@ class GurobiModel:
             for a in self.instance.edges
         )
         self.model.setObjective(obj, sense=gp.GRB.MINIMIZE)
+
+        self.model.write(os.path.join(MODELS_DIR, self.instance.model_name))
 
     def provide_mip_start(self, vars_: list[dict]) -> None:
         assert len(vars_) == 4
@@ -190,6 +217,9 @@ class GurobiModel:
     def get_u(self) -> dict:
         return self.u
 
+    def get_z(self) -> dict:
+        return self.z
+
     def get_model(self) -> gp.Model:
         return self.model
 
@@ -201,13 +231,14 @@ def gurobi_main(
     *,
     mip_start: bool = False,
     relax_obj_modeling: bool = False,
+    read_model: bool = False,
 ) -> None:
     instance_name = cleanup_instance_name(instance_name)
 
     instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, instance_name))
 
     model = GurobiModel(instance)
-    model.formulate(relax_obj_modeling=relax_obj_modeling)
+    model.formulate(relax_obj_modeling=relax_obj_modeling, read_model=read_model)
     model.solve_model_with_parameters(
         time_limit_sec=time_limit_sec, heuristic_effort=heuristic_effort, mip_start=mip_start
     )
@@ -232,4 +263,5 @@ if __name__ == "__main__":
         mip_start=True,
         heuristic_effort=0.8,
         relax_obj_modeling=True,
+        read_model=False,
     )

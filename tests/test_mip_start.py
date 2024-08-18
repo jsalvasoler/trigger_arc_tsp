@@ -33,7 +33,7 @@ def test_get_variables_from_tour() -> None:
             assert y[rel] == 0
 
     # check z_1 and z_2
-    assert z == {(a, b): u[a[0]] + 1 <= u[b[0]] for a in inst.edges for b in inst.edges if a != b}
+    assert z == {(*a, *b): u[a[0]] + 1 <= u[b[0]] for a in inst.edges for b in inst.edges if a != b}
 
 
 def test_get_mip_start_from_saved_solution() -> None:

@@ -18,6 +18,7 @@ def cli() -> None:
 @click.option(
     "--relax_obj_modeling", type=bool, is_flag=True, default=False, help="Relax integrality of objective modeling"
 )
+@click.option("--read_model", type=bool, is_flag=True, default=False, help="Try to read model from file")
 def evaluate_command(
     instance: str | None,
     time_limit_sec: int = 60,
@@ -25,6 +26,7 @@ def evaluate_command(
     *,
     mip_start: bool = False,
     relax_obj_modeling: bool = False,
+    read_model: bool = False,
 ) -> None:
     click.echo(f"Running Gurobi MIP model for instance: {instance}")
     gurobi_main(
@@ -33,6 +35,7 @@ def evaluate_command(
         heuristic_effort=he,
         mip_start=mip_start,
         relax_obj_modeling=relax_obj_modeling,
+        read_model=read_model,
     )
 
 

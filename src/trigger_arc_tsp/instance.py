@@ -12,6 +12,7 @@ from trigger_arc_tsp.utils import SOLUTIONS_DIR
 class Instance:
     def __init__(self, N: int, edges: dict, relations: dict, name: str) -> None:
         self.name = name
+        self.model_name = name.removesuffix(".txt") + ".mps"
 
         self.edges = edges
         self.relations = relations
@@ -180,7 +181,7 @@ class Instance:
             y[*triggering[-1], *a] = 1
 
         z_indices = [(a, b) for a in self.edges for b in self.edges if a != b]
-        z = {(a, b): u[a[0]] + 1 <= u[b[0]] for a, b in z_indices}
+        z = {(*a, *b): u[a[0]] + 1 <= u[b[0]] for a, b in z_indices}
 
         return x, y, u, z
 

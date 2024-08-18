@@ -1,6 +1,7 @@
 # Data
 /instances/
 /solutions/
+/models/
 model.ilp
 
 # Runner script
