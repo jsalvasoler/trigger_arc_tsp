@@ -31,16 +31,19 @@ class Instance:
             self.delta_in[j].add(i)
             self.delta_out[i].add(j)
 
-        self.rescale_costs_of_relations()
+        # self.rescale_costs_of_relations()
+        self.offset = 0
 
-    def rescale_costs_of_relations(self) -> None:
+        # def rescale_costs_of_relations(self) -> None:
         relative_costs = {rel: self.relations[rel] - self.edges[(rel[2], rel[3])] for rel in self.relations}
         max_rel_cost = max(relative_costs.values()) if relative_costs else 0
+        self.offset = -max_rel_cost - 1 if max_rel_cost >= 0 else 0
         for rel in self.relations:
             self.relations[rel] = relative_costs[rel]
             if max_rel_cost >= 0:
-                self.relations[rel] -= max_rel_cost + 1
-        self.offset = -max_rel_cost - 1 if max_rel_cost >= 0 else 0
+                self.relations[rel] += self.offset
+
+        assert all(self.relations[rel] < 0 for rel in self.relations)
 
     @staticmethod
     def load_instance_from_file(file_path: os.PathLike) -> Instance:
@@ -148,8 +151,9 @@ class Instance:
         sols = []
         with open(filename) as file:
             lines = file.readlines()
-            tour, obj, _ = lines[-1].split(" | ")
-            sols.append((tour, float(obj)))
+            for line in lines:
+                tour, obj, _ = line.split(" | ")
+                sols.append((tour, float(obj)))
 
             sols = sorted(sols, key=lambda x: x[1])
 
@@ -163,7 +167,7 @@ class Instance:
         tour = best_known_solution if best_known_solution and not use_tsp_only else self.tsp_solution()
         return self.get_variables_from_tour(tour)
 
-    def get_variables_from_tour(self, tour: list) -> list[dict, dict, dict, dict, dict]:
+    def get_variables_from_tour(self, tour: list) -> list[dict, dict, dict, dict]:
         tour_edges = [(tour[i], tour[i + 1] if i < self.N - 1 else 0) for i in range(self.N)]
         assert len(tour_edges) == self.N
         x = {edge: 1 if edge in tour_edges else 0 for edge in self.edges}
@@ -186,11 +190,10 @@ class Instance:
             # the last relation in the list is the one that triggers the arc a
             y[*triggering[-1], *a] = 1
 
-        z_indices = [(a, b, c) for a in self.R_a for b in self.R_a[a] for c in self.R_a[a] if b != c]
-        z_1 = {(a, b, c): not u[c[0]] >= u[b[0]] + 1 for a, b, c in z_indices}
-        z_2 = {(a, b, c): not u[a[0]] >= u[c[0]] + 1 for a, b, c in z_indices}
+        z_indices = [(a, b) for a in self.edges for b in self.edges if a != b]
+        z = {(a, b): u[a[0]] + 1 <= u[b[0]] for a, b in z_indices}
 
-        return x, y, u, z_1, z_2
+        return x, y, u, z
 
     def tsp_solution(self) -> list:
         model = GurobiTSPModel(self)
