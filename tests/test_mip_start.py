@@ -125,7 +125,7 @@ def test_that_improving_after_mip_start_improves_original_objective() -> None:
     # Check that the gurobi solution and objective is the same as the original
     assert round(comp_cost_1, 4) == 119.48
     assert comp_tour_1 == tour_1
-    assert round(opt_objective_1, 4) == round(model_1.get_original_solution(keep_offset=True)[1], 4)
+    assert round(opt_objective_1, 4) == round(model_1.get_original_solution()[1], 4)
 
     model_2 = GurobiModel(inst)
     model_2.formulate()
@@ -146,7 +146,7 @@ def test_that_improving_after_mip_start_improves_original_objective() -> None:
     # Check that the gurobi solution and objective is the same as the original
     assert round(comp_cost_2, 4) == 120.66
     assert comp_tour_2 == tour_2
-    assert round(opt_objective_2, 4) == round(model_2.get_original_solution(keep_offset=True)[1], 4)
+    assert round(opt_objective_2, 4) == round(model_2.get_original_solution()[1], 4)
 
     # Since obj_1 < obj_2, we expect opt_objective_1 < opt_objective_2
     assert obj_1 < obj_2

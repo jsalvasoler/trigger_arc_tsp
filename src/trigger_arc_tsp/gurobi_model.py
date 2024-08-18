@@ -29,7 +29,8 @@ def cleanup_instance_name(instance: str) -> str:
 class GurobiModel:
     def __init__(self, instance: Instance) -> None:
         self.instance = instance
-        self.model = None
+        self.model = gp.Model("TriggerArcTSP")
+        self.formulated = False
 
         self.x, self.y, self.u, self.z = None, None, None, None
         self.z_indices = [(*a, *b) for a in self.instance.edges for b in self.instance.edges if a != b]
@@ -53,26 +54,54 @@ class GurobiModel:
         }
         assert len(self.x) + len(self.y) + len(self.u) + len(self.z) == len(self.model.getVars())
 
-    def formulate(self, *, relax_obj_modeling: bool = False, read_model: bool = False) -> None:
+    def formulate(
+        self,
+        *,
+        relax_obj_modeling: bool = False,
+        read_model: bool = False,
+        vars_: None | list[dict, dict, dict, dict] = None,
+    ) -> None:
+        self.formulated = True
+
+        if vars_ is not None:
+            assert not read_model
+            assert not relax_obj_modeling
+            assert len(vars_) == 4
+
         if read_model:
             self.model = self.get_model_from_model_file()
             if self.model is not None:
                 self.define_variables_from_model()
                 return
 
-        self.model = gp.Model("TriggerArcTSP")
+        if relax_obj_modeling:
+            self.add_variables_relax_obj()
+        elif vars_:
+            # The user has already loaded the variables into the model, we just need to register them
+            assert len(self.model.getVars()) > 0
+            self.x, self.y, self.u, self.z = vars_
+        else:
+            self.add_variables()
 
+        self.add_constraints()
+
+    def add_variables(self) -> None:
         self.x = self.model.addVars(self.instance.edges, vtype=gp.GRB.BINARY, name="x")
         self.u = self.model.addVars(
             self.instance.nodes, vtype=gp.GRB.CONTINUOUS, name="u", lb=0, ub=self.instance.N - 1
         )
-        if not relax_obj_modeling:
-            self.y = self.model.addVars(self.instance.relations, vtype=gp.GRB.BINARY, name="y")
-            self.z = self.model.addVars(self.z_indices, vtype=gp.GRB.BINARY, name="z")
-        else:
-            self.y = self.model.addVars(self.instance.relations, vtype=gp.GRB.CONTINUOUS, name="y", lb=0, ub=1)
-            self.z = self.model.addVars(self.z_indices, vtype=gp.GRB.CONTINUOUS, name="z", lb=0, ub=1)
+        self.y = self.model.addVars(self.instance.relations, vtype=gp.GRB.BINARY, name="y")
+        self.z = self.model.addVars(self.z_indices, vtype=gp.GRB.BINARY, name="z")
 
+    def add_variables_relax_obj(self) -> None:
+        self.x = self.model.addVars(self.instance.edges, vtype=gp.GRB.BINARY, name="x")
+        self.u = self.model.addVars(
+            self.instance.nodes, vtype=gp.GRB.CONTINUOUS, name="u", lb=0, ub=self.instance.N - 1
+        )
+        self.y = self.model.addVars(self.instance.relations, vtype=gp.GRB.CONTINUOUS, name="y", lb=0, ub=1)
+        self.z = self.model.addVars(self.z_indices, vtype=gp.GRB.CONTINUOUS, name="z", lb=0, ub=1)
+
+    def add_constraints(self) -> None:
         # Flow conservation constraints
         self.model.addConstrs(
             (gp.quicksum(self.x[i, j] for j in self.instance.delta_out[i]) == 1 for i in self.instance.nodes),
@@ -179,7 +208,7 @@ class GurobiModel:
     def solve_model_with_parameters(
         self, time_limit_sec: int = 60, heuristic_effort: float = 0.05, *, mip_start: bool = False
     ) -> None:
-        if self.model is None:
+        if not self.formulated:
             raise ValueError("Model is not formulated")
 
         if mip_start:
@@ -197,14 +226,17 @@ class GurobiModel:
             self.model.write("model.ilp")
             raise ValueError("Model is infeasible")
 
-    def get_original_solution(self, *, keep_offset: bool = False) -> list[list, float]:
-        tour = sorted([i for i in self.instance.nodes if i != 0], key=lambda i: self.u[i].X)
+    def get_original_solution(self) -> list[list, float]:
+        u_vals = {i: self.u[i].X if type(self.u[i]) is gp.Var else self.u[i] for i in self.u}
+        x_vals = {a: self.x[a].X if type(self.x[a]) is gp.Var else self.x[a] for a in self.x}
+        y_vals = {a: self.y[a].X if type(self.y[a]) is gp.Var else self.y[a] for a in self.y}
+
+        tour = sorted([i for i in self.instance.nodes if i != 0], key=lambda i: u_vals[i])
         tour = [0, *tour]
 
         cost = 0
-        cost += sum(self.instance.edges[a] for a in self.instance.edges if self.x[a].X > 0.5)
-        offset = 0 if keep_offset else self.instance.offset
-        cost += sum(self.instance.relations[a] - offset for a in self.instance.relations if self.y[a].X > 0.5)
+        cost += sum(self.instance.edges[a] for a in self.instance.edges if x_vals[a] > 0.5)
+        cost += sum(self.instance.relations[a] for a in self.instance.relations if y_vals[a] > 0.5)
 
         return tour, cost
 

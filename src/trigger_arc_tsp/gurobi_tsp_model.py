@@ -11,12 +11,13 @@ if TYPE_CHECKING:
 class GurobiTSPModel:
     def __init__(self, instance: Instance) -> None:
         self.instance = instance
-        self.model = None
+        self.model = gp.Model("TriggerArcTSP")
+        self.formulated = False
 
         self.x, self.u = None, None
 
     def formulate(self) -> None:
-        self.model = gp.Model("TriggerArcTSP")
+        self.formulated = True
 
         self.x = self.model.addVars(self.instance.edges, vtype=gp.GRB.BINARY, name="x")
         self.u = self.model.addVars(self.instance.nodes, vtype=gp.GRB.CONTINUOUS, name="u")
@@ -65,7 +66,7 @@ class GurobiTSPModel:
         self.check_model_status()
 
     def check_model_is_formulated(self) -> None:
-        if self.model is None:
+        if not self.formulated:
             raise ValueError("Model is not formulated")
 
     def check_model_status(self) -> None:

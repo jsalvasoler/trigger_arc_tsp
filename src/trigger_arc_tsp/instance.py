@@ -33,7 +33,6 @@ class Instance:
             self.delta_out[i].add(j)
 
         self.relations = {rel: self.relations[rel] - self.edges[(rel[2], rel[3])] for rel in self.relations}
-        self.offset = 0
 
     @staticmethod
     def load_instance_from_file(file_path: os.PathLike) -> Instance:
@@ -80,7 +79,7 @@ class Instance:
             if not triggering:
                 continue
             # the last relation in the list is the one that triggers the arc a
-            trigger_rel_cost = self.relations[*triggering[-1], *a] - self.offset
+            trigger_rel_cost = self.relations[*triggering[-1], *a]
             # add the relative cost of the triggering relation to the cost of the arc a
             cost += trigger_rel_cost
 
