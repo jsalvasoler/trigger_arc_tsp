@@ -69,8 +69,9 @@ class GurobiModel:
             assert len(vars_) == 4
 
         if read_model:
-            self.model = self.get_model_from_model_file()
-            if self.model is not None:
+            read_model = self.get_model_from_model_file()
+            if read_model is not None:
+                self.model = read_model
                 self.define_variables_from_model()
                 return
 

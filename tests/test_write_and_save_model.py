@@ -107,3 +107,16 @@ def test_starting_solution_for_saved_model() -> None:
 
     assert gu_model.NodeCount == 0
     assert round(gu_model.objVal, 4) == 119.94
+
+
+def test_read_model_but_no_model_found() -> None:
+    if os.path.exists(os.path.join(MODELS_DIR, "test.mps")):
+        os.remove(os.path.join(MODELS_DIR, "test.mps"))
+
+    inst = Instance(N=3, edges={(0, 1): 1, (1, 2): 1, (2, 0): 1}, relations={}, name="test.txt")
+    model = GurobiModel(inst)
+    model.formulate(read_model=True)
+    model.solve_model_with_parameters()
+
+    assert model.get_model().Status == gp.GRB.OPTIMAL
+    assert model.get_model().objVal == 3.0
