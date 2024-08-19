@@ -42,17 +42,24 @@ class GurobiModel:
         return gp.read(model_path)
 
     def define_variables_from_model(self) -> None:
-        self.x = {key: self.model.getVars()[idx] for idx, key in enumerate(self.instance.edges)}
-        self.u = {key: self.model.getVars()[len(self.x) + idx] for idx, key in enumerate(self.instance.nodes)}
-        self.y = {
-            key: self.model.getVars()[len(self.x) + len(self.u) + idx]
-            for idx, key in enumerate(self.instance.relations)
-        }
-        self.z = {
-            key: self.model.getVars()[len(self.x) + len(self.u) + len(self.y) + idx]
-            for idx, key in enumerate(self.z_indices)
-        }
-        assert len(self.x) + len(self.y) + len(self.u) + len(self.z) == len(self.model.getVars())
+        print("Defining variables from model")
+
+        # Retrieve all variables once and store them in a list
+        variables = self.model.getVars()
+
+        # Assign variables to x, u, y, and z using slices of the list
+        num_x = len(self.instance.edges)
+        num_u = len(self.instance.nodes)
+        num_y = len(self.instance.relations)
+        num_z = len(self.z_indices)
+
+        self.x = {key: variables[idx] for idx, key in enumerate(self.instance.edges)}
+        self.u = {key: variables[num_x + idx] for idx, key in enumerate(self.instance.nodes)}
+        self.y = {key: variables[num_x + num_u + idx] for idx, key in enumerate(self.instance.relations)}
+        self.z = {key: variables[num_x + num_u + num_y + idx] for idx, key in enumerate(self.z_indices)}
+
+        # Ensure the total number of variables matches
+        assert num_x + num_u + num_y + num_z == len(variables)
 
     def formulate(
         self,
@@ -69,6 +76,7 @@ class GurobiModel:
             assert len(vars_) == 4
 
         if read_model:
+            assert not relax_obj_modeling
             read_model = self.get_model_from_model_file()
             if read_model is not None:
                 self.model = read_model
@@ -85,6 +93,9 @@ class GurobiModel:
             self.add_variables()
 
         self.add_constraints()
+
+        if not relax_obj_modeling:
+            self.model.write(os.path.join(MODELS_DIR, self.instance.model_name))
 
     def add_variables(self) -> None:
         self.x = self.model.addVars(self.instance.edges, vtype=gp.GRB.BINARY, name="x")
@@ -197,9 +208,8 @@ class GurobiModel:
         )
         self.model.setObjective(obj, sense=gp.GRB.MINIMIZE)
 
-        self.model.write(os.path.join(MODELS_DIR, self.instance.model_name))
-
     def provide_mip_start(self, vars_: list[dict]) -> None:
+        print("Providing MIP start")
         assert len(vars_) == 4
         for var_name, var in zip(["x", "y", "u", "z"], vars_):
             gb_var = getattr(self, var_name)
