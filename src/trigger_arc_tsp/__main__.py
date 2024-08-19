@@ -14,6 +14,7 @@ def cli() -> None:
 @click.argument("instance", type=str, required=True)
 @click.option("--time_limit_sec", type=int, default=60)
 @click.option("--heuristic_effort", type=float, default=0.05)
+@click.option("--presolve", type=int, default=-1)
 @click.option("--mip_start", type=bool, is_flag=True, default=False, help="Provide a MIP start")
 @click.option(
     "--relax_obj_modeling", type=bool, is_flag=True, default=False, help="Relax integrality of objective modeling"
@@ -23,6 +24,7 @@ def evaluate_command(
     instance: str | None,
     time_limit_sec: int = 60,
     heuristic_effort: float = 0.05,
+    presolve: int = -1,
     *,
     mip_start: bool = False,
     relax_obj_modeling: bool = False,
@@ -33,6 +35,7 @@ def evaluate_command(
         instance,
         time_limit_sec=time_limit_sec,
         heuristic_effort=heuristic_effort,
+        presolve=presolve,
         mip_start=mip_start,
         relax_obj_modeling=relax_obj_modeling,
         read_model=read_model,

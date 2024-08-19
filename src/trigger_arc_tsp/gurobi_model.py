@@ -167,10 +167,13 @@ class GurobiModel:
         # If we have u[b] < u[a] in the tour, and x[a] == x[b] == 1, then sum(y[c, a] for c in R_a) == 1
         # (at least one relation is active)
         self.model.addConstrs(
-            (1 - self.z[*a, *b])
-            <= gp.quicksum(self.y[*b, *a] for b in self.instance.R_a[a]) + (1 - self.x[a]) + (1 - self.x[b])
-            for a in self.instance.R_a
-            for b in self.instance.R_a[a]
+            (
+                1 - self.z[*a, *b]
+                <= gp.quicksum(self.y[*b, *a] for b in self.instance.R_a[a]) + (1 - self.x[a]) + (1 - self.x[b])
+                for a in self.instance.R_a
+                for b in self.instance.R_a[a]
+            ),
+            name="force_relation_active",
         )
 
         # z[a_1, a_2] == 1 implies u[a_1] <= u[a_2]
@@ -187,8 +190,7 @@ class GurobiModel:
         self.model.addConstrs(
             (
                 self.y[*b, *a]
-                <= self.y[*c, *a]
-                + self.z[*c, *b]  # u[b] + 1 < u[c] implies z[c, b] == 0
+                <= self.z[*c, *b]  # u[b] + 1 < u[c] implies z[c, b] == 0
                 + self.z[*a, *c]  # u[c] + 1 < u[a] implies z[c, a] == 0
                 + (1 - self.x[c])
                 + (1 - self.x[b])
@@ -219,7 +221,7 @@ class GurobiModel:
                     gb_var[key].Start = val
 
     def solve_model_with_parameters(
-        self, time_limit_sec: int = 60, heuristic_effort: float = 0.05, *, mip_start: bool = False
+        self, time_limit_sec: int = 60, heuristic_effort: float = 0.05, presolve: int = -1, *, mip_start: bool = False
     ) -> None:
         if not self.formulated:
             raise ValueError("Model is not formulated")
@@ -231,7 +233,8 @@ class GurobiModel:
         # Set parameters and optimize
         self.model.setParam(gp.GRB.Param.TimeLimit, time_limit_sec)
         self.model.setParam(gp.GRB.Param.Heuristics, heuristic_effort)
-        self.model.setParam(gp.GRB.Param.Presolve, 2)
+        assert presolve in [-1, 0, 1, 2]
+        self.model.setParam(gp.GRB.Param.Presolve, presolve)
         self.model.optimize()
 
         status = self.model.status
@@ -274,6 +277,7 @@ def gurobi_main(
     instance_name: str,
     time_limit_sec: int = 60,
     heuristic_effort: float = 0.05,
+    presolve: int = -1,
     *,
     mip_start: bool = False,
     relax_obj_modeling: bool = False,
@@ -286,7 +290,7 @@ def gurobi_main(
     model = GurobiModel(instance)
     model.formulate(relax_obj_modeling=relax_obj_modeling, read_model=read_model)
     model.solve_model_with_parameters(
-        time_limit_sec=time_limit_sec, heuristic_effort=heuristic_effort, mip_start=mip_start
+        time_limit_sec=time_limit_sec, heuristic_effort=heuristic_effort, mip_start=mip_start, presolve=presolve
     )
     tour, cost = model.get_original_solution()
 
