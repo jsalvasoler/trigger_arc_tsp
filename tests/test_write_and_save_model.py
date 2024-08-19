@@ -64,10 +64,12 @@ def test_variables_correctly_defined_when_reading_model(inst: Instance) -> None:
     assert len(y) == 0
     assert len(u) == inst.N
     assert all(i in u for i in inst.nodes)
-    assert all(u[i].vType == gp.GRB.CONTINUOUS for i in u)
+    assert all(u[i].vType == gp.GRB.CONTINUOUS for i in u if i != 0)
+    assert u[0] == 0
     assert len(z) == inst.A * (inst.A - 1)
-    assert all(e in z for e in model.z_indices)
-    assert all(z[e].vType == gp.GRB.BINARY for e in z)
+    assert all(e in z for e in model.z_var_indices)
+    assert all(z[e].vType == gp.GRB.BINARY for e in z if e[0] != 0)
+    assert all(isinstance(z[e], int) for e in z if e[0] == 0)
 
     model.solve_model_with_parameters(mip_start=True)
 
@@ -93,10 +95,12 @@ def test_starting_solution_for_saved_model() -> None:
     assert all(y[e].vType == gp.GRB.BINARY for e in y)
     assert len(u) == inst.N
     assert all(i in u for i in inst.nodes)
-    assert all(u[i].vType == gp.GRB.CONTINUOUS for i in u)
+    assert all(u[i].vType == gp.GRB.CONTINUOUS for i in u if i != 0)
+    assert u[0] == 0
     assert len(z) == inst.A * (inst.A - 1)
-    assert all(e in z for e in model.z_indices)
-    assert all(z[e].vType == gp.GRB.BINARY for e in z)
+    assert all(e in z for e in model.z_var_indices)
+    assert all(z[e].vType == gp.GRB.BINARY for e in z if e[0] != 0)
+    assert all(isinstance(z[e], int) for e in z if e[0] == 0)
 
     starting_tour = [0, 16, 13, 4, 12, 17, 14, 9, 19, 6, 11, 3, 2, 8, 18, 10, 5, 15, 7, 1]
     vars_ = inst.get_variables_from_tour(starting_tour)

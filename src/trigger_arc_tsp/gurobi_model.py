@@ -33,7 +33,8 @@ class GurobiModel:
         self.formulated = False
 
         self.x, self.y, self.u, self.z = None, None, None, None
-        self.z_indices = [(*a, *b) for a in self.instance.edges for b in self.instance.edges if a != b]
+        self.u_var_indices = [i for i in self.instance.nodes if i != 0]
+        self.z_var_indices = [(*a, *b) for a in self.instance.edges for b in self.instance.edges if a not in (b, 0)]
 
     def get_model_from_model_file(self) -> None | gp.Model:
         model_path = os.path.join(MODELS_DIR, self.instance.model_name)
@@ -49,17 +50,25 @@ class GurobiModel:
 
         # Assign variables to x, u, y, and z using slices of the list
         num_x = len(self.instance.edges)
-        num_u = len(self.instance.nodes)
+        num_u = len(self.u_var_indices)
         num_y = len(self.instance.relations)
-        num_z = len(self.z_indices)
+        num_z = len(self.z_var_indices)
 
         self.x = {key: variables[idx] for idx, key in enumerate(self.instance.edges)}
-        self.u = {key: variables[num_x + idx] for idx, key in enumerate(self.instance.nodes)}
+        self.u = {key: variables[num_x + idx] for idx, key in enumerate(self.u_var_indices)}
         self.y = {key: variables[num_x + num_u + idx] for idx, key in enumerate(self.instance.relations)}
-        self.z = {key: variables[num_x + num_u + num_y + idx] for idx, key in enumerate(self.z_indices)}
+        self.z = {key: variables[num_x + num_u + num_y + idx] for idx, key in enumerate(self.z_var_indices)}
 
         # Ensure the total number of variables matches
         assert num_x + num_u + num_y + num_z == len(variables)
+
+    def add_extra_const_variables(self) -> None:
+        self.u[0] = 0
+        for i in self.instance.delta_out[0]:
+            for b in self.instance.edges:
+                if b == (0, i):
+                    continue
+                self.z[0, i, *b] = 1
 
     def formulate(
         self,
@@ -81,16 +90,19 @@ class GurobiModel:
             if read_model is not None:
                 self.model = read_model
                 self.define_variables_from_model()
+                self.add_extra_const_variables()
                 return
 
-        if relax_obj_modeling:
-            self.add_variables_relax_obj()
-        elif vars_:
+        if vars_:
             # The user has already loaded the variables into the model, we just need to register them
             assert len(self.model.getVars()) > 0
             self.x, self.y, self.u, self.z = vars_
         else:
-            self.add_variables()
+            if relax_obj_modeling:
+                self.add_variables_relax_obj()
+            else:
+                self.add_variables()
+            self.add_extra_const_variables()
 
         self.add_constraints()
 
@@ -99,19 +111,15 @@ class GurobiModel:
 
     def add_variables(self) -> None:
         self.x = self.model.addVars(self.instance.edges, vtype=gp.GRB.BINARY, name="x")
-        self.u = self.model.addVars(
-            self.instance.nodes, vtype=gp.GRB.CONTINUOUS, name="u", lb=0, ub=self.instance.N - 1
-        )
+        self.u = self.model.addVars(self.u_var_indices, vtype=gp.GRB.CONTINUOUS, name="u", lb=0, ub=self.instance.N - 1)
         self.y = self.model.addVars(self.instance.relations, vtype=gp.GRB.BINARY, name="y")
-        self.z = self.model.addVars(self.z_indices, vtype=gp.GRB.BINARY, name="z")
+        self.z = self.model.addVars(self.z_var_indices, vtype=gp.GRB.BINARY, name="z")
 
     def add_variables_relax_obj(self) -> None:
         self.x = self.model.addVars(self.instance.edges, vtype=gp.GRB.BINARY, name="x")
-        self.u = self.model.addVars(
-            self.instance.nodes, vtype=gp.GRB.CONTINUOUS, name="u", lb=0, ub=self.instance.N - 1
-        )
+        self.u = self.model.addVars(self.u_var_indices, vtype=gp.GRB.CONTINUOUS, name="u", lb=0, ub=self.instance.N - 1)
         self.y = self.model.addVars(self.instance.relations, vtype=gp.GRB.CONTINUOUS, name="y", lb=0, ub=1)
-        self.z = self.model.addVars(self.z_indices, vtype=gp.GRB.CONTINUOUS, name="z", lb=0, ub=1)
+        self.z = self.model.addVars(self.z_var_indices, vtype=gp.GRB.CONTINUOUS, name="z", lb=0, ub=1)
 
     def add_constraints(self) -> None:
         # Flow conservation constraints
@@ -152,11 +160,7 @@ class GurobiModel:
 
         # Relation r=(b,a) \in R_a is inactive if b after a in the tour
         self.model.addConstrs(
-            (
-                self.u[b[0]] + 1 <= self.u[a[0]] + self.instance.N * (1 - self.y[*b, *a])
-                for a in self.instance.R_a
-                for b in self.instance.R_a[a]
-            ),
+            (self.y[*b, *a] <= self.z[*b, *a] for a in self.instance.R_a for b in self.instance.R_a[a]),
             name="trigger_before_arc",
         )
 
@@ -174,7 +178,7 @@ class GurobiModel:
         self.model.addConstrs(
             (
                 self.u[a10] <= self.u[a20] + (self.instance.N - 1) * (1 - self.z[a10, a11, a20, a21])
-                for a10, a11, a20, a21 in self.z_indices
+                for a10, a11, a20, a21 in self.z
             ),
             name="model_z_variables",
         )
@@ -197,9 +201,6 @@ class GurobiModel:
             name="only_last_relation_triggers",
         )
 
-        # Set u_0 = 0
-        self.model.addConstr(self.u[0] == 0, name="depot_starts_sequence_at_zero")
-
         # Set the objective function
         obj = gp.quicksum(
             self.x[a] * self.instance.edges[a]
@@ -214,7 +215,8 @@ class GurobiModel:
         for var_name, var in zip(["x", "y", "u", "z"], vars_):
             gb_var = getattr(self, var_name)
             for key, val in var.items():
-                gb_var[key].Start = val
+                if type(gb_var[key]) is gp.Var:
+                    gb_var[key].Start = val
 
     def solve_model_with_parameters(
         self, time_limit_sec: int = 60, heuristic_effort: float = 0.05, *, mip_start: bool = False
@@ -229,6 +231,7 @@ class GurobiModel:
         # Set parameters and optimize
         self.model.setParam(gp.GRB.Param.TimeLimit, time_limit_sec)
         self.model.setParam(gp.GRB.Param.Heuristics, heuristic_effort)
+        self.model.setParam(gp.GRB.Param.Presolve, 2)
         self.model.optimize()
 
         status = self.model.status
