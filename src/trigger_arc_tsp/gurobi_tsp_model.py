@@ -20,7 +20,9 @@ class GurobiTSPModel:
         self.formulated = True
 
         self.x = self.model.addVars(self.instance.edges, vtype=gp.GRB.BINARY, name="x")
-        self.u = self.model.addVars(self.instance.nodes, vtype=gp.GRB.CONTINUOUS, name="u")
+        u_index = [i for i in self.instance.nodes if i != 0]
+        self.u = self.model.addVars(u_index, vtype=gp.GRB.CONTINUOUS, name="u")
+        self.u[0] = 0
 
         # Flow conservation constraints
         self.model.addConstrs(
@@ -57,13 +59,18 @@ class GurobiTSPModel:
 
         self.check_model_status()
 
-    def solve_to_optimality(self) -> None:
+    def solve_to_optimality(self, time_limit_sec: int | None = None) -> None:
         self.check_model_is_formulated()
 
-        # Set parameters and optimize
+        self.model.setParam(gp.GRB.Param.TimeLimit, time_limit_sec or 60)
+        self.model.setParam(gp.GRB.Param.Heuristics, 0.1)
         self.model.optimize()
 
         self.check_model_status()
+
+    def get_best_tour(self) -> None:
+        u_vals = {i: self.u[i].X if isinstance(self.u[i], gp.Var) else self.u[i] for i in self.instance.nodes}
+        return sorted(self.instance.nodes, key=lambda i: u_vals[i])
 
     def check_model_is_formulated(self) -> None:
         if not self.formulated:

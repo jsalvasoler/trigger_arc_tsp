@@ -183,7 +183,19 @@ class GurobiModel:
                 self.u[a10] <= self.u[a20] + (self.instance.N - 1) * (1 - self.z[a10, a11, a20, a21])
                 for a10, a11, a20, a21 in self.z
             ),
-            name="model_z_variables",
+            name="model_z_variables_1",
+        )
+        self.model.addConstrs(
+            (
+                self.z[a10, a11, a20, a21] == 1 - self.z[a20, a21, a10, a11]
+                for a10, a11, a20, a21 in self.z
+                if a10 != a20
+            ),
+            name="model_z_variables_2",
+        )
+        self.model.addConstrs(
+            (self.z[a10, a11, a20, a21] == self.z[a20, a21, a10, a11] for a10, a11, a20, a21 in self.z if a10 == a20),
+            name="model_z_variables_3",
         )
 
         # If u[b] < u[c] < u[a] in the tour, then y[b, a] <= y[c, a]
@@ -231,7 +243,8 @@ class GurobiModel:
             self.provide_mip_start(vars_)
 
         # Set parameters and optimize
-        self.model.setParam(gp.GRB.Param.TimeLimit, time_limit_sec)
+        if time_limit_sec > 0:
+            self.model.setParam(gp.GRB.Param.TimeLimit, time_limit_sec)
         self.model.setParam(gp.GRB.Param.Heuristics, heuristic_effort)
         assert presolve in [-1, 0, 1, 2]
         self.model.setParam(gp.GRB.Param.Presolve, presolve)
