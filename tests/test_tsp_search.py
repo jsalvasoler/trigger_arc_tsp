@@ -1,13 +1,13 @@
 import os
 
 from trigger_arc_tsp.instance import Instance
-from trigger_arc_tsp.tsp_search import TSPSearch
+from trigger_arc_tsp.tsp_search import TSPSearcher
 from trigger_arc_tsp.utils import INSTANCES_DIR
 
 
 def test_compute_node_distances_1() -> None:
     inst = Instance(N=3, edges={(0, 1): 1, (1, 2): 1, (2, 0): 1}, relations={}, name="test")
-    tsp_search = TSPSearch(inst)
+    tsp_search = TSPSearcher(inst)
 
     node_priorities = [0, 1, 2]
     node_dist = tsp_search.compute_node_dist(node_priorities)
@@ -17,7 +17,7 @@ def test_compute_node_distances_1() -> None:
 
 def test_compute_node_distances_2() -> None:
     inst = Instance(N=5, edges={(0, 1): 1, (1, 2): 1, (2, 3): 1, (3, 4): 1, (4, 0): 1}, relations={}, name="test")
-    tsp_search = TSPSearch(inst)
+    tsp_search = TSPSearcher(inst)
 
     node_priorities = [0, 1, 2, 3, 4]
     node_dist = tsp_search.compute_node_dist(node_priorities)
@@ -30,7 +30,7 @@ def test_compute_node_distances_2() -> None:
 def test_tsp_search_solution_finds_only_feasible() -> None:
     inst = Instance(N=3, edges={(0, 1): 1, (1, 2): 1, (2, 0): 1}, relations={}, name="test")
 
-    tsp_search = TSPSearch(inst)
+    tsp_search = TSPSearcher(inst)
     tour, cost = tsp_search.evaluate_individual([2, 1, 0], 0.5)
 
     # There is only one feasible tour
@@ -41,7 +41,7 @@ def test_tsp_search_solution_finds_only_feasible() -> None:
 def test_get_edges_for_tsp_search_1() -> None:
     inst = Instance(N=3, edges={(0, 1): 1, (1, 2): 1, (2, 0): 1}, relations={(0, 1, 2, 0): 0}, name="test")
 
-    tsp_search = TSPSearch(inst)
+    tsp_search = TSPSearcher(inst)
     edges = tsp_search.get_edges_for_tsp_search([0, 1, 2], alpha=0.5)
     assert edges[0, 1] < edges[1, 2]
     assert edges[2, 0] < edges[1, 2]
@@ -50,7 +50,7 @@ def test_get_edges_for_tsp_search_1() -> None:
 def test_get_edges_for_tsp_search_2() -> None:
     edges = [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4), (1, 2), (2, 1), (4, 0)]
     inst = Instance(N=5, edges={e: 1 for e in edges}, relations={(0, 1, 3, 4): -1, (0, 2, 3, 4): -1}, name="test")
-    tsp_search = TSPSearch(inst)
+    tsp_search = TSPSearcher(inst)
     tour_1 = [0, 1, 2, 3, 4]
     tour_2 = [0, 2, 1, 3, 4]
     dist_1 = tsp_search.compute_node_dist(tour_1)
@@ -92,7 +92,7 @@ def test_get_edges_for_tsp_search_2() -> None:
 def test_tsp_search_2() -> None:
     edges = [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4), (1, 2), (2, 1), (4, 0)]
     inst = Instance(N=5, edges={e: 1 for e in edges}, relations={(0, 1, 3, 4): -1, (0, 2, 3, 4): -1}, name="test")
-    tsp_search = TSPSearch(inst)
+    tsp_search = TSPSearcher(inst)
 
     tour_1 = [0, 1, 2, 3, 4]
     tour_2 = [0, 2, 1, 3, 4]
@@ -110,7 +110,7 @@ def test_tsp_search_2() -> None:
 
 def test_tsp_search_3() -> None:
     inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
-    tsp_search = TSPSearch(inst)
+    tsp_search = TSPSearcher(inst)
     dist = tsp_search.compute_node_dist([0, 2, 1, 4, 3])
     assert all(d > 0 for d in dist.values())
 
