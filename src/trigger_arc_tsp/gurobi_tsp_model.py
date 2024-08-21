@@ -59,11 +59,14 @@ class GurobiTSPModel:
 
         self.check_model_status()
 
-    def solve_to_optimality(self, time_limit_sec: int | None = None) -> None:
+    def solve_to_optimality(self, time_limit_sec: int | None = None, *, logs: bool = True) -> None:
         self.check_model_is_formulated()
 
+        if not logs:
+            self.model.setParam(gp.GRB.Param.OutputFlag, 0)
         self.model.setParam(gp.GRB.Param.TimeLimit, time_limit_sec or 60)
         self.model.setParam(gp.GRB.Param.Heuristics, 0.1)
+
         self.model.optimize()
 
         self.check_model_status()
