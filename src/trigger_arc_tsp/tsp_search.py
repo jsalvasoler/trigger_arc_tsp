@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import random
 
+import gurobipy as gp
+
 from trigger_arc_tsp.gurobi_tsp_model import GurobiTSPModel
 from trigger_arc_tsp.instance import Instance
 from trigger_arc_tsp.utils import INSTANCES_DIR, cleanup_instance_name, fisher_yates_shuffle
@@ -25,6 +27,12 @@ class TSPSearcher:
         self.model = GurobiTSPModel(tsp_instance)
         self.model.formulate()
         self.model.solve_to_optimality(logs=False, time_limit_sec=10)
+
+        if self.model.get_model().Status == gp.GRB.Status.INTERRUPTED:
+            raise KeyboardInterrupt
+        if self.model.get_model().Status == gp.GRB.Status.USER_OBJ_LIMIT:
+            return None, None
+
         tour = self.model.get_best_tour()
         cost = self.instance.compute_objective(tour)
         return tour, cost
@@ -78,25 +86,33 @@ class PriorRandomizedSearch:
         # Generate n_trials random permutations of 0, ..., self.instance.N-1
         # Evaluate all of them
 
-        best_tour = None
-        best_cost = float("inf")
+        best_tour = self.instance.get_best_known_solution()
+        best_cost = self.instance.compute_objective(best_tour)
 
-        for i in range(n_trials):
-            node_priorities = self.generate_random_permutation()
-            tour, cost = self.searcher.evaluate_individual(
-                node_priorities, alpha=random.uniform(0.1, 3), beta=random.uniform(0.1, 3)
-            )
-            improved = cost < best_cost
-            if improved:
-                best_tour = tour
-                best_cost = cost
-            self.print_log_line(i, cost, best_cost, improved=improved)
+        try:
+            for i in range(n_trials):
+                node_priorities = self.generate_random_permutation()
+                tour, cost = self.searcher.evaluate_individual(
+                    node_priorities, alpha=random.uniform(0.1, 3), beta=random.uniform(0.1, 3)
+                )
+                if not tour:
+                    cost = None
+                    improved = False
+                else:
+                    improved = cost < best_cost
+                    if improved:
+                        best_tour = tour
+                        best_cost = cost
+                self.print_log_line(i, cost, best_cost, improved=improved)
 
-        print(f"Best tour: {best_tour} - Cost: {best_cost}")
-        assert best_cost == self.instance.compute_objective(best_tour)
-        self.instance.save_solution(best_tour, best_cost)
+        except KeyboardInterrupt:
+            print("--- Interrupted by user ---")
+        finally:
+            print(f"Best tour: {best_tour} - Cost: {best_cost}")
+            assert best_cost == self.instance.compute_objective(best_tour)
+            self.instance.save_solution(best_tour, best_cost)
 
-    def print_log_line(self, it: int, cost: float, best_cost: float, *, improved: bool) -> None:
+    def print_log_line(self, it: int, cost: float | None, best_cost: float, *, improved: bool) -> None:
         # Define the width for each column
         it_width = 5  # Width for the iteration number
         cost_width = 15  # Width for the cost
@@ -105,7 +121,7 @@ class PriorRandomizedSearch:
         # Format the string with specified widths
         s = (
             f"Iteration {it:<{it_width}}"
-            f"Cost: {cost:<{cost_width}.6f}"
+            f"Cost: {('NA'.ljust(cost_width) if cost is None else f'{cost:<{cost_width}.6f}')}"
             f"Best cost: {best_cost:<{best_cost_width}.6f}"
         )
 
