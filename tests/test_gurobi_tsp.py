@@ -11,7 +11,7 @@ def test_tsp_model_1() -> None:
     model.formulate()
     model.solve_to_feasible_solution()
 
-    tour = model.get_tour()
+    tour = model.get_best_tour()
 
     assert tour == [0, 1, 2]
 
@@ -22,7 +22,7 @@ def test_tsp_model_2() -> None:
     model.formulate()
     model.solve_to_feasible_solution()
 
-    tour = model.get_tour()
+    tour = model.get_best_tour()
     # Check that the path is feasible
     edges_used = [(tour[i], tour[i + 1]) for i in range(len(tour) - 1)] + [(tour[-1], tour[0])]
     assert all(e in inst.edges for e in edges_used)
@@ -34,6 +34,6 @@ def test_tsp_big_model() -> None:
     model.formulate()
 
     model.solve_to_optimality()
-    tour = model.get_tour()
+    tour = model.get_best_tour()
     print(tour)
     assert len(tour) == inst.N

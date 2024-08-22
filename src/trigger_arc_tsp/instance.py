@@ -188,4 +188,4 @@ class Instance:
         model = GurobiTSPModel(self)
         model.formulate()
         model.solve_to_feasible_solution()
-        return model.get_tour()
+        return model.get_best_tour()

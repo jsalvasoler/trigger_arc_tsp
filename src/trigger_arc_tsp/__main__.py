@@ -46,8 +46,9 @@ def gb_main(
 @cli.command(name="tsp_search", help="Run TSP search", context_settings={"show_default": True})
 @click.argument("instance", type=str, required=True)
 @click.option("--n_trials", type=int, default=60)
-def tsp_main(instance: str, n_trials: int = 60) -> None:
-    prior_randomized_search(instance, n_trials=n_trials)
+@click.option("--n_post_trials", type=int, default=10)
+def tsp_main(instance: str, n_trials: int = 60, n_post_trials: int = 10) -> None:
+    prior_randomized_search(instance, n_trials=n_trials, n_post_trials=n_post_trials)
 
 
 if __name__ == "__main__":

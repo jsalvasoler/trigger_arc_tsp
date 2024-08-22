@@ -76,8 +76,17 @@ class GurobiTSPModel:
         self.check_model_status()
 
     def get_best_tour(self) -> None:
-        u_vals = {i: self.u[i].X if isinstance(self.u[i], gp.Var) else self.u[i] for i in self.instance.nodes}
-        return sorted(self.instance.nodes, key=lambda i: u_vals[i])
+        tour = sorted([i for i in self.instance.nodes if i != 0], key=lambda i: self.u[i].X)
+        return [0, *tour]
+
+    def get_best_n_tours(self, n: int) -> list[list[int]]:
+        n_solutions = self.model.SolCount
+        tours = []
+        for i in range(min(n, n_solutions)):
+            self.model.setParam(gp.GRB.Param.SolutionNumber, i)
+            self.model.update()
+            tours.append(self.get_best_tour())
+        return tours
 
     def check_model_is_formulated(self) -> None:
         if not self.formulated:
@@ -89,10 +98,6 @@ class GurobiTSPModel:
             self.model.computeIIS()
             self.model.write("model.ilp")
             raise ValueError("Model is infeasible")
-
-    def get_tour(self) -> list[int]:
-        tour = sorted([i for i in self.instance.nodes if i != 0], key=lambda i: self.u[i].X)
-        return [0, *tour]
 
     def get_x(self) -> dict:
         return self.x
