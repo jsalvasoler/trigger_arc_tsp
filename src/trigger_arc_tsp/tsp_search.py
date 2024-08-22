@@ -41,10 +41,10 @@ class TSPSearcher:
                 best_tour = tour
                 best_cost = cost
 
-        tsp_prior.cost = cost
+        tsp_prior.cost = best_cost
         tsp_prior.best_tour = best_tour
         tsp_prior.rel_gap = self.model.get_model().MIPGap
-        return tour, cost
+        return best_tour, best_cost
 
     def compute_node_dist(self, node_priorities: list) -> dict:
         node_dist = {}

@@ -76,7 +76,8 @@ class GurobiTSPModel:
         self.check_model_status()
 
     def get_best_tour(self) -> None:
-        tour = sorted([i for i in self.instance.nodes if i != 0], key=lambda i: self.u[i].X)
+        self.model.update()
+        tour = sorted([i for i in self.instance.nodes if i != 0], key=lambda i: self.u[i].Xn)
         return [0, *tour]
 
     def get_best_n_tours(self, n: int) -> list[list[int]]:

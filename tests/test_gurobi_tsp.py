@@ -37,3 +37,18 @@ def test_tsp_big_model() -> None:
     tour = model.get_best_tour()
     print(tour)
     assert len(tour) == inst.N
+
+
+def test_tsp_get_best_n() -> None:
+    inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "instances_release_1/grf4.txt"))
+    model = GurobiTSPModel(inst)
+    model.formulate()
+
+    model.solve_to_optimality()
+    best_tour = model.get_best_tour()
+    tours = model.get_best_n_tours(5)
+
+    assert len(tours) == 5
+    assert best_tour == tours[0]
+    assert all(len(t) == inst.N for t in tours)
+    assert all(tours[0] != t for t in tours[1:])
