@@ -32,7 +32,7 @@ class TSPSearcher:
         if self.model.get_model().Status == gp.GRB.Status.INTERRUPTED:
             raise KeyboardInterrupt
 
-        tours = self.model.get_best_n_tours(5)
+        tours = self.model.get_best_n_tours(15)
         best_tour = None
         best_cost = float("inf")
         for tour in tours:
@@ -120,6 +120,7 @@ class PriorRandomizedSearch:
                 if improved := cost < best_cost:
                     best_tour = tour
                     best_cost = cost
+                    self.instance.save_solution(best_tour, best_cost)
                 self.print_log_line(i, cost, best_cost, improved=improved)
 
         except KeyboardInterrupt:
@@ -127,6 +128,9 @@ class PriorRandomizedSearch:
 
         best_tour, best_cost = self.run_post_trials(promising_tsp_priors, best_cost, best_tour, n_post_trials)
         assert best_cost == self.instance.compute_objective(best_tour)
+
+        print(f"Instnace: {self.instance.name}")
+        print(f"Best tour: {best_tour} - Cost: {best_cost}")
         self.instance.save_solution(best_tour, best_cost)
 
     def run_post_trials(
@@ -154,7 +158,6 @@ class PriorRandomizedSearch:
             print("--- Interrupted by user ---")
 
         assert best_cost == self.instance.compute_objective(best_tour)
-        print(f"Best tour: {best_tour} - Cost: {best_cost}")
         return best_tour, best_cost
 
     def print_log_line(self, it: int, cost: float | None, best_cost: float, *, improved: bool) -> None:
