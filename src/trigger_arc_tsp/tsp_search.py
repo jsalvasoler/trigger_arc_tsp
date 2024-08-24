@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import random
 from dataclasses import dataclass
+from typing import Generator, Literal
+from warnings import warn
 
 import gurobipy as gp
 
@@ -11,7 +13,7 @@ from trigger_arc_tsp.instance import Instance
 from trigger_arc_tsp.utils import INSTANCES_DIR, cleanup_instance_name, fisher_yates_shuffle
 
 
-class TSPSearcher:
+class TSPPriorEval:
     def __init__(self, instance: Instance) -> None:
         self.instance = instance
 
@@ -98,26 +100,44 @@ class TSPPrior:
     best_tour: list = None
 
 
-class PriorRandomizedSearch:
-    def __init__(self, instance: Instance) -> None:
+class HeuristicSearch:
+    def __init__(self, instance: Instance, search_type: Literal["randomized", "swap_2"]) -> None:
         self.instance = instance
-        self.searcher = TSPSearcher(self.instance)
+        self.searcher = TSPPriorEval(self.instance)
+        self.search_type = search_type
 
-    def generate_random_permutation(self) -> list:
-        return [0, *fisher_yates_shuffle(list(range(1, self.instance.N)))]
+    def generate_n_random_permutations(self, n: int) -> Generator[list]:
+        for _ in range(n):
+            yield [0, *fisher_yates_shuffle(list(range(1, self.instance.N)))]
 
-    def run(self, n_trials: int = 60, n_post_trials: int = 10) -> None:
-        # Generate n_trials random permutations of 0, ..., self.instance.N-1
-        # Evaluate all of them
+    def generate_n_swap_2_permutations(self, node_priorities: list) -> Generator[list]:
+        for i in range(1, self.instance.N - 1):
+            for j in range(i + 1, self.instance.N):
+                new_prior = node_priorities.copy()
+                new_prior[i], new_prior[j] = new_prior[j], new_prior[i]
+                yield new_prior
 
+    def run(self, n_trials: int | None = None, n_post_trials: int = 10) -> None:
         best_tour = self.instance.get_best_known_solution()
         best_cost = self.instance.compute_objective(best_tour)
 
+        if self.search_type == "randomized":
+            assert n_trials is not None, "Number of trials must be specified for randomized search"
+            tours_to_explore = self.generate_n_random_permutations(n_trials)
+        elif self.search_type == "swap_2":
+            n_tours_to_explore = (self.instance.N - 2) * (self.instance.N - 1) // 2
+            if n_trials is None:
+                warn(f"Total number of trials is set to {n_tours_to_explore}", stacklevel=1)
+            n_trials = n_tours_to_explore
+            tours_to_explore = self.generate_n_swap_2_permutations(best_tour)
+        else:
+            raise ValueError("Invalid search type")
+
         promising_tsp_priors = []
 
+        it = 0
         try:
-            for i in range(n_trials):
-                node_priorities = self.generate_random_permutation()
+            for node_priorities in tours_to_explore:
                 tsp_prior = TSPPrior(node_priorities, alpha=random.uniform(0.1, 3), beta=random.uniform(0.1, 3))
                 tour, cost = self.searcher.evaluate_individual(tsp_prior=tsp_prior)
                 if cost / best_cost - 1 < 0.05:
@@ -126,7 +146,8 @@ class PriorRandomizedSearch:
                     best_tour = tour
                     best_cost = cost
                     self.instance.save_solution(best_tour, best_cost)
-                self.print_log_line(i, cost, best_cost, improved=improved)
+                self.print_log_line(it, cost, best_cost, n_trials=n_trials, improved=improved)
+                it += 1
 
         except KeyboardInterrupt:
             print("--- Interrupted by user ---")
@@ -156,7 +177,7 @@ class PriorRandomizedSearch:
                 if improved := cost < best_cost:
                     best_tour = tour
                     best_cost = cost
-                self.print_log_line(evals, cost, best_cost, improved=improved)
+                self.print_log_line(evals, cost, best_cost, n_trials=n_post_trials, improved=improved)
                 if evals >= n_post_trials:
                     break
         except KeyboardInterrupt:
@@ -165,17 +186,18 @@ class PriorRandomizedSearch:
         assert best_cost == self.instance.compute_objective(best_tour)
         return best_tour, best_cost
 
-    def print_log_line(self, it: int, cost: float | None, best_cost: float, *, improved: bool) -> None:
+    def print_log_line(self, it: int, cost: float | None, best_cost: float, n_trials: int, *, improved: bool) -> None:
         # Define the width for each column
-        it_width = 5  # Width for the iteration number
-        cost_width = 15  # Width for the cost
-        best_cost_width = 15  # Width for the best cost
+        it_width = 10  # Width for the iteration number
+        cost_width = 10  # Width for the cost
+        best_cost_width = 10  # Width for the best cost
 
         # Format the string with specified widths
+        it_string = f"{it} / {n_trials}"
         s = (
-            f"Iteration {it:<{it_width}}"
-            f"Cost: {('NA'.ljust(cost_width) if cost is None else f'{cost:<{cost_width}.6f}')}"
-            f"Best cost: {best_cost:<{best_cost_width}.6f}"
+            f"Iteration {it_string.ljust(it_width)}"
+            f"Cost: {cost:<{cost_width}.2f}"
+            f"Best cost: {best_cost:<{best_cost_width}.2f}"
         )
 
         if improved:
@@ -184,15 +206,19 @@ class PriorRandomizedSearch:
         print(s)
 
 
-def prior_randomized_search(instance_name: str, n_trials: int, n_post_trials: int) -> None:
+def heuristic_search(
+    instance_name: str, search_type: Literal["randomized", "swap2"], n_trials: int, n_post_trials: int
+) -> None:
     instance_name = cleanup_instance_name(instance_name)
     instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, instance_name))
-    prior_randomized_search = PriorRandomizedSearch(instance)
+    prior_randomized_search = HeuristicSearch(instance, search_type=search_type)
     prior_randomized_search.run(n_trials=n_trials, n_post_trials=n_post_trials)
 
 
 if __name__ == "__main__":
-    prior_randomized_search(
+    heuristic_search(
         instance_name="instances_release_1/grf5.txt",
         n_trials=60,
+        n_post_trials=10,
+        type="randomized",
     )

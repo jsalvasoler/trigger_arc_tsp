@@ -5,13 +5,13 @@ import numpy as np
 
 from trigger_arc_tsp.gurobi_tsp_model import GurobiTSPModel
 from trigger_arc_tsp.instance import Instance
-from trigger_arc_tsp.tsp_search import PriorRandomizedSearch, TSPPrior, TSPSearcher
+from trigger_arc_tsp.tsp_search import HeuristicSearch, TSPPrior, TSPPriorEval
 from trigger_arc_tsp.utils import INSTANCES_DIR, fisher_yates_shuffle
 
 
 def test_compute_node_distances_1() -> None:
     inst = Instance(N=3, edges={(0, 1): 1, (1, 2): 1, (2, 0): 1}, relations={}, name="test")
-    tsp_search = TSPSearcher(inst)
+    tsp_search = TSPPriorEval(inst)
 
     node_priorities = [0, 1, 2]
     node_dist = tsp_search.compute_node_dist(node_priorities)
@@ -21,7 +21,7 @@ def test_compute_node_distances_1() -> None:
 
 def test_compute_node_distances_2() -> None:
     inst = Instance(N=5, edges={(0, 1): 1, (1, 2): 1, (2, 3): 1, (3, 4): 1, (4, 0): 1}, relations={}, name="test")
-    tsp_search = TSPSearcher(inst)
+    tsp_search = TSPPriorEval(inst)
 
     node_priorities = [0, 1, 2, 3, 4]
     node_dist = tsp_search.compute_node_dist(node_priorities)
@@ -34,8 +34,8 @@ def test_compute_node_distances_2() -> None:
 def test_tsp_search_solution_finds_only_feasible() -> None:
     inst = Instance(N=3, edges={(0, 1): 1, (1, 2): 1, (2, 0): 1}, relations={}, name="test")
 
-    tsp_search = TSPSearcher(inst)
-    tsp_prior = TSPPrior(priorities=[2, 1, 0], alpha=0.5, beta=0.5)
+    tsp_search = TSPPriorEval(inst)
+    tsp_prior = TSPPrior(priorities=[0, 2, 1], alpha=0.5, beta=0.5)
     tour, cost = tsp_search.evaluate_individual(tsp_prior=tsp_prior)
 
     # There is only one feasible tour
@@ -46,7 +46,7 @@ def test_tsp_search_solution_finds_only_feasible() -> None:
 def test_get_edges_for_tsp_search_1() -> None:
     inst = Instance(N=3, edges={(0, 1): 1, (1, 2): 1, (2, 0): 1}, relations={(0, 1, 2, 0): 0}, name="test")
 
-    tsp_search = TSPSearcher(inst)
+    tsp_search = TSPPriorEval(inst)
     tsp_prior = TSPPrior(priorities=[0, 1, 2], alpha=0.5, beta=0.5)
     edges = tsp_search.get_edges_for_tsp_search(tsp_prior=tsp_prior)
     assert edges[0, 1] < edges[1, 2]
@@ -56,7 +56,7 @@ def test_get_edges_for_tsp_search_1() -> None:
 def test_get_edges_for_tsp_search_2() -> None:
     edges = [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4), (1, 2), (2, 1), (4, 0)]
     inst = Instance(N=5, edges={e: 1 for e in edges}, relations={(0, 1, 3, 4): -1, (0, 2, 3, 4): -1}, name="test")
-    tsp_search = TSPSearcher(inst)
+    tsp_search = TSPPriorEval(inst)
     tour_1 = [0, 1, 2, 3, 4]
     tour_2 = [0, 2, 1, 3, 4]
     dist_1 = tsp_search.compute_node_dist(tour_1)
@@ -102,7 +102,7 @@ def test_get_edges_for_tsp_search_2() -> None:
 def test_tsp_search_2() -> None:
     edges = [(0, 1), (0, 2), (1, 3), (2, 3), (3, 4), (1, 2), (2, 1), (4, 0)]
     inst = Instance(N=5, edges={e: 1 for e in edges}, relations={(0, 1, 3, 4): -1, (0, 2, 3, 4): -1}, name="test")
-    tsp_search = TSPSearcher(inst)
+    tsp_search = TSPPriorEval(inst)
 
     tour_1 = [0, 1, 2, 3, 4]
     tour_2 = [0, 2, 1, 3, 4]
@@ -122,7 +122,7 @@ def test_tsp_search_2() -> None:
 
 def test_tsp_search_3() -> None:
     inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
-    tsp_search = TSPSearcher(inst)
+    tsp_search = TSPPriorEval(inst)
     dist = tsp_search.compute_node_dist([0, 2, 1, 4, 3])
     assert all(d > 0 for d in dist.values())
 
@@ -155,7 +155,7 @@ def test_best_among_multiple_tsp_feasible_solutions_is_selected() -> None:
     inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "instances_release_1/grf4.txt"))
 
     tsp_prior = TSPPrior(priorities=list(range(inst.N)), alpha=0, beta=0.5)
-    tsp_search = TSPSearcher(inst)
+    tsp_search = TSPPriorEval(inst)
     edges = tsp_search.get_edges_for_tsp_search(tsp_prior)
     tsp_inst = Instance(N=inst.N, edges=edges, relations={}, name="grf4_to_tsp")
     tsp_model = GurobiTSPModel(tsp_inst)
@@ -180,7 +180,7 @@ def test_run_post_trials_just_one_trial() -> None:
         TSPPrior(priorities=[0, 3, 2, 1, 4], alpha=1, beta=0.5, cost=1, rel_gap=0.5),
     ]
 
-    prior_search = PriorRandomizedSearch(inst)
+    prior_search = HeuristicSearch(inst, search_type="randomized")
     best_tour, best_cost = prior_search.run_post_trials(
         priors_to_test, best_cost=float("inf"), best_tour=list(range(inst.N)), n_post_trials=1
     )
@@ -198,10 +198,26 @@ def test_run_post_trials_selects_best_one() -> None:
         TSPPrior(priorities=tour_1, alpha=0, beta=0.5, cost=0, rel_gap=0.5),
         TSPPrior(priorities=tour_2, alpha=0, beta=0.5, cost=1, rel_gap=0.5),
     ]
-    prior_search = PriorRandomizedSearch(inst)
+    prior_search = HeuristicSearch(inst, search_type="randomized")
     best_cost = min(prior_search.searcher.evaluate_individual(copy(prior))[1] for prior in priors_to_test)
 
     _, best_cost_comp = prior_search.run_post_trials(
         priors_to_test, best_cost=float("inf"), best_tour=tour_1, n_post_trials=2
     )
     assert best_cost_comp == best_cost
+
+
+def test_swap_2_search_tour_generatior() -> None:
+    prior_search = HeuristicSearch(
+        Instance(N=5, edges={(0, 1): 1, (1, 2): 1, (2, 3): 1, (3, 4): 1, (4, 0): 1}, relations={}, name="test"),
+        search_type="swap_2",
+    )
+    assert len(list(prior_search.generate_n_swap_2_permutations([0, 1, 2, 3, 4]))) == 4 * 3 / 2
+
+
+def test_swap_2_search_runs() -> None:
+    inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
+    prior_search = HeuristicSearch(inst, search_type="swap_2")
+    prior_search.run(n_trials=None, n_post_trials=1)
+
+    assert True

@@ -3,12 +3,22 @@ from __future__ import annotations
 import click
 
 from trigger_arc_tsp.gurobi_model import gurobi_main
-from trigger_arc_tsp.tsp_search import prior_randomized_search
+from trigger_arc_tsp.tsp_search import heuristic_search
 
 
 @click.group()
 def cli() -> None:
     pass
+
+
+INSTANCES_SOLVED_TO_OPTIMALITY = [
+    "instances_release_1/grf1.txt",
+    "instances_release_1/grf2.txt",
+    "instances_release_1/grf5.txt",
+    "instances_release_1/grf6.txt",
+    "instances_release_1/grf12.txt",
+    "instances_release_1/grf19.txt",
+]
 
 
 @cli.command(name="gurobi", help="Run the MIP model with Gurobi", context_settings={"show_default": True})
@@ -31,7 +41,9 @@ def gb_main(
     relax_obj_modeling: bool = False,
     read_model: bool = False,
 ) -> None:
-    click.echo(f"Running Gurobi MIP model for instance: {instance}")
+    if instance in INSTANCES_SOLVED_TO_OPTIMALITY:
+        click.echo(f"Instance {instance} has been solved to optimality. Skipping MIP solving.")
+        return
     gurobi_main(
         instance,
         time_limit_sec=time_limit_sec,
@@ -48,7 +60,20 @@ def gb_main(
 @click.option("--n_trials", type=int, default=60)
 @click.option("--n_post_trials", type=int, default=10)
 def tsp_main(instance: str, n_trials: int = 60, n_post_trials: int = 10) -> None:
-    prior_randomized_search(instance, n_trials=n_trials, n_post_trials=n_post_trials)
+    if instance in INSTANCES_SOLVED_TO_OPTIMALITY:
+        click.echo(f"Instance {instance} has been solved to optimality. Skipping TSP search.")
+        return
+    heuristic_search(instance, search_type="randomized", n_trials=n_trials, n_post_trials=n_post_trials)
+
+
+@cli.command(name="swap_search", help="Run swap search", context_settings={"show_default": True})
+@click.argument("instance", type=str, required=True)
+@click.option("--n_post_trials", type=int, default=10)
+def swap_main_cli(instance: str, n_post_trials: int = 15) -> None:
+    if instance in INSTANCES_SOLVED_TO_OPTIMALITY:
+        click.echo(f"Instance {instance} has been solved to optimality. Skipping swap search.")
+        return
+    heuristic_search(instance, search_type="swap_2", n_trials=None, n_post_trials=n_post_trials)
 
 
 if __name__ == "__main__":
