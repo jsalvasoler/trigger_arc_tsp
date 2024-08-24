@@ -188,7 +188,7 @@ class HeuristicSearch:
 
     def print_log_line(self, it: int, cost: float | None, best_cost: float, n_trials: int, *, improved: bool) -> None:
         # Define the width for each column
-        it_width = 10  # Width for the iteration number
+        it_width = 15  # Width for the iteration number
         cost_width = 10  # Width for the cost
         best_cost_width = 10  # Width for the best cost
 
