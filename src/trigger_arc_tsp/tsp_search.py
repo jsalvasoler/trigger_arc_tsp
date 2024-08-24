@@ -18,6 +18,13 @@ class TSPSearcher:
     def evaluate_individual(self, tsp_prior: TSPPrior, time_limit_sec: int = 10) -> list[list, float]:
         assert len(tsp_prior.priorities) == self.instance.N
 
+        try:
+            best_cost = self.instance.compute_objective(tsp_prior.priorities)
+            best_tour = tsp_prior.priorities
+        except KeyError:
+            best_cost = float("inf")
+            best_tour = None
+
         tsp_edges = self.get_edges_for_tsp_search(tsp_prior=tsp_prior)
         tsp_instance = Instance(
             N=self.instance.N,
@@ -33,8 +40,6 @@ class TSPSearcher:
             raise KeyboardInterrupt
 
         tours = self.model.get_best_n_tours(15)
-        best_tour = None
-        best_cost = float("inf")
         for tour in tours:
             cost = self.instance.compute_objective(tour)
             if cost < best_cost:
