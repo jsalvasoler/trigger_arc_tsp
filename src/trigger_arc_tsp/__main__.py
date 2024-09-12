@@ -82,11 +82,13 @@ def tsp_main(instance: str, n_trials: int = 60, n_post_trials: int = 10) -> None
 @cli.command(name="swap_search", help="Run swap search", context_settings={"show_default": True})
 @click.argument("instance", type=str, required=True)
 @click.option("--n_post_trials", type=int, default=10)
-def swap_main_cli(instance: str, n_post_trials: int = 15) -> None:
+@click.option("--k", type=int, default=2)
+def swap_main_cli(instance: str, n_post_trials: int = 15, k: int = 2) -> None:
     if instance in INSTANCES_TO_IGNORE:
         click.echo(f"Instance {instance} has been solved to optimality. Skipping swap search.")
         return
-    heuristic_search(instance, search_type="swap_2", n_trials=None, n_post_trials=n_post_trials)
+    click.echo(f"Running swap search with k={k}")
+    heuristic_search(instance, search_type=f"swap_{k}", n_trials=None, n_post_trials=n_post_trials)
 
 
 @cli.command(name="delay_one", help="Run delay one neighborhood search", context_settings={"show_default": True})
@@ -96,6 +98,7 @@ def delay_one_cli(instance: str, n_post_trials: int = 15) -> None:
     if instance in INSTANCES_TO_IGNORE:
         click.echo(f"Instance {instance} has been solved to optimality. Skipping delay one search.")
         return
+    click.echo("Running delay one neighborhood search")
     heuristic_search(instance, search_type="delay_1", n_trials=None, n_post_trials=n_post_trials)
 
 

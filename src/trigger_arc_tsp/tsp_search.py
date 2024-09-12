@@ -101,7 +101,7 @@ class TSPPrior:
 
 
 class HeuristicSearch:
-    def __init__(self, instance: Instance, search_type: Literal["randomized", "swap_2", "delay_1"]) -> None:
+    def __init__(self, instance: Instance, search_type: Literal["randomized", "swap_2", "delay_1", "swap_3"]) -> None:
         self.instance = instance
         self.searcher = TSPPriorEval(self.instance)
         self.search_type = search_type
@@ -131,6 +131,14 @@ class HeuristicSearch:
                 assert new_prior[j] == node_priorities[i]
                 yield new_prior
 
+    def generate_swap_3_permutations(self, node_priorities: list) -> Generator[list]:
+        for i in range(1, self.instance.N - 2):
+            for j in range(i + 1, self.instance.N - 1):
+                for k in range(j + 1, self.instance.N):
+                    new_prior = node_priorities.copy()
+                    new_prior[i], new_prior[j], new_prior[k] = new_prior[j], new_prior[k], new_prior[i]
+                    yield new_prior
+
     def run(self, n_trials: int | None = None, n_post_trials: int = 10, idx: int = 0) -> None:
         best_tour = self.instance.get_best_known_solution(idx=idx)
         best_cost = self.instance.compute_objective(best_tour)
@@ -144,6 +152,12 @@ class HeuristicSearch:
                 warn(f"Total number of trials is set to {n_tours_to_explore}", stacklevel=1)
             n_trials = n_tours_to_explore
             tours_to_explore = self.generate_swap_2_permutations(best_tour)
+        elif self.search_type == "swap_3":
+            n_tours_to_explore = (self.instance.N - 3) * (self.instance.N - 2) * (self.instance.N - 1) // 6
+            if n_trials is None:
+                warn(f"Total number of trials is set to {n_tours_to_explore}", stacklevel=1)
+            n_trials = n_tours_to_explore
+            tours_to_explore = self.generate_swap_3_permutations(best_tour)
         elif self.search_type == "delay_1":
             n_tours_to_explore = (self.instance.N - 2) * (self.instance.N - 1) // 2
             if n_trials is None:
@@ -238,8 +252,8 @@ def heuristic_search(
 
 if __name__ == "__main__":
     heuristic_search(
-        instance_name="instances_release_1/grf5.txt",
-        n_trials=60,
-        n_post_trials=10,
-        type="randomized",
+        instance_name="instances_release_1/grf11.txt",
+        n_trials=None,
+        n_post_trials=None,
+        search_type="swap_3",
     )
