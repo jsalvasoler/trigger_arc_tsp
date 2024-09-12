@@ -16,16 +16,7 @@ class GurobiModel:
 
         self.x, self.y, self.u, self.z = None, None, None, None
         self.u_var_indices = [i for i in self.instance.nodes if i != 0]
-        self.z_var_indices = [
-            (*b, *c)
-            for a in self.instance.R_a
-            for b in self.instance.R_a[a]
-            for c in self.instance.R_a[a]
-            if b not in (c, 0)
-        ]
-        self.z_var_indices += [(*b, *a) for a in self.instance.R_a for b in self.instance.R_a[a] if b != 0]
-        self.z_var_indices += [(*a, *b) for a in self.instance.R_a for b in self.instance.R_a[a] if a != 0]
-        self.z_var_indices = list(set(self.z_var_indices))
+        self.z_var_indices = self.instance.z_var_indices
 
     def get_model_from_model_file(self) -> None | gp.Model:
         model_path = os.path.join(MODELS_DIR, self.instance.model_name)
@@ -237,6 +228,7 @@ class GurobiModel:
         if time_limit_sec > 0:
             self.model.setParam(gp.GRB.Param.TimeLimit, time_limit_sec)
         self.model.setParam(gp.GRB.Param.Heuristics, heuristic_effort)
+        self.model.setParam(gp.GRB.Param.MIPFocus, 1)
         assert presolve in [-1, 0, 1, 2]
         self.model.setParam(gp.GRB.Param.Presolve, presolve)
         self.model.optimize()

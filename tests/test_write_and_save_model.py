@@ -66,7 +66,7 @@ def test_variables_correctly_defined_when_reading_model(inst: Instance) -> None:
     assert all(i in u for i in inst.nodes)
     assert all(u[i].vType == gp.GRB.CONTINUOUS for i in u if i != 0)
     assert u[0] == 0
-    assert len(z) == inst.A * (inst.A - 1)
+    assert len(z) == len(inst.z_var_indices)
     assert all(e in z for e in model.z_var_indices)
     assert all(z[e].vType == gp.GRB.BINARY for e in z if e[0] != 0)
     assert all(isinstance(z[e], int) for e in z if e[0] == 0)
@@ -97,7 +97,7 @@ def test_starting_solution_for_saved_model() -> None:
     assert all(i in u for i in inst.nodes)
     assert all(u[i].vType == gp.GRB.CONTINUOUS for i in u if i != 0)
     assert u[0] == 0
-    assert len(z) == inst.A * (inst.A - 1)
+    assert len(z) == len(inst.z_var_indices)
     assert all(e in z for e in model.z_var_indices)
     assert all(z[e].vType == gp.GRB.BINARY for e in z if e[0] != 0)
     assert all(isinstance(z[e], int) for e in z if e[0] == 0)

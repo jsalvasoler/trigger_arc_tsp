@@ -34,6 +34,11 @@ class Instance:
 
         self.relations = {rel: self.relations[rel] - self.edges[(rel[2], rel[3])] for rel in self.relations}
 
+        self.z_var_indices = [(*b, *c) for a in self.R_a for b in self.R_a[a] for c in self.R_a[a] if b not in (c, 0)]
+        self.z_var_indices += [(*b, *a) for a in self.R_a for b in self.R_a[a] if b != 0]
+        self.z_var_indices += [(*a, *b) for a in self.R_a for b in self.R_a[a] if a != 0]
+        self.z_var_indices = list(set(self.z_var_indices))
+
     @staticmethod
     def load_instance_from_file(file_path: os.PathLike) -> Instance:
         name = "/".join(file_path.split("/")[-2:])
@@ -182,8 +187,7 @@ class Instance:
             # the last relation in the list is the one that triggers the arc a
             y[*triggering[-1], *a] = 1
 
-        z_indices = [(a, b) for a in self.edges for b in self.edges if a != b]
-        z = {(*a, *b): u[a[0]] + 1 <= u[b[0]] for a, b in z_indices}
+        z = {(a_1, a_2, b_1, b_2): u[a_1] + 1 <= u[b_1] for a_1, a_2, b_1, b_2 in self.z_var_indices}
 
         return x, y, u, z
 
