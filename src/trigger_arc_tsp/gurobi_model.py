@@ -16,7 +16,16 @@ class GurobiModel:
 
         self.x, self.y, self.u, self.z = None, None, None, None
         self.u_var_indices = [i for i in self.instance.nodes if i != 0]
-        self.z_var_indices = [(*a, *b) for a in self.instance.edges for b in self.instance.edges if a not in (b, 0)]
+        self.z_var_indices = [
+            (*b, *c)
+            for a in self.instance.R_a
+            for b in self.instance.R_a[a]
+            for c in self.instance.R_a[a]
+            if b not in (c, 0)
+        ]
+        self.z_var_indices += [(*b, *a) for a in self.instance.R_a for b in self.instance.R_a[a] if b != 0]
+        self.z_var_indices += [(*a, *b) for a in self.instance.R_a for b in self.instance.R_a[a] if a != 0]
+        self.z_var_indices = list(set(self.z_var_indices))
 
     def get_model_from_model_file(self) -> None | gp.Model:
         model_path = os.path.join(MODELS_DIR, self.instance.model_name)
@@ -48,7 +57,7 @@ class GurobiModel:
         self.u[0] = 0
         for i in self.instance.delta_out[0]:
             for b in self.instance.edges:
-                if b == (0, i):
+                if b == (0, i) or (0, i, *b) not in self.z:
                     continue
                 self.z[0, i, *b] = 1
 
