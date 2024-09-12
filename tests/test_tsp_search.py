@@ -212,12 +212,22 @@ def test_swap_2_search_tour_generatior() -> None:
         Instance(N=5, edges={(0, 1): 1, (1, 2): 1, (2, 3): 1, (3, 4): 1, (4, 0): 1}, relations={}, name="test"),
         search_type="swap_2",
     )
-    assert len(list(prior_search.generate_n_swap_2_permutations([0, 1, 2, 3, 4]))) == 4 * 3 / 2
+    assert len(list(prior_search.generate_swap_2_permutations([0, 1, 2, 3, 4]))) == 4 * 3 / 2
 
 
 def test_swap_2_search_runs() -> None:
     inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
     prior_search = HeuristicSearch(inst, search_type="swap_2")
     prior_search.run(n_trials=None, n_post_trials=1)
+
+    assert True
+
+
+def test_delay_1_search_generation() -> None:
+    inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
+    prior_search = HeuristicSearch(inst, search_type="delay_2")
+    priors = prior_search.generate_delay_1_node_permutations([0, 1, 2, 3, 4])
+    for _ in priors:
+        pass
 
     assert True

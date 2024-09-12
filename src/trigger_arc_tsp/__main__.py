@@ -20,6 +20,19 @@ INSTANCES_SOLVED_TO_OPTIMALITY = [
     "instances_release_1/grf19.txt",
 ]
 
+HIGH_SCORE_INSTANCES = [
+    "instances_release_1/grf4.txt",
+    "instances_release_1/grf8.txt",
+    "instances_release_1/grf10.txt",
+    "instances_release_1/grf16.txt",
+    "instances_release_1/grf17.txt",
+    "instances_release_1/grf18.txt",
+    "instances_release_1/grf20.txt",
+    "instances_release_1/grf21.txt",
+]
+
+INSTANCES_TO_IGNORE = INSTANCES_SOLVED_TO_OPTIMALITY + HIGH_SCORE_INSTANCES
+
 
 @cli.command(name="gurobi", help="Run the MIP model with Gurobi", context_settings={"show_default": True})
 @click.argument("instance", type=str, required=True)
@@ -41,7 +54,7 @@ def gb_main(
     relax_obj_modeling: bool = False,
     read_model: bool = False,
 ) -> None:
-    if instance in INSTANCES_SOLVED_TO_OPTIMALITY:
+    if instance in INSTANCES_TO_IGNORE:
         click.echo(f"Instance {instance} has been solved to optimality. Skipping MIP solving.")
         return
     gurobi_main(
@@ -60,7 +73,7 @@ def gb_main(
 @click.option("--n_trials", type=int, default=60)
 @click.option("--n_post_trials", type=int, default=10)
 def tsp_main(instance: str, n_trials: int = 60, n_post_trials: int = 10) -> None:
-    if instance in INSTANCES_SOLVED_TO_OPTIMALITY:
+    if instance in INSTANCES_TO_IGNORE:
         click.echo(f"Instance {instance} has been solved to optimality. Skipping TSP search.")
         return
     heuristic_search(instance, search_type="randomized", n_trials=n_trials, n_post_trials=n_post_trials)
@@ -70,10 +83,20 @@ def tsp_main(instance: str, n_trials: int = 60, n_post_trials: int = 10) -> None
 @click.argument("instance", type=str, required=True)
 @click.option("--n_post_trials", type=int, default=10)
 def swap_main_cli(instance: str, n_post_trials: int = 15) -> None:
-    if instance in INSTANCES_SOLVED_TO_OPTIMALITY:
+    if instance in INSTANCES_TO_IGNORE:
         click.echo(f"Instance {instance} has been solved to optimality. Skipping swap search.")
         return
     heuristic_search(instance, search_type="swap_2", n_trials=None, n_post_trials=n_post_trials)
+
+
+@cli.command(name="delay_one", help="Run delay one neighborhood search", context_settings={"show_default": True})
+@click.argument("instance", type=str, required=True)
+@click.option("--n_post_trials", type=int, default=10)
+def delay_one_cli(instance: str, n_post_trials: int = 15) -> None:
+    if instance in INSTANCES_TO_IGNORE:
+        click.echo(f"Instance {instance} has been solved to optimality. Skipping delay one search.")
+        return
+    heuristic_search(instance, search_type="delay_1", n_trials=None, n_post_trials=n_post_trials)
 
 
 if __name__ == "__main__":

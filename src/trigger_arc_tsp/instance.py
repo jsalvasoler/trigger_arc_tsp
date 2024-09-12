@@ -132,7 +132,7 @@ class Instance:
     def __str__(self) -> str:
         return f"Instance(N={self.N}, A={self.A}, R={self.R})"
 
-    def get_best_known_solution(self) -> list | None:
+    def get_best_known_solution(self, idx: int = 0) -> list | None:
         filename = os.path.join(SOLUTIONS_DIR, *self.name.split("/"))
         if not os.path.exists(filename):
             return None
@@ -142,14 +142,17 @@ class Instance:
             lines = file.readlines()
             for line in lines:
                 tour, obj, _ = line.split(" | ")
-                sols.append((tour, float(obj)))
+                if tour not in {s[0] for s in sols}:
+                    sols.append((tour, float(obj)))
 
-            sols = sorted(sols, key=lambda x: x[1])
+        sols = sorted(sols, key=lambda x: x[1])
+        if idx >= len(sols):
+            error = f"Trying to get solution {idx} from {len(sols)} solutions"
+            raise ValueError(error)
+        tour = list(map(int, sols[idx][0].split(",")))
+        print(f"Best known solution for {self.name}: {tour} with objective {sols[idx][1]}")
 
-            tour = list(map(int, sols[0][0].split(",")))
-            print(f"Best known solution for {self.name}: {tour} with objective {sols[0][1]}")
-
-            return tour
+        return tour
 
     def get_mip_start(self, *, use_tsp_only: bool = False) -> list[dict, dict, dict, dict]:
         best_known_solution = self.get_best_known_solution()

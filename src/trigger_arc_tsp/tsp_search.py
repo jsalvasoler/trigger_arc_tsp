@@ -101,7 +101,7 @@ class TSPPrior:
 
 
 class HeuristicSearch:
-    def __init__(self, instance: Instance, search_type: Literal["randomized", "swap_2"]) -> None:
+    def __init__(self, instance: Instance, search_type: Literal["randomized", "swap_2", "delay_1"]) -> None:
         self.instance = instance
         self.searcher = TSPPriorEval(self.instance)
         self.search_type = search_type
@@ -110,15 +110,29 @@ class HeuristicSearch:
         for _ in range(n):
             yield [0, *fisher_yates_shuffle(list(range(1, self.instance.N)))]
 
-    def generate_n_swap_2_permutations(self, node_priorities: list) -> Generator[list]:
+    def generate_swap_2_permutations(self, node_priorities: list) -> Generator[list]:
         for i in range(1, self.instance.N - 1):
             for j in range(i + 1, self.instance.N):
                 new_prior = node_priorities.copy()
                 new_prior[i], new_prior[j] = new_prior[j], new_prior[i]
                 yield new_prior
 
-    def run(self, n_trials: int | None = None, n_post_trials: int = 10) -> None:
-        best_tour = self.instance.get_best_known_solution()
+    def generate_delay_1_node_permutations(self, node_priorities: list) -> Generator[list]:
+        for i in range(1, self.instance.N - 1):
+            for j in range(i + 1, self.instance.N):
+                new_prior = (
+                    node_priorities[:i]
+                    + node_priorities[i + 1 : j + 1]
+                    + [node_priorities[i]]
+                    + node_priorities[j + 1 :]
+                )
+                assert len(new_prior) == len(node_priorities)
+                assert new_prior[0] == 0
+                assert new_prior[j] == node_priorities[i]
+                yield new_prior
+
+    def run(self, n_trials: int | None = None, n_post_trials: int = 10, idx: int = 0) -> None:
+        best_tour = self.instance.get_best_known_solution(idx=idx)
         best_cost = self.instance.compute_objective(best_tour)
 
         if self.search_type == "randomized":
@@ -129,7 +143,13 @@ class HeuristicSearch:
             if n_trials is None:
                 warn(f"Total number of trials is set to {n_tours_to_explore}", stacklevel=1)
             n_trials = n_tours_to_explore
-            tours_to_explore = self.generate_n_swap_2_permutations(best_tour)
+            tours_to_explore = self.generate_swap_2_permutations(best_tour)
+        elif self.search_type == "delay_1":
+            n_tours_to_explore = (self.instance.N - 2) * (self.instance.N - 1) // 2
+            if n_trials is None:
+                warn(f"Total number of trials is set to {n_tours_to_explore}", stacklevel=1)
+            n_trials = n_tours_to_explore
+            tours_to_explore = self.generate_delay_1_node_permutations(best_tour)
         else:
             raise ValueError("Invalid search type")
 
@@ -139,7 +159,7 @@ class HeuristicSearch:
         try:
             for node_priorities in tours_to_explore:
                 tsp_prior = TSPPrior(node_priorities, alpha=random.uniform(0.1, 3), beta=random.uniform(0.1, 3))
-                tour, cost = self.searcher.evaluate_individual(tsp_prior=tsp_prior)
+                tour, cost = self.searcher.evaluate_individual(tsp_prior=tsp_prior, time_limit_sec=5)
                 if cost / best_cost - 1 < 0.05:
                     promising_tsp_priors.append(tsp_prior)
                 if improved := cost < best_cost:
@@ -177,6 +197,7 @@ class HeuristicSearch:
                 if improved := cost < best_cost:
                     best_tour = tour
                     best_cost = cost
+                    self.instance.save_solution(best_tour, best_cost)
                 self.print_log_line(evals, cost, best_cost, n_trials=n_post_trials, improved=improved)
                 if evals >= n_post_trials:
                     break
@@ -207,7 +228,7 @@ class HeuristicSearch:
 
 
 def heuristic_search(
-    instance_name: str, search_type: Literal["randomized", "swap2"], n_trials: int, n_post_trials: int
+    instance_name: str, search_type: Literal["randomized", "swap_2", "delay_1"], n_trials: int, n_post_trials: int
 ) -> None:
     instance_name = cleanup_instance_name(instance_name)
     instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, instance_name))
