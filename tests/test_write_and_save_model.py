@@ -67,7 +67,6 @@ def test_variables_correctly_defined_when_reading_model(inst: Instance) -> None:
     assert len(z) == len(inst.z_var_indices)
     assert all(e in z for e in model.z_var_indices)
     assert all(z[e].vType == gp.GRB.BINARY for e in z if e[0] != 0)
-    assert all(isinstance(z[e], int) for e in z if e[0] == 0)
 
     model.solve_model_with_parameters(mip_start=True)
 
@@ -97,8 +96,7 @@ def test_starting_solution_for_saved_model() -> None:
     assert u[0] == 0
     assert len(z) == len(inst.z_var_indices)
     assert all(e in z for e in model.z_var_indices)
-    assert all(z[e].vType == gp.GRB.BINARY for e in z if e[0] != 0)
-    assert all(isinstance(z[e], int) for e in z if e[0] == 0)
+    assert all(z[e].vType == gp.GRB.BINARY for e in z)
 
     starting_tour = [0, 16, 13, 4, 12, 17, 14, 9, 19, 6, 11, 3, 2, 8, 18, 10, 5, 15, 7, 1]
     vars_ = inst.get_variables_from_tour(starting_tour)

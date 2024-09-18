@@ -23,7 +23,7 @@ class SolverModel:
         self.z_var_indices = self.instance.z_var_indices
 
     @abstractmethod
-    def read_model(self, model_path: str | os.PathLike) -> gp.Model | xp.Problem:
+    def read_model(self, model_path: str | os.PathLike) -> gp.Model | xp.problem:
         pass
 
     def get_model_from_model_file(self) -> None | gp.Model:
@@ -62,11 +62,6 @@ class SolverModel:
 
     def add_extra_const_variables(self) -> None:
         self.u[0] = 0
-        for i in self.instance.delta_out[0]:
-            for b in self.instance.edges:
-                if b == (0, i) or (0, i, *b) not in self.z:
-                    continue
-                self.z[0, i, *b] = 1
 
     def formulate(
         self,
@@ -150,5 +145,5 @@ class SolverModel:
     def get_z(self) -> dict:
         return self.z
 
-    def get_model(self) -> gp.Model | xp.Problem:
+    def get_model(self) -> gp.Model | xp.problem:
         return self.model

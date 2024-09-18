@@ -31,3 +31,6 @@ venv.bak/
 
 # Pytest
 .cache/
+
+# xpress license
+xpauth.xpr

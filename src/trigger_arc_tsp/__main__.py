@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import os
+
 import click
 
 from trigger_arc_tsp.gurobi_model import gurobi_main
 from trigger_arc_tsp.tsp_search import heuristic_search
+from trigger_arc_tsp.xpress_model import xpress_main
 
 
 @click.group()
@@ -34,8 +37,9 @@ HIGH_SCORE_INSTANCES = [
 INSTANCES_TO_IGNORE = INSTANCES_SOLVED_TO_OPTIMALITY + HIGH_SCORE_INSTANCES
 
 
-@cli.command(name="gurobi", help="Run the MIP model with Gurobi", context_settings={"show_default": True})
+@cli.command(name="solver", help="Run the MIP model with a MIP solver", context_settings={"show_default": True})
 @click.argument("instance", type=str, required=True)
+@click.argument("solver", type=str, required=True)
 @click.option("--time_limit_sec", type=int, default=60)
 @click.option("--heuristic_effort", type=float, default=0.05)
 @click.option("--presolve", type=int, default=-1)
@@ -46,6 +50,7 @@ INSTANCES_TO_IGNORE = INSTANCES_SOLVED_TO_OPTIMALITY + HIGH_SCORE_INSTANCES
 @click.option("--read_model", type=bool, is_flag=True, default=False, help="Try to read model from file")
 def gb_main(
     instance: str,
+    solver: str,
     time_limit_sec: int = 60,
     heuristic_effort: float = 0.05,
     presolve: int = -1,
@@ -54,10 +59,16 @@ def gb_main(
     relax_obj_modeling: bool = False,
     read_model: bool = False,
 ) -> None:
-    if instance in INSTANCES_TO_IGNORE:
-        click.echo(f"Instance {instance} has been solved to optimality. Skipping MIP solving.")
-        return
-    gurobi_main(
+    # if instance in INSTANCES_TO_IGNORE:
+    #     click.echo(f"Instance {instance} has been solved to optimality. Skipping MIP solving.")
+    #     return
+
+    os.environ["XPAUTH_PATH"] = os.path.join(os.getcwd(), "xpauth.xpr")
+    assert solver in ["gurobi", "xpress"], "Solver must be either 'gurobi' or 'xpress'"
+
+    f = gurobi_main if solver == "gurobi" else xpress_main
+
+    f(
         instance,
         time_limit_sec=time_limit_sec,
         heuristic_effort=heuristic_effort,
