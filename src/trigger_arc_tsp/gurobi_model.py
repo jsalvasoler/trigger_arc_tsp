@@ -5,91 +5,23 @@ import os
 import gurobipy as gp
 
 from trigger_arc_tsp.instance import Instance
-from trigger_arc_tsp.utils import INSTANCES_DIR, MODELS_DIR, cleanup_instance_name
+from trigger_arc_tsp.solver_model import SolverModel
+from trigger_arc_tsp.utils import INSTANCES_DIR, cleanup_instance_name
 
 
-class GurobiModel:
+class GurobiModel(SolverModel):
     def __init__(self, instance: Instance) -> None:
-        self.instance = instance
+        super().__init__(instance)
         self.model = gp.Model("TriggerArcTSP")
-        self.formulated = False
 
-        self.x, self.y, self.u, self.z = None, None, None, None
-        self.u_var_indices = [i for i in self.instance.nodes if i != 0]
-        self.z_var_indices = self.instance.z_var_indices
-
-    def get_model_from_model_file(self) -> None | gp.Model:
-        model_path = os.path.join(MODELS_DIR, self.instance.model_name)
-        if not os.path.exists(model_path):
-            return None
+    def read_model(self, model_path: str | os.PathLike) -> gp.Model:
         return gp.read(model_path)
 
-    def define_variables_from_model(self) -> None:
-        print("Defining variables from model")
+    def get_vars(self) -> list:
+        return self.model.getVars()
 
-        # Retrieve all variables once and store them in a list
-        variables = self.model.getVars()
-
-        # Assign variables to x, u, y, and z using slices of the list
-        num_x = len(self.instance.edges)
-        num_u = len(self.u_var_indices)
-        num_y = len(self.instance.relations)
-        num_z = len(self.z_var_indices)
-
-        self.x = {key: variables[idx] for idx, key in enumerate(self.instance.edges)}
-        self.u = {key: variables[num_x + idx] for idx, key in enumerate(self.u_var_indices)}
-        self.y = {key: variables[num_x + num_u + idx] for idx, key in enumerate(self.instance.relations)}
-        self.z = {key: variables[num_x + num_u + num_y + idx] for idx, key in enumerate(self.z_var_indices)}
-
-        # Ensure the total number of variables matches
-        assert num_x + num_u + num_y + num_z == len(variables)
-
-    def add_extra_const_variables(self) -> None:
-        self.u[0] = 0
-        for i in self.instance.delta_out[0]:
-            for b in self.instance.edges:
-                if b == (0, i) or (0, i, *b) not in self.z:
-                    continue
-                self.z[0, i, *b] = 1
-
-    def formulate(
-        self,
-        *,
-        relax_obj_modeling: bool = False,
-        read_model: bool = False,
-        vars_: None | list[dict, dict, dict, dict] = None,
-    ) -> None:
-        self.formulated = True
-
-        if vars_ is not None:
-            assert not read_model
-            assert not relax_obj_modeling
-            assert len(vars_) == 4
-
-        if read_model:
-            assert not relax_obj_modeling
-            read_model = self.get_model_from_model_file()
-            if read_model is not None:
-                self.model = read_model
-                self.define_variables_from_model()
-                self.add_extra_const_variables()
-                return
-
-        if vars_:
-            # The user has already loaded the variables into the model, we just need to register them
-            assert len(self.model.getVars()) > 0
-            self.x, self.y, self.u, self.z = vars_
-        else:
-            if relax_obj_modeling:
-                self.add_variables_relax_obj()
-            else:
-                self.add_variables()
-            self.add_extra_const_variables()
-
-        self.add_constraints()
-
-        if not relax_obj_modeling:
-            self.model.write(os.path.join(MODELS_DIR, self.instance.model_name))
+    def write_mps(self, model_path: str | os.PathLike) -> None:
+        self.model.write(model_path)
 
     def add_variables(self) -> None:
         self.x = self.model.addVars(self.instance.edges, vtype=gp.GRB.BINARY, name="x")
@@ -197,6 +129,7 @@ class GurobiModel:
             name="only_last_relation_triggers",
         )
 
+    def add_objective(self) -> None:
         # Set the objective function
         obj = gp.quicksum(
             self.x[a] * self.instance.edges[a]
@@ -252,21 +185,6 @@ class GurobiModel:
         cost += sum(self.instance.relations[a] for a in self.instance.relations if y_vals[a] > 0.5)
 
         return tour, cost
-
-    def get_x(self) -> dict:
-        return self.x
-
-    def get_y(self) -> dict:
-        return self.y
-
-    def get_u(self) -> dict:
-        return self.u
-
-    def get_z(self) -> dict:
-        return self.z
-
-    def get_model(self) -> gp.Model:
-        return self.model
 
 
 def gurobi_main(

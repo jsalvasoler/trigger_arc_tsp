@@ -30,6 +30,7 @@ dependencies = [
   "ipython",
   "tdqm",
   "pandas",
+  "xpress",
 ]
 
 [project.urls]

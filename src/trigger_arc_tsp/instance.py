@@ -69,6 +69,9 @@ class Instance:
 
     def _load_indices_from_cache(self) -> bool:
         """Loads z_var_indices from the cache file if it exists."""
+        if self.name == "test":
+            return False
+
         print("Instance loading: Loading indices from cache")
         if os.path.exists(self.cache_file):
             with open(self.cache_file, "rb") as cache:
