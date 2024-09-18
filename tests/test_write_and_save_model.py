@@ -24,7 +24,6 @@ def test_model_is_writen_after_formulating(inst: Instance) -> None:
 
     model_path = os.path.join(MODELS_DIR, inst.model_name)
     assert os.path.exists(model_path)
-    os.remove(model_path)
 
 
 def test_model_is_read_successfully(inst: Instance) -> None:
@@ -32,6 +31,7 @@ def test_model_is_read_successfully(inst: Instance) -> None:
     model.formulate()  # Model is saved here
 
     model_path = os.path.join(MODELS_DIR, inst.model_name)
+    assert os.path.exists(model_path)
 
     model_2 = GurobiModel(inst)
     model_2.formulate(read_model=True)
@@ -44,8 +44,6 @@ def test_model_is_read_successfully(inst: Instance) -> None:
 
     assert model_2.get_model().Status == gp.GRB.OPTIMAL
     assert model_2.get_model().objVal == 3.0
-
-    os.remove(model_path)
 
 
 def test_variables_correctly_defined_when_reading_model(inst: Instance) -> None:
