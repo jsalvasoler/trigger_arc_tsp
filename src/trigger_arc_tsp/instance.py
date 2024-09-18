@@ -1,18 +1,25 @@
 from __future__ import annotations
 
 import os
+import pickle
 from collections import defaultdict
 from datetime import datetime
 from warnings import warn
 
+from tqdm import tqdm
+
 from trigger_arc_tsp.gurobi_tsp_model import GurobiTSPModel
-from trigger_arc_tsp.utils import SOLUTIONS_DIR
+from trigger_arc_tsp.utils import CACHE_DIR, SOLUTIONS_DIR
 
 
 class Instance:
     def __init__(self, N: int, edges: dict, relations: dict, name: str) -> None:
         self.name = name
         self.model_name = name.removesuffix(".txt") + ".mps"
+        self.cache_file = os.path.join(CACHE_DIR, name.removesuffix(".txt") + "indices_cache.pkl")
+
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        os.makedirs(os.path.dirname(self.cache_file), exist_ok=True)
 
         self.edges = edges
         self.relations = relations
@@ -34,14 +41,45 @@ class Instance:
 
         self.relations = {rel: self.relations[rel] - self.edges[(rel[2], rel[3])] for rel in self.relations}
 
-        self.z_var_indices = [(*b, *c) for a in self.R_a for b in self.R_a[a] for c in self.R_a[a] if b not in (c, 0)]
-        self.z_var_indices += [(*b, *a) for a in self.R_a for b in self.R_a[a] if b != 0]
-        self.z_var_indices += [(*a, *b) for a in self.R_a for b in self.R_a[a] if a != 0]
-        self.z_var_indices = list(set(self.z_var_indices))
+        if not self._load_indices_from_cache():
+            self._generate_z_var_indices()
+
+    def _generate_z_var_indices(self) -> None:
+        print("Instance loading: Generating indices")
+        # Optimize z_var_indices creation
+        z_var_indices = set()
+
+        for a, b_list in tqdm(self.R_a.items()):
+            for b in b_list:
+                if b != 0:
+                    z_var_indices.add((*a, *b))  # (*a, *b)
+                    z_var_indices.add((*b, *a))  # (*b, *a)
+                for c in b_list:
+                    if b != c and b not in (c, 0):
+                        z_var_indices.add((*b, *c))  # (*b, *c)
+
+        self.z_var_indices = list(z_var_indices)
+        self._store_indices_in_cache()
+
+    def _store_indices_in_cache(self) -> None:
+        """Stores z_var_indices in a cache file using pickle."""
+        print("Instance loading: Storing indices in cache")
+        with open(self.cache_file, "wb") as cache:
+            pickle.dump(self.z_var_indices, cache)
+
+    def _load_indices_from_cache(self) -> bool:
+        """Loads z_var_indices from the cache file if it exists."""
+        print("Instance loading: Loading indices from cache")
+        if os.path.exists(self.cache_file):
+            with open(self.cache_file, "rb") as cache:
+                self.z_var_indices = pickle.load(cache)  # noqa: S301
+                return True
+        return False
 
     @staticmethod
     def load_instance_from_file(file_path: os.PathLike) -> Instance:
         name = "/".join(file_path.split("/")[-2:])
+        print("reading instance file")
         with open(file_path) as file:
             lines = file.readlines()
             N, A, R = map(int, lines[0].split())
@@ -59,6 +97,7 @@ class Instance:
 
             assert int(line.split(" ")[0]) == R - 1
 
+        print("initialize Instance object")
         return Instance(N, edges, relations, name)
 
     def compute_objective(self, tour: list) -> float:

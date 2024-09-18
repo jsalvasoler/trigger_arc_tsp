@@ -228,7 +228,7 @@ class GurobiModel:
         if time_limit_sec > 0:
             self.model.setParam(gp.GRB.Param.TimeLimit, time_limit_sec)
         self.model.setParam(gp.GRB.Param.Heuristics, heuristic_effort)
-        self.model.setParam(gp.GRB.Param.MIPFocus, 1)
+        # self.model.setParam(gp.GRB.Param.MIPFocus, 1)
         assert presolve in [-1, 0, 1, 2]
         self.model.setParam(gp.GRB.Param.Presolve, presolve)
         self.model.optimize()

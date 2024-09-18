@@ -2,6 +2,7 @@
 /instances/
 /solutions/
 /models/
+/cache/
 model.ilp
 
 # Runner script

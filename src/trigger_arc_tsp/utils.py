@@ -7,6 +7,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 INSTANCES_DIR = os.path.join(current_dir, "..", "..", "instances")
 SOLUTIONS_DIR = os.path.join(current_dir, "..", "..", "solutions")
 MODELS_DIR = os.path.join(current_dir, "..", "..", "models")
+CACHE_DIR = os.path.join(current_dir, "..", "..", "cache")
 
 
 def cleanup_instance_name(instance: str) -> str:

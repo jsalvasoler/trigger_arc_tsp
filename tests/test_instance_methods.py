@@ -4,7 +4,7 @@ from typing import Any, Generator
 import pytest
 
 from trigger_arc_tsp.instance import Instance
-from trigger_arc_tsp.utils import INSTANCES_DIR, SOLUTIONS_DIR
+from trigger_arc_tsp.utils import CACHE_DIR, INSTANCES_DIR, SOLUTIONS_DIR
 
 
 @pytest.fixture
@@ -77,3 +77,22 @@ def test_write_solution_to_file(clean_test_file: Generator[Any, Any, Any]) -> No
     with open(os.path.join(SOLUTIONS_DIR, "examples/just_a_test.txt")) as file:
         line = file.readline()
         assert line.startswith("0,2,1,4,3 | 71.0 | ")
+
+
+@pytest.fixture
+def clean_cache_of_example_2() -> Generator[Any, Any, Any]:
+    cache_path = os.path.join(CACHE_DIR, "examples/example_2indices_cache.pkl")
+    if os.path.exists(cache_path):
+        os.remove(cache_path)
+    yield cache_path
+    if os.path.exists(cache_path):
+        os.remove(cache_path)
+
+
+def test_cache_for_z_indices(clean_cache_of_example_2: str) -> None:  # noqa: ARG001
+    instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
+    assert os.path.exists(instance.cache_file)
+    os.remove(instance.cache_file)
+    instance._store_indices_in_cache()
+    assert os.path.exists(instance.cache_file)
+    assert instance._load_indices_from_cache()

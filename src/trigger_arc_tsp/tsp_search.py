@@ -136,7 +136,7 @@ class HeuristicSearch:
             for j in range(i + 1, self.instance.N - 1):
                 for k in range(j + 1, self.instance.N):
                     new_prior = node_priorities.copy()
-                    new_prior[i], new_prior[j], new_prior[k] = new_prior[j], new_prior[k], new_prior[i]
+                    new_prior[i], new_prior[j], new_prior[k] = new_prior[k], new_prior[i], new_prior[j]
                     yield new_prior
 
     def run(self, n_trials: int | None = None, n_post_trials: int = 10, idx: int = 0) -> None:
