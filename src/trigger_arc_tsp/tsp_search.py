@@ -32,7 +32,7 @@ class TSPPriorEval:
             N=self.instance.N,
             edges=tsp_edges,
             relations={},
-            name=self.instance.name,
+            name=f'{self.instance.name.removesuffix(".txt")}_tsp.txt',
         )
         self.model = GurobiTSPModel(tsp_instance)
         self.model.formulate()
@@ -141,7 +141,7 @@ class HeuristicSearch:
 
     def run(self, n_trials: int | None = None, n_post_trials: int = 10, idx: int = 0) -> None:
         best_tour = self.instance.get_best_known_solution(idx=idx)
-        best_cost = self.instance.compute_objective(best_tour)
+        best_cost = self.instance.compute_objective(best_tour) if best_tour else float("inf")
 
         if self.search_type == "randomized":
             assert n_trials is not None, "Number of trials must be specified for randomized search"

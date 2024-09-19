@@ -101,6 +101,7 @@ class SolverModel:
         self.add_objective()
 
         if not relax_obj_modeling:
+            os.makedirs(MODELS_DIR, exist_ok=True)
             self.write_mps(os.path.join(MODELS_DIR, self.instance.model_name))
 
     @abstractmethod

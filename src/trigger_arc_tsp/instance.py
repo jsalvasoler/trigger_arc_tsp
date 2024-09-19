@@ -6,8 +6,6 @@ from collections import defaultdict
 from datetime import datetime
 from warnings import warn
 
-from tqdm import tqdm
-
 from trigger_arc_tsp.gurobi_tsp_model import GurobiTSPModel
 from trigger_arc_tsp.utils import CACHE_DIR, SOLUTIONS_DIR
 
@@ -45,11 +43,11 @@ class Instance:
             self._generate_z_var_indices()
 
     def _generate_z_var_indices(self) -> None:
-        print("Instance loading: Generating indices")
+        # print("Instance loading: Generating indices")
         # Optimize z_var_indices creation
         z_var_indices = set()
 
-        for a, b_list in tqdm(self.R_a.items()):
+        for a, b_list in self.R_a.items():
             for b in b_list:
                 if b != 0:
                     z_var_indices.add((*a, *b))  # (*a, *b)
@@ -63,16 +61,17 @@ class Instance:
 
     def _store_indices_in_cache(self) -> None:
         """Stores z_var_indices in a cache file using pickle."""
-        print("Instance loading: Storing indices in cache")
+        # print("Instance loading: Storing indices in cache")
+        if self.name == "test" or "tsp" in self.name:
+            return
         with open(self.cache_file, "wb") as cache:
             pickle.dump(self.z_var_indices, cache)
 
     def _load_indices_from_cache(self) -> bool:
         """Loads z_var_indices from the cache file if it exists."""
-        if self.name == "test":
+        if self.name == "test" or "tsp" in self.name:
             return False
 
-        print("Instance loading: Loading indices from cache")
         if os.path.exists(self.cache_file):
             with open(self.cache_file, "rb") as cache:
                 self.z_var_indices = pickle.load(cache)  # noqa: S301
@@ -91,7 +90,7 @@ class Instance:
             for line in lines[1 : 1 + A]:
                 _, i, j, w = map(float, line.split())
                 edges[(int(i), int(j))] = w
-            assert _ == A - 1
+            # assert _ == A - 1
 
             relations = {}
             for line in lines[1 + A : 1 + A + R]:
@@ -99,6 +98,9 @@ class Instance:
                 relations[(int(from_trigger), int(to_trigger), int(from_arc), int(to_arc))] = cost
 
             assert int(line.split(" ")[0]) == R - 1
+
+            assert len(edges) == A
+            assert len(relations) == R
 
         print("initialize Instance object")
         return Instance(N, edges, relations, name)
@@ -125,10 +127,8 @@ class Instance:
             triggering = [rel for rel in triggering if path.index(rel) < path.index(a)]
             if not triggering:
                 continue
-            # the last relation in the list is the one that triggers the arc a
-            trigger_rel_cost = self.relations[*triggering[-1], *a]
             # add the relative cost of the triggering relation to the cost of the arc a
-            cost += trigger_rel_cost
+            cost += self.relations[*triggering[-1], *a]
 
         return cost
 
