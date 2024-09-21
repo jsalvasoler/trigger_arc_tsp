@@ -83,34 +83,48 @@ def gb_main(
 @click.argument("instance", type=str, required=True)
 @click.option("--n_trials", type=int, default=60)
 @click.option("--n_post_trials", type=int, default=10)
-def tsp_main(instance: str, n_trials: int = 60, n_post_trials: int = 10) -> None:
+@click.option("--soft", type=bool, is_flag=True, default=False, help="Evaluate only the prior")
+def tsp_main(instance: str, n_trials: int = 60, n_post_trials: int = 0, *, soft: bool = False) -> None:
     if instance in INSTANCES_TO_IGNORE:
         click.echo(f"Instance {instance} has been solved to optimality. Skipping TSP search.")
         return
-    heuristic_search(instance, search_type="randomized", n_trials=n_trials, n_post_trials=n_post_trials)
+    heuristic_search(instance, search_type="randomized", n_trials=n_trials, n_post_trials=n_post_trials, soft=soft)
 
 
 @cli.command(name="swap_search", help="Run swap search", context_settings={"show_default": True})
 @click.argument("instance", type=str, required=True)
 @click.option("--n_post_trials", type=int, default=10)
 @click.option("--k", type=int, default=2)
-def swap_main_cli(instance: str, n_post_trials: int = 15, k: int = 2) -> None:
+@click.option("--soft", type=bool, is_flag=True, default=False, help="Evaluate only the prior")
+def swap_main_cli(instance: str, n_post_trials: int = 0, k: int = 2, *, soft: bool = False) -> None:
     if instance in INSTANCES_TO_IGNORE:
         click.echo(f"Instance {instance} has been solved to optimality. Skipping swap search.")
         return
     click.echo(f"Running swap search with k={k}")
-    heuristic_search(instance, search_type=f"swap_{k}", n_trials=None, n_post_trials=n_post_trials)
+    heuristic_search(instance, search_type=f"swap_{k}", n_trials=None, n_post_trials=n_post_trials, soft=soft)
 
 
 @cli.command(name="delay_one", help="Run delay one neighborhood search", context_settings={"show_default": True})
 @click.argument("instance", type=str, required=True)
 @click.option("--n_post_trials", type=int, default=10)
-def delay_one_cli(instance: str, n_post_trials: int = 15) -> None:
+@click.option("--soft", type=bool, is_flag=True, default=False, help="Evaluate only the prior")
+def delay_one_cli(instance: str, n_post_trials: int = 0, *, soft: bool = False) -> None:
     if instance in INSTANCES_TO_IGNORE:
         click.echo(f"Instance {instance} has been solved to optimality. Skipping delay one search.")
         return
     click.echo("Running delay one neighborhood search")
-    heuristic_search(instance, search_type="delay_1", n_trials=None, n_post_trials=n_post_trials)
+    heuristic_search(instance, search_type="delay_1", n_trials=None, n_post_trials=n_post_trials, soft=soft)
+
+
+@cli.command(name="grasp", help="Run GRASP", context_settings={"show_default": True})
+@click.argument("instance", type=str, required=True)
+@click.option("--n_trials", type=int, default=50)
+def run_grasp(instance: str, n_trials: int = 50) -> None:
+    if instance in INSTANCES_TO_IGNORE:
+        click.echo(f"Instance {instance} has been solved to optimality. Skipping delay one search.")
+        return
+    click.echo("Running delay one neighborhood search")
+    heuristic_search(instance, search_type="grasp", n_trials=n_trials, n_post_trials=0)
 
 
 if __name__ == "__main__":

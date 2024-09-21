@@ -14,8 +14,9 @@ from trigger_arc_tsp.utils import INSTANCES_DIR, cleanup_instance_name, fisher_y
 
 
 class TSPPriorEval:
-    def __init__(self, instance: Instance) -> None:
+    def __init__(self, instance: Instance, *, soft: bool = False) -> None:
         self.instance = instance
+        self.soft = soft
 
     def evaluate_individual(self, tsp_prior: TSPPrior, time_limit_sec: int = 10) -> list[list, float]:
         assert len(tsp_prior.priorities) == self.instance.N
@@ -26,6 +27,9 @@ class TSPPriorEval:
         except KeyError:
             best_cost = float("inf")
             best_tour = None
+
+        if self.soft:
+            return best_tour, best_cost
 
         tsp_edges = self.get_edges_for_tsp_search(tsp_prior=tsp_prior)
         tsp_instance = Instance(
@@ -101,10 +105,21 @@ class TSPPrior:
 
 
 class HeuristicSearch:
-    def __init__(self, instance: Instance, search_type: Literal["randomized", "swap_2", "delay_1", "swap_3"]) -> None:
+    def __init__(
+        self,
+        instance: Instance,
+        search_type: Literal["randomized", "swap_2", "delay_1", "swap_3", "grasp"],
+        *,
+        soft: bool = False,
+        save_solutions: bool = True,
+        print_logs: bool = True,
+    ) -> None:
         self.instance = instance
-        self.searcher = TSPPriorEval(self.instance)
+        self.searcher = TSPPriorEval(self.instance, soft=soft)
         self.search_type = search_type
+        self.soft = soft
+        self.save_solutions = save_solutions
+        self.print_logs = print_logs
 
     def generate_n_random_permutations(self, n: int) -> Generator[list]:
         for _ in range(n):
@@ -139,8 +154,12 @@ class HeuristicSearch:
                     new_prior[i], new_prior[j], new_prior[k] = new_prior[k], new_prior[i], new_prior[j]
                     yield new_prior
 
-    def run(self, n_trials: int | None = None, n_post_trials: int = 10, idx: int = 0) -> None:
-        best_tour = self.instance.get_best_known_solution(idx=idx)
+    def run(
+        self, n_trials: int | None = None, n_post_trials: int = 0, idx: int = 0, start_solution: list | None = None
+    ) -> None:
+        assert n_post_trials == 0 or not self.soft, "Post-trials are not allowed in soft mode"
+        assert n_post_trials == 0 or self.search_type != "grasp", "Post-trials are not allowed in GRASP search"
+        best_tour = start_solution if start_solution else self.instance.get_best_known_solution(idx=idx)
         best_cost = self.instance.compute_objective(best_tour) if best_tour else float("inf")
 
         if self.search_type == "randomized":
@@ -164,6 +183,9 @@ class HeuristicSearch:
                 warn(f"Total number of trials is set to {n_tours_to_explore}", stacklevel=1)
             n_trials = n_tours_to_explore
             tours_to_explore = self.generate_delay_1_node_permutations(best_tour)
+        elif self.search_type == "grasp":
+            self._grasp_search(n_trials=n_trials)
+            return
         else:
             raise ValueError("Invalid search type")
 
@@ -174,24 +196,67 @@ class HeuristicSearch:
             for node_priorities in tours_to_explore:
                 tsp_prior = TSPPrior(node_priorities, alpha=random.uniform(0.1, 3), beta=random.uniform(0.1, 3))
                 tour, cost = self.searcher.evaluate_individual(tsp_prior=tsp_prior, time_limit_sec=5)
-                if cost / best_cost - 1 < 0.05:
+                if tour and cost / best_cost - 1 < 0.05:
                     promising_tsp_priors.append(tsp_prior)
                 if improved := cost < best_cost:
                     best_tour = tour
                     best_cost = cost
-                    self.instance.save_solution(best_tour, best_cost)
-                self.print_log_line(it, cost, best_cost, n_trials=n_trials, improved=improved)
+                    if self.save_solutions:
+                        self.instance.save_solution(best_tour, best_cost)
+                if self.print_logs:
+                    self.print_log_line(it, cost, best_cost, n_trials=n_trials, improved=improved)
                 it += 1
 
         except KeyboardInterrupt:
             print("--- Interrupted by user ---")
 
-        best_tour, best_cost = self.run_post_trials(promising_tsp_priors, best_cost, best_tour, n_post_trials)
+        if n_post_trials:
+            best_tour, best_cost = self.run_post_trials(promising_tsp_priors, best_cost, best_tour, n_post_trials)
         assert best_cost == self.instance.compute_objective(best_tour)
 
-        print(f"Instnace: {self.instance.name}")
-        print(f"Best tour: {best_tour} - Cost: {best_cost}")
-        self.instance.save_solution(best_tour, best_cost)
+        if self.print_logs:
+            print(f"Instnace: {self.instance.name}")
+            print(f"Best tour: {best_tour} - Cost: {best_cost}")
+
+        return best_tour, best_cost
+
+    def _grasp_search(self, n_trials: int) -> None:
+        best_tour = self.instance.get_best_known_solution()
+        best_cost = self.instance.compute_objective(best_tour) if best_tour else float("inf")
+
+        search = HeuristicSearch(self.instance, search_type="swap_2", soft=True, save_solutions=False, print_logs=False)
+
+        for it in range(n_trials):
+            node_priorities = self.generate_n_random_permutations(1).__next__()
+            tsp_prior = TSPPrior(node_priorities, alpha=random.uniform(0.1, 3), beta=random.uniform(0.1, 3))
+            tour, cost = self.searcher.evaluate_individual(tsp_prior=tsp_prior, time_limit_sec=1.5)
+
+            if not tour:
+                continue
+
+            n_iterations_without_improvement = 0
+            search_types = ["swap_2", "delay_1", "swap_3"]
+            while n_iterations_without_improvement < len(search_types):
+                search.set_search_type(search_types[n_iterations_without_improvement])
+                search.set_start_solution(tour)
+                tour, cost = search.run(start_solution=tour)
+
+                if improved := cost < best_cost:
+                    best_tour = tour
+                    best_cost = cost
+                    if self.save_solutions:
+                        self.instance.save_solution(best_tour, best_cost)
+                    n_iterations_without_improvement = 0
+                else:
+                    n_iterations_without_improvement += 1
+                if self.print_logs:
+                    self.print_log_line(it, cost, best_cost, n_trials=n_trials, improved=improved)
+
+        assert best_cost == self.instance.compute_objective(best_tour)
+
+        if self.print_logs:
+            print(f"Instnace: {self.instance.name}")
+            print(f"Best tour: {best_tour} - Cost: {best_cost}")
 
     def run_post_trials(
         self, promising_tsp_priors: list[TSPPrior], best_cost: float, best_tour: list, n_post_trials: int
@@ -211,8 +276,10 @@ class HeuristicSearch:
                 if improved := cost < best_cost:
                     best_tour = tour
                     best_cost = cost
-                    self.instance.save_solution(best_tour, best_cost)
-                self.print_log_line(evals, cost, best_cost, n_trials=n_post_trials, improved=improved)
+                    if self.save_solutions:
+                        self.instance.save_solution(best_tour, best_cost)
+                if self.print_logs:
+                    self.print_log_line(evals, cost, best_cost, n_trials=n_post_trials, improved=improved)
                 if evals >= n_post_trials:
                     break
         except KeyboardInterrupt:
@@ -240,13 +307,25 @@ class HeuristicSearch:
 
         print(s)
 
+    def set_search_type(self, search_type: Literal["randomized", "swap_2", "swap_3", "delay_1", "grasp"]) -> None:
+        self.search_type = search_type
+
+    def set_start_solution(self, start_solution: list) -> None:
+        assert len(start_solution) == self.instance.N
+        self.start_solution = start_solution
+
 
 def heuristic_search(
-    instance_name: str, search_type: Literal["randomized", "swap_2", "delay_1"], n_trials: int, n_post_trials: int
+    instance_name: str,
+    search_type: Literal["randomized", "swap_2", "swap_3", "delay_1", "grasp"],
+    n_trials: int,
+    n_post_trials: int,
+    *,
+    soft: bool = False,
 ) -> None:
     instance_name = cleanup_instance_name(instance_name)
     instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, instance_name))
-    prior_randomized_search = HeuristicSearch(instance, search_type=search_type)
+    prior_randomized_search = HeuristicSearch(instance, search_type=search_type, soft=soft)
     prior_randomized_search.run(n_trials=n_trials, n_post_trials=n_post_trials)
 
 
