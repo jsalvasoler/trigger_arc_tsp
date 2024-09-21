@@ -123,7 +123,7 @@ def run_grasp(instance: str, n_trials: int = 50) -> None:
     if instance in INSTANCES_TO_IGNORE:
         click.echo(f"Instance {instance} has been solved to optimality. Skipping delay one search.")
         return
-    click.echo("Running delay one neighborhood search")
+    click.echo("Running GRASP")
     heuristic_search(instance, search_type="grasp", n_trials=n_trials, n_post_trials=0)
 
 
