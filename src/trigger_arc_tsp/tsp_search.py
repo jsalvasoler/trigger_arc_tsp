@@ -234,6 +234,8 @@ class HeuristicSearch:
             if not tour:
                 continue
 
+            best_cost_within_trial = cost
+
             n_iterations_without_improvement = 0
             search_types = ["swap_2", "delay_1", "swap_3"]
             while n_iterations_without_improvement < len(search_types):
@@ -246,7 +248,10 @@ class HeuristicSearch:
                     best_cost = cost
                     if self.save_solutions:
                         self.instance.save_solution(best_tour, best_cost)
+
+                if cost < best_cost_within_trial:
                     n_iterations_without_improvement = 0
+                    best_cost_within_trial = cost
                 else:
                     n_iterations_without_improvement += 1
                 if self.print_logs:
