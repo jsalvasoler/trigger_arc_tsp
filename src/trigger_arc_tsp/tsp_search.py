@@ -231,7 +231,7 @@ class HeuristicSearch:
             tsp_prior = TSPPrior(node_priorities, alpha=random.uniform(0.1, 3), beta=random.uniform(0.1, 3))
             tour, cost = self.searcher.evaluate_individual(tsp_prior=tsp_prior, time_limit_sec=1.5)
 
-            if not tour:
+            if not tour or cost / best_cost - 1 >= 0.20:
                 continue
 
             best_cost_within_trial = cost

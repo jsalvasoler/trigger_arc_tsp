@@ -34,7 +34,7 @@ HIGH_SCORE_INSTANCES = [
     "instances_release_1/grf21.txt",
 ]
 
-INSTANCES_TO_IGNORE = INSTANCES_SOLVED_TO_OPTIMALITY + HIGH_SCORE_INSTANCES
+INSTANCES_TO_IGNORE = INSTANCES_SOLVED_TO_OPTIMALITY  # + HIGH_SCORE_INSTANCES
 
 
 @cli.command(name="solver", help="Run the MIP model with a MIP solver", context_settings={"show_default": True})
