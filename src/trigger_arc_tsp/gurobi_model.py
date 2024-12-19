@@ -36,7 +36,7 @@ class GurobiModel(SolverModel):
         self.z = self.model.addVars(self.z_var_indices, vtype=gp.GRB.CONTINUOUS, name="z", lb=0, ub=1)
 
     def add_constraints(self) -> None:
-        # Flow conservation constraints
+        # (1) Flow conservation constraints
         self.model.addConstrs(
             (gp.quicksum(self.x[i, j] for j in self.instance.delta_out[i]) == 1 for i in self.instance.nodes),
             name="flow_conservation_out",
@@ -46,7 +46,7 @@ class GurobiModel(SolverModel):
             name="flow_conservation_in",
         )
 
-        # Subtour elimination constraints
+        # (2) Subtour elimination constraints
         self.model.addConstrs(
             (
                 self.u[i] - self.u[j] + self.instance.N * self.x[i, j] <= self.instance.N - 1
@@ -56,13 +56,13 @@ class GurobiModel(SolverModel):
             name="subtour_elimination",
         )
 
-        # At most one relation can be active in R_a
+        # (3) At most one relation can be active in R_a
         self.model.addConstrs(
             (gp.quicksum(self.y[*b, *a] for b in self.instance.R_a[a]) <= self.x[a] for a in self.instance.R_a),
             name="max_one_relation",
         )
 
-        # Relation r=(b,a) \in R_a is inactive if a or b are inactive
+        # (4) Relation r=(b,a) \in R_a is inactive if a or b are inactive
         self.model.addConstrs(
             (self.y[*b, *a] <= self.x[a] for a in self.instance.R_a for b in self.instance.R_a[a]),
             name="relation_inactive_if_target_inactive",
@@ -72,14 +72,14 @@ class GurobiModel(SolverModel):
             name="relation_inactive_if_target_inactive",
         )
 
-        # Relation r=(b,a) \in R_a is inactive if b after a in the tour
+        # (5) Relation r=(b,a) \in R_a is inactive if b after a in the tour
         self.model.addConstrs(
             (self.y[*b, *a] <= self.z[*b, *a] for a in self.instance.R_a for b in self.instance.R_a[a]),
             name="trigger_before_arc",
         )
 
+        # (6) at least one relation is active
         # If we have u[b] < u[a] in the tour, and x[a] == x[b] == 1, then sum(y[c, a] for c in R_a) == 1
-        # (at least one relation is active)
         self.model.addConstrs(
             (
                 1 - self.z[*a, *b]
@@ -90,6 +90,7 @@ class GurobiModel(SolverModel):
             name="force_relation_active",
         )
 
+        # (7) Precedence on z variables
         # z[a_1, a_2] == 1 implies u[a_1] <= u[a_2]
         # u[a_2] + 1 <= u[a_1] implies z[a_1, a_2] == 0
         self.model.addConstrs(
