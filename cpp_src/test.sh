@@ -16,4 +16,6 @@ cd "${SCRIPT_DIR}/build"
 cmake "${SCRIPT_DIR}"
 make -j$(sysctl -n hw.ncpu)
 
-echo "Build completed successfully!" 
+# Run the tests
+echo "Running tests..."
+"${SCRIPT_DIR}/build/instance_tests" 
