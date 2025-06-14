@@ -19,6 +19,13 @@ public:
     // Static factory method
     static std::unique_ptr<Instance> loadInstanceFromFile(const std::string& filePath);
 
+    // Getters for TSP model
+    int getN() const { return N_; }
+    const boost::unordered_map<std::pair<int, int>, double>& getEdges() const { return edges_; }
+    const boost::unordered_map<std::tuple<int, int, int, int>, double>& getRelations() const { return relations_; }
+    const boost::unordered_set<int>& getDeltaIn(int node) const { return deltaIn_.at(node); }
+    const boost::unordered_set<int>& getDeltaOut(int node) const { return deltaOut_.at(node); }
+
     // Core methods
     double computeObjective(const std::vector<int>& tour) const;
     bool checkSolutionCorrectness(const std::vector<int>& tour) const;
@@ -30,11 +37,11 @@ public:
     std::vector<int> tspSolution() const;
 
     // Getters
-    int getN() const { return N_; }
     int getA() const { return A_; }
     int getR() const { return R_; }
     const std::string& getName() const { return name_; }
     const std::string& getModelName() const { return modelName_; }
+    
 
 private:
     // Member variables

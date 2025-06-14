@@ -37,6 +37,12 @@ TEST_F(InstanceTest, LoadInstanceFromFile) {
     EXPECT_EQ(instance->getA(), 8);
     EXPECT_EQ(instance->getR(), 4);
     EXPECT_EQ(instance->getName(), "example_1.txt");
+    // print all edges
+    for (const auto& edge : instance->getEdges()) {
+        std::cout << edge.first.first << " " << edge.first.second << " " << edge.second << std::endl;
+    }
+    EXPECT_EQ(instance->getEdges().size(), 8);
+    EXPECT_EQ(instance->getRelations().size(), 4);
 }
 
 TEST_F(InstanceTest, SolutionCorrectness) {
