@@ -1,29 +1,29 @@
 #include "instance.hpp"
-#include <fstream>
-#include <sstream>
-#include <iostream>
+
 #include <algorithm>
-#include <filesystem>
-#include <chrono>
-#include <iomanip>
-#include <ctime>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
+#include <chrono>
+#include <ctime>
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 
 namespace fs = std::filesystem;
 
 Instance::Instance(int N,
-                 const boost::unordered_map<std::pair<int, int>, double>& edges,
-                 const boost::unordered_map<std::tuple<int, int, int, int>, double>& relations,
-                 const std::string& name)
-    : name_(name)
-    , modelName_(name.substr(0, name.find_last_of('.')) + ".mps")
-    , N_(N)
-    , A_(edges.size())
-    , R_(relations.size())
-    , edges_(edges)
-    , relations_(relations) {
-    
+                   const boost::unordered_map<std::pair<int, int>, double>& edges,
+                   const boost::unordered_map<std::tuple<int, int, int, int>, double>& relations,
+                   const std::string& name)
+    : name_(name),
+      modelName_(name.substr(0, name.find_last_of('.')) + ".mps"),
+      N_(N),
+      A_(edges.size()),
+      R_(relations.size()),
+      edges_(edges),
+      relations_(relations) {
     // Initialize delta_in and delta_out
     for (int node = 0; node < N_; ++node) {
         deltaIn_[node] = boost::unordered_set<int>();
@@ -63,7 +63,8 @@ Instance::Instance(int N,
             }
         }
     }
-    zVarIndices_ = std::vector<std::tuple<int, int, int, int>>(zVarIndicesSet.begin(), zVarIndicesSet.end());
+    zVarIndices_ =
+        std::vector<std::tuple<int, int, int, int>>(zVarIndicesSet.begin(), zVarIndicesSet.end());
 }
 
 std::unique_ptr<Instance> Instance::loadInstanceFromFile(const std::string& filePath) {
@@ -116,7 +117,8 @@ double Instance::computeObjective(const std::vector<int>& tour) const {
 
     for (const auto& a : path) {
         auto it = R_a_.find(a);
-        if (it == R_a_.end()) continue;
+        if (it == R_a_.end())
+            continue;
 
         std::vector<std::pair<int, int>> triggering;
         for (const auto& b : it->second) {
@@ -125,23 +127,23 @@ double Instance::computeObjective(const std::vector<int>& tour) const {
             }
         }
 
-        if (triggering.empty()) continue;
+        if (triggering.empty())
+            continue;
 
         // Sort triggering by their index in path
-        std::sort(triggering.begin(), triggering.end(),
-                 [&path](const auto& b1, const auto& b2) {
-                     return std::find(path.begin(), path.end(), b1) <
-                            std::find(path.begin(), path.end(), b2);
-                 });
+        std::sort(triggering.begin(), triggering.end(), [&path](const auto& b1, const auto& b2) {
+            return std::find(path.begin(), path.end(), b1) <
+                   std::find(path.begin(), path.end(), b2);
+        });
 
         // Remove triggering arcs that happen after arc a
         auto aPos = std::find(path.begin(), path.end(), a);
-        triggering.erase(
-            std::remove_if(triggering.begin(), triggering.end(),
-                          [&path, aPos](const auto& b) {
-                              return std::find(path.begin(), path.end(), b) >= aPos;
-                          }),
-            triggering.end());
+        triggering.erase(std::remove_if(triggering.begin(),
+                                        triggering.end(),
+                                        [&path, aPos](const auto& b) {
+                                            return std::find(path.begin(), path.end(), b) >= aPos;
+                                        }),
+                         triggering.end());
 
         if (!triggering.empty()) {
             auto lastTrigger = triggering.back();
@@ -164,9 +166,10 @@ bool Instance::checkSolutionCorrectness(const std::vector<int>& tour) const {
     }
 
     boost::unordered_set<int> uniqueNodes(tour.begin(), tour.end());
-    return uniqueNodes.size() == static_cast<size_t>(N_) && 
-           std::all_of(uniqueNodes.begin(), uniqueNodes.end(),
-                      [this](int node) { return node >= 0 && node < N_; });
+    return uniqueNodes.size() == static_cast<size_t>(N_) &&
+           std::all_of(uniqueNodes.begin(), uniqueNodes.end(), [this](int node) {
+               return node >= 0 && node < N_;
+           });
 }
 
 bool Instance::testSolution(const std::vector<int>& tour, double proposedObjective) const {
@@ -185,9 +188,9 @@ void Instance::saveSolution(const std::vector<int>& tour, std::optional<double> 
 
     double obj = objective.value_or(computeObjective(tour));
     if (!testSolution(tour, obj)) {
-        std::cerr << "Warning: Solution does not have correct objective value for instance " 
-                  << name_ << " (computed: " << computeObjective(tour) 
-                  << ", proposed: " << obj << ")" << std::endl;
+        std::cerr << "Warning: Solution does not have correct objective value for instance "
+                  << name_ << " (computed: " << computeObjective(tour) << ", proposed: " << obj
+                  << ")" << std::endl;
         obj = computeObjective(tour);
     }
 
@@ -210,7 +213,8 @@ void Instance::saveSolution(const std::vector<int>& tour, std::optional<double> 
 
     for (size_t i = 0; i < tour.size(); ++i) {
         file << tour[i];
-        if (i < tour.size() - 1) file << ",";
+        if (i < tour.size() - 1)
+            file << ",";
     }
     file << " | " << obj << " | " << timestamp;
 }
@@ -229,15 +233,17 @@ std::optional<std::vector<int>> Instance::getBestKnownSolution(int idx) const {
         if (pos != std::string::npos) {
             std::string tour = line.substr(0, pos);
             double obj = std::stod(line.substr(pos + 3));
-            if (std::find_if(solutions.begin(), solutions.end(),
-                           [&tour](const auto& s) { return s.first == tour; }) == solutions.end()) {
+            if (std::find_if(solutions.begin(), solutions.end(), [&tour](const auto& s) {
+                    return s.first == tour;
+                }) == solutions.end()) {
                 solutions.push_back({tour, obj});
             }
         }
     }
 
-    std::sort(solutions.begin(), solutions.end(),
-              [](const auto& a, const auto& b) { return a.second < b.second; });
+    std::sort(solutions.begin(), solutions.end(), [](const auto& a, const auto& b) {
+        return a.second < b.second;
+    });
 
     if (static_cast<size_t>(idx) >= solutions.size()) {
         throw std::runtime_error("Solution index out of range");
@@ -259,16 +265,16 @@ std::optional<std::vector<int>> Instance::getBestKnownSolution(int idx) const {
     return tour;
 }
 
-std::vector<boost::unordered_map<std::string, double>> Instance::getMipStart(bool useTspOnly) const {
+std::vector<boost::unordered_map<std::string, double>> Instance::getMipStart(
+    bool useTspOnly) const {
     auto bestKnownSolution = getBestKnownSolution();
-    std::vector<int> tour = bestKnownSolution && !useTspOnly ? 
-                           bestKnownSolution.value() : tspSolution();
+    std::vector<int> tour =
+        bestKnownSolution && !useTspOnly ? bestKnownSolution.value() : tspSolution();
     return getVariablesFromTour(tour);
 }
 
 std::vector<boost::unordered_map<std::string, double>> Instance::getVariablesFromTour(
     const std::vector<int>& tour) const {
-    
     std::vector<std::pair<int, int>> tourEdges;
     for (size_t i = 0; i < tour.size(); ++i) {
         tourEdges.push_back({tour[i], (i < tour.size() - 1) ? tour[i + 1] : 0});
@@ -276,7 +282,7 @@ std::vector<boost::unordered_map<std::string, double>> Instance::getVariablesFro
 
     boost::unordered_map<std::string, double> x;
     for (const auto& [edge, _] : edges_) {
-        x[std::to_string(edge.first) + "," + std::to_string(edge.second)] = 
+        x[std::to_string(edge.first) + "," + std::to_string(edge.second)] =
             std::find(tourEdges.begin(), tourEdges.end(), edge) != tourEdges.end() ? 1.0 : 0.0;
     }
 
@@ -293,7 +299,8 @@ std::vector<boost::unordered_map<std::string, double>> Instance::getVariablesFro
 
     for (const auto& a : tourEdges) {
         auto it = R_a_.find(a);
-        if (it == R_a_.end()) continue;
+        if (it == R_a_.end())
+            continue;
 
         std::vector<std::pair<int, int>> triggering;
         for (const auto& b : it->second) {
@@ -302,35 +309,37 @@ std::vector<boost::unordered_map<std::string, double>> Instance::getVariablesFro
             }
         }
 
-        if (triggering.empty()) continue;
+        if (triggering.empty())
+            continue;
 
-        std::sort(triggering.begin(), triggering.end(),
-                 [&tourEdges](const auto& b1, const auto& b2) {
-                     return std::find(tourEdges.begin(), tourEdges.end(), b1) <
-                            std::find(tourEdges.begin(), tourEdges.end(), b2);
-                 });
+        std::sort(
+            triggering.begin(), triggering.end(), [&tourEdges](const auto& b1, const auto& b2) {
+                return std::find(tourEdges.begin(), tourEdges.end(), b1) <
+                       std::find(tourEdges.begin(), tourEdges.end(), b2);
+            });
 
         auto aPos = std::find(tourEdges.begin(), tourEdges.end(), a);
         triggering.erase(
-            std::remove_if(triggering.begin(), triggering.end(),
-                          [&tourEdges, aPos](const auto& b) {
-                              return std::find(tourEdges.begin(), tourEdges.end(), b) >= aPos;
-                          }),
+            std::remove_if(triggering.begin(),
+                           triggering.end(),
+                           [&tourEdges, aPos](const auto& b) {
+                               return std::find(tourEdges.begin(), tourEdges.end(), b) >= aPos;
+                           }),
             triggering.end());
 
         if (!triggering.empty()) {
             auto lastTrigger = triggering.back();
             std::string key = std::to_string(lastTrigger.first) + "," +
-                             std::to_string(lastTrigger.second) + "," +
-                             std::to_string(a.first) + "," + std::to_string(a.second);
+                              std::to_string(lastTrigger.second) + "," + std::to_string(a.first) +
+                              "," + std::to_string(a.second);
             y[key] = 1.0;
         }
     }
 
     boost::unordered_map<std::string, double> z;
     for (const auto& [a1, a2, b1, b2] : zVarIndices_) {
-        std::string key = std::to_string(a1) + "," + std::to_string(a2) + "," +
-                         std::to_string(b1) + "," + std::to_string(b2);
+        std::string key = std::to_string(a1) + "," + std::to_string(a2) + "," + std::to_string(b1) +
+                          "," + std::to_string(b2);
         z[key] = u[std::to_string(a1)] + 1 <= u[std::to_string(b1)] ? 1.0 : 0.0;
     }
 
@@ -341,4 +350,4 @@ std::vector<int> Instance::tspSolution() const {
     // TODO: Implement TSP solution using Gurobi
     // This will require implementing the GurobiTSPModel class in C++
     throw std::runtime_error("TSP solution not implemented yet");
-} 
+}

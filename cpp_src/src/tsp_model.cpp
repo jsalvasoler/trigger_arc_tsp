@@ -1,13 +1,11 @@
 #include "tsp_model.hpp"
+
 #include <algorithm>
-#include <stdexcept>
 #include <memory>
+#include <stdexcept>
 
 GurobiTSPModel::GurobiTSPModel(const Instance& instance)
-    : instance_(instance)
-    , env_()
-    , model_(env_) {
-}
+    : instance_(instance), env_(), model_(env_) {}
 
 void GurobiTSPModel::formulate() {
     formulated_ = true;
@@ -26,7 +24,7 @@ void GurobiTSPModel::formulate() {
         if (i != 0) {
             ub = GRB_INFINITY;
         } else {
-            ub = 0.0; // u_0 is fixed to 0
+            ub = 0.0;  // u_0 is fixed to 0
         }
         u_[i] = model_.addVar(0.0, ub, 0.0, GRB_CONTINUOUS, name);
     }
@@ -52,13 +50,10 @@ void GurobiTSPModel::formulate() {
     // Subtour elimination constraints
     for (const auto& [edge, _] : instance_.getEdges()) {
         auto [i, j] = edge;
-        
+
         if (j != 0) {
-            model_.addConstr(
-                u_[i] - u_[j] + 
-                instance_.getN() * x_[{i, j}] <= instance_.getN() - 1,
-                "subtour_elimination_" + std::to_string(i) + "_" + std::to_string(j)
-            );
+            model_.addConstr(u_[i] - u_[j] + instance_.getN() * x_[{i, j}] <= instance_.getN() - 1,
+                             "subtour_elimination_" + std::to_string(i) + "_" + std::to_string(j));
         }
     }
     // Set objective function
@@ -79,8 +74,8 @@ void GurobiTSPModel::solveToFeasibleSolution() {
 }
 
 void GurobiTSPModel::solveToOptimality(std::optional<int> timeLimitSec,
-                                      std::optional<double> bestBdStop,
-                                      bool logs) {
+                                       std::optional<double> bestBdStop,
+                                       bool logs) {
     checkModelIsFormulated();
 
     if (!logs) {
@@ -99,14 +94,15 @@ void GurobiTSPModel::solveToOptimality(std::optional<int> timeLimitSec,
 
 std::vector<int> GurobiTSPModel::getBestTour() const {
     const_cast<GRBModel&>(model_).update();
-    
+
     std::vector<std::pair<int, double>> nodePositions;
     for (int i = 1; i < instance_.getN(); ++i) {
         nodePositions.emplace_back(i, u_.at(i).get(GRB_DoubleAttr_Xn));
     }
 
-    std::sort(nodePositions.begin(), nodePositions.end(),
-              [](const auto& a, const auto& b) { return a.second < b.second; });
+    std::sort(nodePositions.begin(), nodePositions.end(), [](const auto& a, const auto& b) {
+        return a.second < b.second;
+    });
 
     std::vector<int> tour = {0};
     for (const auto& [node, _] : nodePositions) {
@@ -118,7 +114,7 @@ std::vector<int> GurobiTSPModel::getBestTour() const {
 std::vector<std::vector<int>> GurobiTSPModel::getBestNTours(int n) const {
     int nSolutions = model_.get(GRB_IntAttr_SolCount);
     std::vector<std::vector<int>> tours;
-    
+
     for (int i = 0; i < std::min(n, nSolutions); ++i) {
         const_cast<GRBModel&>(model_).set(GRB_IntParam_SolutionNumber, i);
         const_cast<GRBModel&>(model_).update();
@@ -140,4 +136,4 @@ void GurobiTSPModel::checkModelStatus() const {
         const_cast<GRBModel&>(model_).write("model.ilp");
         throw std::runtime_error("Model is infeasible");
     }
-} 
+}

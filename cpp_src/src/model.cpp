@@ -1,14 +1,12 @@
 #include "model.hpp"
-#include "instance.hpp"
-#include <algorithm>
-#include <stdexcept>
-#include <memory>
 
-GurobiModel::GurobiModel(const Instance& instance)
-    : instance_(instance)
-    , env_()
-    , model_(env_) {
-}
+#include <algorithm>
+#include <memory>
+#include <stdexcept>
+
+#include "instance.hpp"
+
+GurobiModel::GurobiModel(const Instance& instance) : instance_(instance), env_(), model_(env_) {}
 
 void GurobiModel::formulate() {
     addVariables();
@@ -35,15 +33,15 @@ void GurobiModel::addVariables() {
     // Add relation variables (y)
     for (const auto& [relation, cost] : instance_.getRelations()) {
         auto [b0, b1, a0, a1] = relation;
-        std::string name = "y_" + std::to_string(b0) + "_" + std::to_string(b1) + "_" + 
-                          std::to_string(a0) + "_" + std::to_string(a1);
+        std::string name = "y_" + std::to_string(b0) + "_" + std::to_string(b1) + "_" +
+                           std::to_string(a0) + "_" + std::to_string(a1);
         y_[relation] = model_.addVar(0.0, 1.0, 0.0, GRB_BINARY, name);
     }
 
     // Add precedence variables (z)
     for (const auto& [a1, a2, b1, b2] : instance_.getZVarIndices()) {
-        std::string name = "z_" + std::to_string(a1) + "_" + std::to_string(a2) + "_" + 
-                          std::to_string(b1) + "_" + std::to_string(b2);
+        std::string name = "z_" + std::to_string(a1) + "_" + std::to_string(a2) + "_" +
+                           std::to_string(b1) + "_" + std::to_string(b2);
         z_[{a1, a2, b1, b2}] = model_.addVar(0.0, 1.0, 0.0, GRB_BINARY, name);
     }
 
@@ -70,10 +68,8 @@ void GurobiModel::addConstraints() {
     for (const auto& [edge, _] : instance_.getEdges()) {
         auto [i, j] = edge;
         if (j != 0) {
-            model_.addConstr(
-                u_[i] - u_[j] + instance_.getN() * x_[{i, j}] <= instance_.getN() - 1,
-                "subtour_elimination_" + std::to_string(i) + "_" + std::to_string(j)
-            );
+            model_.addConstr(u_[i] - u_[j] + instance_.getN() * x_[{i, j}] <= instance_.getN() - 1,
+                             "subtour_elimination_" + std::to_string(i) + "_" + std::to_string(j));
         }
     }
 
@@ -83,27 +79,33 @@ void GurobiModel::addConstraints() {
         for (const auto& b : relations) {
             sum += y_[{b.first, b.second, a.first, a.second}];
         }
-        model_.addConstr(sum <= x_[a], "max_one_relation_" + std::to_string(a.first) + "_" + std::to_string(a.second));
+        model_.addConstr(
+            sum <= x_[a],
+            "max_one_relation_" + std::to_string(a.first) + "_" + std::to_string(a.second));
     }
 
     // (4) Relation r=(b,a) is inactive if a or b are inactive
     for (const auto& [a, relations] : instance_.getRA()) {
         for (const auto& b : relations) {
-            model_.addConstr(y_[{b.first, b.second, a.first, a.second}] <= x_[a], 
-                "relation_inactive_if_target_inactive_1_" + std::to_string(b.first) + "_" + std::to_string(b.second) + 
-                "_" + std::to_string(a.first) + "_" + std::to_string(a.second));
+            model_.addConstr(y_[{b.first, b.second, a.first, a.second}] <= x_[a],
+                             "relation_inactive_if_target_inactive_1_" + std::to_string(b.first) +
+                                 "_" + std::to_string(b.second) + "_" + std::to_string(a.first) +
+                                 "_" + std::to_string(a.second));
             model_.addConstr(y_[{b.first, b.second, a.first, a.second}] <= x_[b],
-                "relation_inactive_if_target_inactive_2_" + std::to_string(b.first) + "_" + std::to_string(b.second) + 
-                "_" + std::to_string(a.first) + "_" + std::to_string(a.second));
+                             "relation_inactive_if_target_inactive_2_" + std::to_string(b.first) +
+                                 "_" + std::to_string(b.second) + "_" + std::to_string(a.first) +
+                                 "_" + std::to_string(a.second));
         }
     }
 
     // (5) Relation r=(b,a) is inactive if b after a in the tour
     for (const auto& [a, relations] : instance_.getRA()) {
         for (const auto& b : relations) {
-            model_.addConstr(y_[{b.first, b.second, a.first, a.second}] <= z_[{b.first, b.second, a.first, a.second}],
-                "trigger_before_arc_" + std::to_string(b.first) + "_" + std::to_string(b.second) + 
-                "_" + std::to_string(a.first) + "_" + std::to_string(a.second));
+            model_.addConstr(y_[{b.first, b.second, a.first, a.second}] <=
+                                 z_[{b.first, b.second, a.first, a.second}],
+                             "trigger_before_arc_" + std::to_string(b.first) + "_" +
+                                 std::to_string(b.second) + "_" + std::to_string(a.first) + "_" +
+                                 std::to_string(a.second));
         }
     }
 
@@ -116,31 +118,28 @@ void GurobiModel::addConstraints() {
             }
             model_.addConstr(
                 1 - z_[{a.first, a.second, b.first, b.second}] <= sum + (1 - x_[a]) + (1 - x_[b]),
-                "force_relation_active_" + std::to_string(a.first) + "_" + std::to_string(a.second) + 
-                "_" + std::to_string(b.first) + "_" + std::to_string(b.second)
-            );
+                "force_relation_active_" + std::to_string(a.first) + "_" +
+                    std::to_string(a.second) + "_" + std::to_string(b.first) + "_" +
+                    std::to_string(b.second));
         }
     }
 
     // (7) Precedence on z variables
     for (const auto& [a1, a2, b1, b2] : instance_.getZVarIndices()) {
         if (a1 != b1 || a2 != b2) {
-            model_.addConstr(
-                u_[a1] <= u_[b1] + (instance_.getN() - 1) * (1 - z_[{a1, a2, b1, b2}]),
-                "model_z_variables_1_" + std::to_string(a1) + "_" + std::to_string(a2) + 
-                "_" + std::to_string(b1) + "_" + std::to_string(b2)
-            );
-            model_.addConstr(
-                z_[{a1, a2, b1, b2}] == 1 - z_[{b1, b2, a1, a2}],
-                "model_z_variables_2_" + std::to_string(a1) + "_" + std::to_string(a2) + 
-                "_" + std::to_string(b1) + "_" + std::to_string(b2)
-            );
+            model_.addConstr(u_[a1] <= u_[b1] + (instance_.getN() - 1) * (1 - z_[{a1, a2, b1, b2}]),
+                             "model_z_variables_1_" + std::to_string(a1) + "_" +
+                                 std::to_string(a2) + "_" + std::to_string(b1) + "_" +
+                                 std::to_string(b2));
+            model_.addConstr(z_[{a1, a2, b1, b2}] == 1 - z_[{b1, b2, a1, a2}],
+                             "model_z_variables_2_" + std::to_string(a1) + "_" +
+                                 std::to_string(a2) + "_" + std::to_string(b1) + "_" +
+                                 std::to_string(b2));
         } else {
-            model_.addConstr(
-                z_[{a1, a2, b1, b2}] == z_[{b1, b2, a1, a2}],
-                "model_z_variables_3_" + std::to_string(a1) + "_" + std::to_string(a2) + 
-                "_" + std::to_string(b1) + "_" + std::to_string(b2)
-            );
+            model_.addConstr(z_[{a1, a2, b1, b2}] == z_[{b1, b2, a1, a2}],
+                             "model_z_variables_3_" + std::to_string(a1) + "_" +
+                                 std::to_string(a2) + "_" + std::to_string(b1) + "_" +
+                                 std::to_string(b2));
         }
     }
 
@@ -149,15 +148,15 @@ void GurobiModel::addConstraints() {
         for (const auto& b : relations) {
             for (const auto& c : relations) {
                 if (b != c) {
-                    model_.addConstr(
-                        y_[{b.first, b.second, a.first, a.second}] <= 
-                        z_[{c.first, c.second, b.first, b.second}] + 
-                        z_[{a.first, a.second, c.first, c.second}] + 
-                        (1 - x_[c]) + (1 - x_[b]) + (1 - x_[a]),
-                        "only_last_relation_triggers_" + std::to_string(b.first) + "_" + std::to_string(b.second) + 
-                        "_" + std::to_string(a.first) + "_" + std::to_string(a.second) + 
-                        "_" + std::to_string(c.first) + "_" + std::to_string(c.second)
-                    );
+                    model_.addConstr(y_[{b.first, b.second, a.first, a.second}] <=
+                                         z_[{c.first, c.second, b.first, b.second}] +
+                                             z_[{a.first, a.second, c.first, c.second}] +
+                                             (1 - x_[c]) + (1 - x_[b]) + (1 - x_[a]),
+                                     "only_last_relation_triggers_" + std::to_string(b.first) +
+                                         "_" + std::to_string(b.second) + "_" +
+                                         std::to_string(a.first) + "_" + std::to_string(a.second) +
+                                         "_" + std::to_string(c.first) + "_" +
+                                         std::to_string(c.second));
                 }
             }
         }
@@ -166,17 +165,17 @@ void GurobiModel::addConstraints() {
 
 void GurobiModel::addObjective() {
     GRBLinExpr obj = 0;
-    
+
     // Edge costs
     for (const auto& [edge, cost] : instance_.getEdges()) {
         obj += x_[edge] * cost;
     }
-    
+
     // Relation costs
     for (const auto& [relation, cost] : instance_.getRelations()) {
         obj += y_[relation] * cost;
     }
-    
+
     model_.setObjective(obj, GRB_MINIMIZE);
 }
 
@@ -197,18 +196,18 @@ void GurobiModel::solveModelWithParameters(const SolverParameters& params) {
     }
     model_.set(GRB_DoubleParam_Heuristics, params.heuristicEffort);
     model_.set(GRB_IntParam_Presolve, params.presolve);
-    
+
     if (!params.logs) {
         model_.set(GRB_IntParam_OutputFlag, 0);
     }
-    
+
     model_.optimize();
     checkModelStatus();
 }
 
 std::pair<std::vector<int>, double> GurobiModel::getSolutionAndCost() const {
     const_cast<GRBModel&>(model_).update();
-    
+
     // Get node positions
     std::vector<std::pair<int, double>> nodePositions;
     for (int i = 1; i < instance_.getN(); ++i) {
@@ -216,8 +215,9 @@ std::pair<std::vector<int>, double> GurobiModel::getSolutionAndCost() const {
     }
 
     // Sort nodes by position
-    std::sort(nodePositions.begin(), nodePositions.end(),
-              [](const auto& a, const auto& b) { return a.second < b.second; });
+    std::sort(nodePositions.begin(), nodePositions.end(), [](const auto& a, const auto& b) {
+        return a.second < b.second;
+    });
 
     // Build tour
     std::vector<int> tour = {0};
@@ -256,10 +256,9 @@ void GurobiModel::checkModelStatus() const {
     }
 }
 
-void GurobiModel::provideMipStart(const std::vector<boost::unordered_map<std::string, double>>& vars) {
-    if (vars.size() != 4) {
-        throw std::runtime_error("Invalid MIP start: expected 4 variable maps");
-    }
+void GurobiModel::provideMipStart(
+    const std::vector<boost::unordered_map<std::string, double>>& vars) {
+    throw std::runtime_error("provideMipStart not implemented yet");
 
     // Set x variables
     for (const auto& [key, val] : vars[0]) {

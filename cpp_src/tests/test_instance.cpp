@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
+
 #include <filesystem>
 #include <fstream>
 #include <memory>
+
 #include "../include/instance.hpp"
 
 namespace fs = std::filesystem;
@@ -13,7 +15,7 @@ protected:
         sourceDir_ = fs::current_path().parent_path();
         instancePath_ = sourceDir_ / "tests" / "instances" / "example_1.txt";
         solutionsDir_ = sourceDir_.parent_path() / "solutions";
-        
+
         // Create necessary directories
         fs::create_directories("solutions/examples");
     }
@@ -32,7 +34,7 @@ protected:
 
 TEST_F(InstanceTest, LoadInstanceFromFile) {
     auto instance = Instance::loadInstanceFromFile(instancePath_.string());
-    
+
     EXPECT_EQ(instance->getN(), 5);
     EXPECT_EQ(instance->getA(), 8);
     EXPECT_EQ(instance->getR(), 4);
@@ -82,4 +84,4 @@ TEST_F(InstanceTest, WriteSolutionToFile) {
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
-} 
+}

@@ -1,12 +1,14 @@
 #pragma once
 
-#include "instance.hpp"
 #include <gurobi_c++.h>
-#include <memory>
-#include <vector>
-#include <optional>
-#include <map>
+
 #include <boost/unordered_map.hpp>
+#include <map>
+#include <memory>
+#include <optional>
+#include <vector>
+
+#include "instance.hpp"
 
 class GurobiTSPModel {
 public:
@@ -15,15 +17,21 @@ public:
     void formulate();
     void solveToFeasibleSolution();
     void solveToOptimality(std::optional<int> timeLimitSec = std::nullopt,
-                          std::optional<double> bestBdStop = std::nullopt,
-                          bool logs = true);
-    
+                           std::optional<double> bestBdStop = std::nullopt,
+                           bool logs = true);
+
     std::vector<int> getBestTour() const;
     std::vector<std::vector<int>> getBestNTours(int n) const;
-    
-    const boost::unordered_map<std::pair<int, int>, GRBVar>& getX() const { return x_; }
-    const boost::unordered_map<int, GRBVar>& getU() const { return u_; }
-    const GRBModel& getModel() const { return model_; }
+
+    const boost::unordered_map<std::pair<int, int>, GRBVar>& getX() const {
+        return x_;
+    }
+    const boost::unordered_map<int, GRBVar>& getU() const {
+        return u_;
+    }
+    const GRBModel& getModel() const {
+        return model_;
+    }
 
 private:
     void checkModelIsFormulated() const;
@@ -38,4 +46,4 @@ private:
 
     boost::unordered_map<std::pair<int, int>, GRBVar> x_;  // Binary variables for edges
     boost::unordered_map<int, GRBVar> u_;  // Continuous variables for node positions
-}; 
+};

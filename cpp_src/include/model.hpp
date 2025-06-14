@@ -1,14 +1,14 @@
 #pragma once
 
 #include <gurobi_c++.h>
+
 #include <boost/unordered_map.hpp>
-#include <string>
-#include <vector>
+#include <memory>
 #include <optional>
 #include <stdexcept>
-#include <memory>
+#include <string>
 #include <tuple>
-
+#include <vector>
 
 struct SolverParameters {
     int timeLimitSec = 60;
@@ -22,7 +22,6 @@ class Instance;  // Forward declaration
 
 class GurobiModel {
 public:
-
     explicit GurobiModel(const Instance& instance);
 
     // Model formulation
@@ -49,9 +48,15 @@ public:
     void checkModelStatus() const;
 
     // Getters for model and variables
-    const GRBModel& getModel() const { return model_; }
-    const boost::unordered_map<std::pair<int, int>, GRBVar>& getX() const { return x_; }
-    const boost::unordered_map<std::tuple<int, int, int, int>, GRBVar>& getY() const { return y_; }
+    const GRBModel& getModel() const {
+        return model_;
+    }
+    const boost::unordered_map<std::pair<int, int>, GRBVar>& getX() const {
+        return x_;
+    }
+    const boost::unordered_map<std::tuple<int, int, int, int>, GRBVar>& getY() const {
+        return y_;
+    }
 
 private:
     const Instance& instance_;
@@ -60,11 +65,11 @@ private:
     bool formulated_ = false;
 
     // Variable maps
-    boost::unordered_map<std::pair<int, int>, GRBVar> x_;  // Edge variables
-    boost::unordered_map<int, GRBVar> u_;                  // Node position variables
+    boost::unordered_map<std::pair<int, int>, GRBVar> x_;             // Edge variables
+    boost::unordered_map<int, GRBVar> u_;                             // Node position variables
     boost::unordered_map<std::tuple<int, int, int, int>, GRBVar> y_;  // Relation variables
     boost::unordered_map<std::tuple<int, int, int, int>, GRBVar> z_;  // Precedence variables
 
     // Helper methods
     void provideMipStart(const std::vector<boost::unordered_map<std::string, double>>& vars);
-}; 
+};
