@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.10...3.27)
 project(TriggerArcTSP_CPP VERSION 1.0)
 
 # Set C++ standard
@@ -27,6 +27,27 @@ find_package(Boost REQUIRED)
 # Add include directories
 include_directories(include ${Boost_INCLUDE_DIRS})
 
+# Gurobi paths
+set(GUROBI_ROOT "/Library/gurobi1202/macos_universal2")
+set(GUROBI_LIB_DIR "${GUROBI_ROOT}/lib")
+set(GUROBI_INCLUDE_DIR "${GUROBI_ROOT}/include")
+
+# Include Gurobi headers
+include_directories(${GUROBI_INCLUDE_DIR})
+
+# Link Gurobi libraries
+set(GUROBI_LIBRARIES
+    ${GUROBI_LIB_DIR}/libgurobi_c++.a
+    ${GUROBI_LIB_DIR}/libgurobi120.so  # Use .dylib instead on macOS
+)
+
+if(APPLE)
+    set(GUROBI_LIBRARIES
+        ${GUROBI_LIB_DIR}/libgurobi_c++.a
+        ${GUROBI_LIB_DIR}/libgurobi120.dylib
+    )
+endif()
+
 # Add Google Test
 include(FetchContent)
 FetchContent_Declare(
@@ -39,18 +60,25 @@ FetchContent_MakeAvailable(googletest)
 # Add source files
 set(SOURCES
     src/instance.cpp
+    src/tsp_model.cpp
 )
 
 # Add executable
 add_executable(main src/main.cpp ${SOURCES})
-target_link_libraries(main ${Boost_LIBRARIES})
+target_link_libraries(main ${Boost_LIBRARIES} ${GUROBI_LIBRARIES})
 
-# Add test executable
+# Add test executables
 add_executable(instance_tests tests/test_instance.cpp ${SOURCES})
-target_link_libraries(instance_tests GTest::gtest_main ${Boost_LIBRARIES})
+target_link_libraries(instance_tests GTest::gtest_main ${Boost_LIBRARIES} ${GUROBI_LIBRARIES})
 
-# Add test to CTest
+add_executable(tsp_model_tests tests/test_tsp_model.cpp ${SOURCES})
+target_link_libraries(tsp_model_tests GTest::gtest_main ${Boost_LIBRARIES} ${GUROBI_LIBRARIES})
+
+# Add tests to CTest
 add_test(NAME instance_tests COMMAND instance_tests)
+add_test(NAME tsp_model_tests COMMAND tsp_model_tests)
+
+# Set env variables for Gurobi
 
 # Set output directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

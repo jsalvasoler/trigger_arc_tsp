@@ -18,4 +18,5 @@ make -j$(sysctl -n hw.ncpu)
 
 # Run the tests
 echo "Running tests..."
-"${SCRIPT_DIR}/build/instance_tests" 
+"${SCRIPT_DIR}/build/instance_tests" --gtest_brief=1
+"${SCRIPT_DIR}/build/tsp_model_tests" --gtest_brief=1 
