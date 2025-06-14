@@ -195,7 +195,7 @@ void Instance::saveSolution(const std::vector<int>& tour, std::optional<double> 
     }
 
     // Create solutions directory if it doesn't exist
-    fs::path solutionsDir = fs::current_path().parent_path().parent_path() / "solutions";
+    fs::path solutionsDir = fs::current_path() / "solutions";
     fs::create_directories(solutionsDir);
 
     // Get current timestamp

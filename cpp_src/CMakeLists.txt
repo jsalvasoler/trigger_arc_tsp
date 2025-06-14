@@ -22,7 +22,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 # Find required packages
 find_package(Threads REQUIRED)
 set(BOOST_ROOT "/opt/homebrew/opt/boost")
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options)
 
 # Add include directories
 include_directories(include ${Boost_INCLUDE_DIRS})
@@ -63,6 +63,10 @@ set(SOURCES
     src/tsp_model.cpp
     src/model.cpp
 )
+
+# Add main executable
+add_executable(trigger_arc_tsp src/main.cpp ${SOURCES})
+target_link_libraries(trigger_arc_tsp ${Boost_LIBRARIES} ${GUROBI_LIBRARIES})
 
 # Add test executables
 add_executable(instance_tests tests/test_instance.cpp ${SOURCES})

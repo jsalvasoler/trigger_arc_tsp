@@ -14,10 +14,7 @@ protected:
         // Get the source directory path (two levels up from build directory)
         sourceDir_ = fs::current_path().parent_path();
         instancePath_ = sourceDir_ / "tests" / "instances" / "example_1.txt";
-        solutionsDir_ = sourceDir_.parent_path() / "solutions";
-
-        // Create necessary directories
-        fs::create_directories("solutions/examples");
+        solutionsDir_ = sourceDir_.parent_path() / "cpp_src" / "build" / "solutions";
     }
 
     void TearDown() override {
@@ -79,9 +76,4 @@ TEST_F(InstanceTest, WriteSolutionToFile) {
     std::string line;
     std::getline(file, line);
     EXPECT_TRUE(line.find("0,2,1,4,3 | 71 | ") == 0);
-}
-
-int main(int argc, char** argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }
