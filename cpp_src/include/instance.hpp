@@ -7,6 +7,7 @@
 #include <optional>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
+#include <tuple>
 
 class Instance {
 public:
@@ -25,6 +26,8 @@ public:
     const boost::unordered_map<std::tuple<int, int, int, int>, double>& getRelations() const { return relations_; }
     const boost::unordered_set<int>& getDeltaIn(int node) const { return deltaIn_.at(node); }
     const boost::unordered_set<int>& getDeltaOut(int node) const { return deltaOut_.at(node); }
+    const std::vector<std::tuple<int, int, int, int>>& getZVarIndices() const { return zVarIndices_; }
+    const boost::unordered_map<std::pair<int, int>, std::vector<std::pair<int, int>>>& getRA() const { return R_a_; }
 
     // Core methods
     double computeObjective(const std::vector<int>& tour) const;

@@ -105,8 +105,8 @@ std::unique_ptr<Instance> Instance::loadInstanceFromFile(const std::string& file
 
 double Instance::computeObjective(const std::vector<int>& tour) const {
     std::vector<std::pair<int, int>> path;
-    for (size_t i = 0; i < tour.size(); ++i) {
-        path.push_back({tour[i], (i < tour.size() - 1) ? tour[i + 1] : 0});
+    for (int i = 0; i < N_; ++i) {
+        path.push_back({tour[i], (i < N_ - 1) ? tour[i + 1] : 0});
     }
 
     double cost = 0.0;

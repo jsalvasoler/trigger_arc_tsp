@@ -61,11 +61,8 @@ FetchContent_MakeAvailable(googletest)
 set(SOURCES
     src/instance.cpp
     src/tsp_model.cpp
+    src/model.cpp
 )
-
-# Add executable
-add_executable(main src/main.cpp ${SOURCES})
-target_link_libraries(main ${Boost_LIBRARIES} ${GUROBI_LIBRARIES})
 
 # Add test executables
 add_executable(instance_tests tests/test_instance.cpp ${SOURCES})
@@ -74,9 +71,13 @@ target_link_libraries(instance_tests GTest::gtest_main ${Boost_LIBRARIES} ${GURO
 add_executable(tsp_model_tests tests/test_tsp_model.cpp ${SOURCES})
 target_link_libraries(tsp_model_tests GTest::gtest_main ${Boost_LIBRARIES} ${GUROBI_LIBRARIES})
 
+add_executable(model_tests tests/test_model.cpp ${SOURCES})
+target_link_libraries(model_tests GTest::gtest_main ${Boost_LIBRARIES} ${GUROBI_LIBRARIES})
+
 # Add tests to CTest
 add_test(NAME instance_tests COMMAND instance_tests)
 add_test(NAME tsp_model_tests COMMAND tsp_model_tests)
+add_test(NAME model_tests COMMAND model_tests)
 
 # Set env variables for Gurobi
 
