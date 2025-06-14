@@ -31,3 +31,8 @@ __pycache__/
 
 # Pytest
 .cache/
+
+# --- C++ / CMake ---
+# Ignore the build directory
+build/
+cpp_src/build/ # Being explicit is good
