@@ -1,5 +1,6 @@
 import os
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 import pytest
 
@@ -20,21 +21,27 @@ def clean_test_file() -> Generator[Any, Any, Any]:
 
 
 def test_objective_computation_1() -> None:
-    instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
+    instance = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "examples/example_2.txt"),
+    )
 
     tour_1 = [0, 2, 1, 4, 3]
     assert instance.compute_objective(tour_1) == 71.0
 
 
 def test_objective_computation_2() -> None:
-    instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
+    instance = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "examples/example_2.txt"),
+    )
 
     tour_2 = [0, 3, 2, 1, 4]
     assert instance.compute_objective(tour_2) == 62.0
 
 
 def test_load_instance_from_file() -> None:
-    instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_1.txt"))
+    instance = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "examples/example_1.txt"),
+    )
 
     assert instance.N == 5
     assert instance.A == 8
@@ -44,7 +51,9 @@ def test_load_instance_from_file() -> None:
 
 
 def test_solution_correctness_1() -> None:
-    instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_1.txt"))
+    instance = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "examples/example_1.txt"),
+    )
 
     # invalid because does not start at 0
     invalid_tour = [2, 1, 4, 3, 0]
@@ -64,7 +73,9 @@ def test_solution_correctness_1() -> None:
 
 
 def test_write_solution_to_file(clean_test_file: Generator[Any, Any, Any]) -> None:  # noqa: ARG001
-    instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_1.txt"))
+    instance = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "examples/example_1.txt"),
+    )
 
     invalid_tour = [2, 1, 4, 3]
     with pytest.raises(ValueError, match="Solution "):
@@ -90,7 +101,9 @@ def clean_cache_of_example_2() -> Generator[Any, Any, Any]:
 
 
 def test_cache_for_z_indices(clean_cache_of_example_2: str) -> None:  # noqa: ARG001
-    instance = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
+    instance = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "examples/example_2.txt"),
+    )
     assert os.path.exists(instance.cache_file)
     os.remove(instance.cache_file)
     instance._store_indices_in_cache()

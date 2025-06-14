@@ -4,7 +4,9 @@ from hexaly.optimizer import HexalyOptimizer
 
 from trigger_arc_tsp.instance import Instance
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "instances")
+DATA_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "instances"
+)
 
 
 def model_and_solve_with_exaly() -> None:

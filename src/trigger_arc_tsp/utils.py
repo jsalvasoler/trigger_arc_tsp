@@ -18,7 +18,11 @@ def cleanup_instance_name(instance: str) -> str:
         instance = instance[10:]
 
     if instance.count("/") != 1:
-        instance = f"instances_release_2/{instance}" if len(instance) == 10 else f"instances_release_1/{instance}"
+        instance = (
+            f"instances_release_2/{instance}"
+            if len(instance) == 10
+            else f"instances_release_1/{instance}"
+        )
 
     # check if file exists
     if not os.path.exists(os.path.join(INSTANCES_DIR, instance)):

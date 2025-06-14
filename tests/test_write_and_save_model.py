@@ -1,5 +1,6 @@
 import os
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 import gurobipy as gp
 import pytest
@@ -14,7 +15,12 @@ def inst() -> Generator[Any, Any, Any]:
     if os.path.exists(os.path.join(MODELS_DIR, "test.mps")):
         os.remove(os.path.join(MODELS_DIR, "test.mps"))
     N = 3
-    yield Instance(N=N, edges={e: 1 for e in [(0, 1), (1, 2), (2, 0)]}, relations={}, name="test.txt")
+    yield Instance(
+        N=N,
+        edges=dict.fromkeys([(0, 1), (1, 2), (2, 0)], 1),
+        relations={},
+        name="test.txt",
+    )
     os.remove(os.path.join(MODELS_DIR, "test.mps"))
 
 
@@ -75,7 +81,9 @@ def test_variables_correctly_defined_when_reading_model(inst: Instance) -> None:
 
 
 def test_starting_solution_for_saved_model() -> None:
-    inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "instances_release_1/grf5.txt"))
+    inst = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "instances_release_1/grf5.txt")
+    )
     model = GurobiModel(inst)
     model.formulate()  # Model is saved here
 

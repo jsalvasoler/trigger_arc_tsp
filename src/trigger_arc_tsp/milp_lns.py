@@ -52,6 +52,8 @@ class MILPbasedLNS:
 
     def explore(self) -> list:
         # MIP Start is false because it has already been provided
-        self.model.solve_model_with_parameters(time_limit_sec=60, heuristic_effort=0.8, mip_start=False)
+        self.model.solve_model_with_parameters(
+            time_limit_sec=60, heuristic_effort=0.8, mip_start=False
+        )
 
         return self.model.get_original_solution()

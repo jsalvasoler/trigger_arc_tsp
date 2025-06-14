@@ -2,15 +2,20 @@ from __future__ import annotations
 
 import os
 import random
+from collections.abc import Generator
 from dataclasses import dataclass
-from typing import Generator, Literal
+from typing import Literal
 from warnings import warn
 
 import gurobipy as gp
 
 from trigger_arc_tsp.gurobi_tsp_model import GurobiTSPModel
 from trigger_arc_tsp.instance import Instance
-from trigger_arc_tsp.utils import INSTANCES_DIR, cleanup_instance_name, fisher_yates_shuffle
+from trigger_arc_tsp.utils import (
+    INSTANCES_DIR,
+    cleanup_instance_name,
+    fisher_yates_shuffle,
+)
 
 
 class TSPPriorEval:
@@ -18,7 +23,11 @@ class TSPPriorEval:
         self.instance = instance
         self.soft = soft
 
-    def evaluate_individual(self, tsp_prior: TSPPrior, time_limit_sec: int = 10) -> list[list, float]:
+    def evaluate_individual(
+        self,
+        tsp_prior: TSPPrior,
+        time_limit_sec: int = 10,
+    ) -> list[list, float]:
         assert len(tsp_prior.priorities) == self.instance.N
 
         try:
@@ -36,7 +45,7 @@ class TSPPriorEval:
             N=self.instance.N,
             edges=tsp_edges,
             relations={},
-            name=f'{self.instance.name.removesuffix(".txt")}_tsp.txt',
+            name=f"{self.instance.name.removesuffix('.txt')}_tsp.txt",
         )
         self.model = GurobiTSPModel(tsp_instance)
         self.model.formulate()
@@ -81,14 +90,22 @@ class TSPPriorEval:
         # (b) the probability that the target is used, and (c) the closeness
         # between the trigger and the target
         relation_active_prob = {
-            r: edge_used_prob[r[0], r[1]] * edge_used_prob[r[2], r[3]] * (1 / (node_dist[r[1], r[2]] ** tsp_prior.beta))
+            r: (
+                edge_used_prob[r[0], r[1]]
+                * edge_used_prob[r[2], r[3]]
+                * (1 / (node_dist[r[1], r[2]] ** tsp_prior.beta))
+            )
             for r in self.instance.relations
         }
 
         edges_cost = self.instance.edges.copy()
         for a in self.instance.R_a:
             for b in self.instance.R_a[a]:
-                val = tsp_prior.alpha * relation_active_prob[*b, *a] * self.instance.relations[*b, *a]
+                val = (
+                    tsp_prior.alpha
+                    * relation_active_prob[*b, *a]
+                    * self.instance.relations[*b, *a]
+                )
                 edges_cost[a] += val
                 edges_cost[b] += val
         return edges_cost
@@ -151,19 +168,31 @@ class HeuristicSearch:
             for j in range(i + 1, self.instance.N - 1):
                 for k in range(j + 1, self.instance.N):
                     new_prior = node_priorities.copy()
-                    new_prior[i], new_prior[j], new_prior[k] = new_prior[k], new_prior[i], new_prior[j]
+                    new_prior[i], new_prior[j], new_prior[k] = (
+                        new_prior[k],
+                        new_prior[i],
+                        new_prior[j],
+                    )
                     yield new_prior
 
     def run(
-        self, n_trials: int | None = None, n_post_trials: int = 0, idx: int = 0, start_solution: list | None = None
+        self,
+        n_trials: int | None = None,
+        n_post_trials: int = 0,
+        idx: int = 0,
+        start_solution: list | None = None,
     ) -> None:
         assert n_post_trials == 0 or not self.soft, "Post-trials are not allowed in soft mode"
-        assert n_post_trials == 0 or self.search_type != "grasp", "Post-trials are not allowed in GRASP search"
-        best_tour = start_solution if start_solution else self.instance.get_best_known_solution(idx=idx)
+        assert n_post_trials == 0 or self.search_type != "grasp", (
+            "Post-trials are not allowed in GRASP search"
+        )
+        best_tour = (
+            start_solution if start_solution else self.instance.get_best_known_solution(idx=idx)
+        )
         best_cost = self.instance.compute_objective(best_tour) if best_tour else float("inf")
 
         if self.search_type == "randomized":
-            assert n_trials is not None, "Number of trials must be specified for randomized search"
+            assert n_trials is not None, "Number of trials must be specified"
             tours_to_explore = self.generate_n_random_permutations(n_trials)
         elif self.search_type == "swap_2":
             n_tours_to_explore = (self.instance.N - 2) * (self.instance.N - 1) // 2
@@ -172,7 +201,9 @@ class HeuristicSearch:
             n_trials = n_tours_to_explore
             tours_to_explore = self.generate_swap_2_permutations(best_tour)
         elif self.search_type == "swap_3":
-            n_tours_to_explore = (self.instance.N - 3) * (self.instance.N - 2) * (self.instance.N - 1) // 6
+            n_tours_to_explore = (
+                (self.instance.N - 3) * (self.instance.N - 2) * (self.instance.N - 1) // 6
+            )
             if n_trials is None:
                 warn(f"Total number of trials is set to {n_tours_to_explore}", stacklevel=1)
             n_trials = n_tours_to_explore
@@ -194,8 +225,14 @@ class HeuristicSearch:
         it = 0
         try:
             for node_priorities in tours_to_explore:
-                tsp_prior = TSPPrior(node_priorities, alpha=random.uniform(0.1, 3), beta=random.uniform(0.1, 3))
-                tour, cost = self.searcher.evaluate_individual(tsp_prior=tsp_prior, time_limit_sec=5)
+                tsp_prior = TSPPrior(
+                    node_priorities,
+                    alpha=random.uniform(0.1, 3),
+                    beta=random.uniform(0.1, 3),
+                )
+                tour, cost = self.searcher.evaluate_individual(
+                    tsp_prior=tsp_prior, time_limit_sec=5
+                )
                 if tour and cost / best_cost - 1 < 0.05:
                     promising_tsp_priors.append(tsp_prior)
                 if improved := cost < best_cost:
@@ -204,14 +241,18 @@ class HeuristicSearch:
                     if self.save_solutions:
                         self.instance.save_solution(best_tour, best_cost)
                 if self.print_logs:
-                    self.print_log_line(it, cost, best_cost, n_trials=n_trials, improved=improved)
+                    self.print_log_line(
+                        it, cost, best_cost, n_trials=n_trials, improved=improved
+                    )
                 it += 1
 
         except KeyboardInterrupt:
             print("--- Interrupted by user ---")
 
         if n_post_trials:
-            best_tour, best_cost = self.run_post_trials(promising_tsp_priors, best_cost, best_tour, n_post_trials)
+            best_tour, best_cost = self.run_post_trials(
+                promising_tsp_priors, best_cost, best_tour, n_post_trials
+            )
         assert best_cost == self.instance.compute_objective(best_tour)
 
         if self.print_logs:
@@ -224,12 +265,22 @@ class HeuristicSearch:
         best_tour = self.instance.get_best_known_solution()
         best_cost = self.instance.compute_objective(best_tour) if best_tour else float("inf")
 
-        search = HeuristicSearch(self.instance, search_type="swap_2", soft=True, save_solutions=False, print_logs=False)
+        search = HeuristicSearch(
+            self.instance,
+            search_type="swap_2",
+            soft=True,
+            save_solutions=False,
+            print_logs=False,
+        )
 
         for it in range(n_trials):
             node_priorities = self.generate_n_random_permutations(1).__next__()
-            tsp_prior = TSPPrior(node_priorities, alpha=random.uniform(0.1, 3), beta=random.uniform(0.1, 3))
-            tour, cost = self.searcher.evaluate_individual(tsp_prior=tsp_prior, time_limit_sec=1.5)
+            tsp_prior = TSPPrior(
+                node_priorities, alpha=random.uniform(0.1, 3), beta=random.uniform(0.1, 3)
+            )
+            tour, cost = self.searcher.evaluate_individual(
+                tsp_prior=tsp_prior, time_limit_sec=1.5
+            )
 
             if not tour or cost / best_cost - 1 >= 0.20:
                 continue
@@ -255,7 +306,9 @@ class HeuristicSearch:
                 else:
                     n_iterations_without_improvement += 1
                 if self.print_logs:
-                    self.print_log_line(it, cost, best_cost, n_trials=n_trials, improved=improved)
+                    self.print_log_line(
+                        it, cost, best_cost, n_trials=n_trials, improved=improved
+                    )
 
         assert best_cost == self.instance.compute_objective(best_tour)
 
@@ -264,7 +317,11 @@ class HeuristicSearch:
             print(f"Best tour: {best_tour} - Cost: {best_cost}")
 
     def run_post_trials(
-        self, promising_tsp_priors: list[TSPPrior], best_cost: float, best_tour: list, n_post_trials: int
+        self,
+        promising_tsp_priors: list[TSPPrior],
+        best_cost: float,
+        best_tour: list,
+        n_post_trials: int,
     ) -> None:
         print("\n--- Running post-trials ---")
         print(f"Promising TSP priors: {len(promising_tsp_priors)}")
@@ -276,7 +333,9 @@ class HeuristicSearch:
             for tsp_prior in promising_tsp_priors:
                 if tsp_prior.rel_gap < 0.001:
                     continue
-                tour, cost = self.searcher.evaluate_individual(tsp_prior=tsp_prior, time_limit_sec=60)
+                tour, cost = self.searcher.evaluate_individual(
+                    tsp_prior=tsp_prior, time_limit_sec=60
+                )
                 evals += 1
                 if improved := cost < best_cost:
                     best_tour = tour
@@ -284,7 +343,9 @@ class HeuristicSearch:
                     if self.save_solutions:
                         self.instance.save_solution(best_tour, best_cost)
                 if self.print_logs:
-                    self.print_log_line(evals, cost, best_cost, n_trials=n_post_trials, improved=improved)
+                    self.print_log_line(
+                        evals, cost, best_cost, n_trials=n_post_trials, improved=improved
+                    )
                 if evals >= n_post_trials:
                     break
         except KeyboardInterrupt:
@@ -293,7 +354,15 @@ class HeuristicSearch:
         assert best_cost == self.instance.compute_objective(best_tour)
         return best_tour, best_cost
 
-    def print_log_line(self, it: int, cost: float | None, best_cost: float, n_trials: int, *, improved: bool) -> None:
+    def print_log_line(
+        self,
+        it: int,
+        cost: float | None,
+        best_cost: float,
+        n_trials: int,
+        *,
+        improved: bool,
+    ) -> None:
         # Define the width for each column
         it_width = 15  # Width for the iteration number
         cost_width = 10  # Width for the cost
@@ -312,7 +381,10 @@ class HeuristicSearch:
 
         print(s)
 
-    def set_search_type(self, search_type: Literal["randomized", "swap_2", "swap_3", "delay_1", "grasp"]) -> None:
+    def set_search_type(
+        self,
+        search_type: Literal["randomized", "swap_2", "swap_3", "delay_1", "grasp"],
+    ) -> None:
         self.search_type = search_type
 
     def set_start_solution(self, start_solution: list) -> None:

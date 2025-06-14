@@ -7,7 +7,12 @@ from trigger_arc_tsp.instance import Instance
 
 def test_solving_non_formulated_model() -> None:
     N = 3
-    inst = Instance(N=N, edges={e: 1 for e in [(0, 1), (1, 2), (2, 0)]}, relations={}, name="test")
+    inst = Instance(
+        N=N,
+        edges=dict.fromkeys([(0, 1), (1, 2), (2, 0)], 1),
+        relations={},
+        name="test",
+    )
     model = GurobiModel(inst)
 
     with pytest.raises(ValueError, match="Model is not formulated"):
@@ -19,7 +24,12 @@ def test_solving_non_formulated_model() -> None:
 
 def test_gurobi_model_sample_1() -> None:
     N = 3
-    inst = Instance(N=N, edges={e: 1 for e in [(0, 1), (1, 2), (2, 0)]}, relations={}, name="test")
+    inst = Instance(
+        N=N,
+        edges=dict.fromkeys([(0, 1), (1, 2), (2, 0)], 1),
+        relations={},
+        name="test",
+    )
     model = GurobiModel(inst)
     model.formulate()
     model.solve_model_with_parameters()
@@ -38,7 +48,10 @@ def test_gurobi_model_sample_1() -> None:
 def test_gurobi_model_sample_2() -> None:
     N = 4
     inst = Instance(
-        N=N, edges={e: 1 for e in [(0, 1), (1, 2), (2, 3), (3, 0)]}, relations={(0, 1, 1, 2): 2}, name="test"
+        N=N,
+        edges=dict.fromkeys([(0, 1), (1, 2), (2, 3), (3, 0)], 1),
+        relations={(0, 1, 1, 2): 2},
+        name="test",
     )
     model = GurobiModel(inst)
     model.formulate()
@@ -65,7 +78,7 @@ def test_gurobi_model_sample_2() -> None:
 def test_gurobi_model_sample_3() -> None:
     N = 4
     edges = [(0, 1), (1, 2), (2, 3), (3, 0)]
-    edges = {e: 1 for e in edges}
+    edges = dict.fromkeys(edges, 1)
     relations = {(0, 1, 3, 0): 5, (1, 2, 3, 0): 10}
 
     inst = Instance(N=N, edges=edges, relations=relations, name="test")
@@ -87,7 +100,7 @@ def test_gurobi_model_sample_3() -> None:
 def test_gurobi_model_sample_4() -> None:
     N = 4
     edges = [(0, 1), (1, 2), (2, 3), (3, 0)]
-    edges = {e: 1 for e in edges}
+    edges = dict.fromkeys(edges, 1)
     relations = {(0, 1, 2, 3): 2, (1, 2, 2, 3): 10, (3, 0, 2, 3): 2}
 
     inst = Instance(N=N, edges=edges, relations=relations, name="test")
@@ -108,7 +121,7 @@ def test_gurobi_model_sample_4() -> None:
 def test_gurobi_model_sample_5() -> None:
     N = 2
     edges = [(0, 1), (1, 0)]
-    edges = {e: 1 for e in edges}
+    edges = dict.fromkeys(edges, 1)
     relations = {(0, 1, 1, 0): 2}
 
     inst = Instance(N=N, edges=edges, relations=relations, name="test")
@@ -182,9 +195,9 @@ def test_gurobi_model_sample_8() -> None:
 def test_gurobi_model_sample_9() -> None:
     N = 5
     edges_1 = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
-    edge_costs_1 = {e: 1 for e in edges_1}
+    edge_costs_1 = dict.fromkeys(edges_1, 1)
     edges_2 = [(0, 4), (4, 3), (3, 2), (2, 1), (1, 0)]
-    edge_costs_2 = {e: 2 for e in edges_2}
+    edge_costs_2 = dict.fromkeys(edges_2, 2)
     edges = {**edge_costs_1, **edge_costs_2}
     relations = {}
 
@@ -222,7 +235,7 @@ def test_gurobi_model_sample_10() -> None:
 def test_gurobi_model_sample_11() -> None:
     N = 10
     edges = [(i, j) for i in range(N) for j in range(N) if i != j]
-    edges = {e: 1 for e in edges}
+    edges = dict.fromkeys(edges, 1)
     inst = Instance(N=N, edges=edges, relations={}, name="test")
     model = GurobiModel(inst)
     model.formulate()
@@ -252,7 +265,7 @@ def test_gurobi_model_sample_11() -> None:
 def test_gurobi_model_sample_12() -> None:
     N = 3
     edges = [(0, 1), (1, 0), (0, 2), (2, 0)]
-    edges = {e: 1 for e in edges}
+    edges = dict.fromkeys(edges, 1)
     relations = {(0, 1, 1, 0): 0, (0, 2, 1, 0): 0}
 
     inst = Instance(N=N, edges=edges, relations=relations, name="test")
@@ -268,9 +281,11 @@ def test_gurobi_model_sample_12() -> None:
 def test_gurobi_model_sample_13() -> None:
     N = 10
     edges = [(i, j) for i in range(N) for j in range(N) if i != j]
-    edges = {e: 1 for e in edges}
+    edges = dict.fromkeys(edges, 1)
     trigger = (4, 5)
-    relations = {(*trigger, i, j): 0 for i in range(N) for j in range(N) if i != j and (i, j) != trigger}
+    relations = {
+        (*trigger, i, j): 0 for i in range(N) for j in range(N) if i != j and (i, j) != trigger
+    }
 
     inst = Instance(N=N, edges=edges, relations=relations, name="test")
     model = GurobiModel(inst)
@@ -286,7 +301,7 @@ def test_gurobi_model_sample_13() -> None:
 def test_gurobi_model_sample_14() -> None:
     N = 5
     edges = [(0, 1), (1, 2), (1, 4), (2, 3), (3, 4), (4, 0)]
-    edges = {e: 1 for e in edges}
+    edges = dict.fromkeys(edges, 1)
     relations = {
         (0, 1, 2, 3): 0,
         (1, 4, 2, 3): 0,
@@ -310,7 +325,7 @@ def test_gurobi_model_sample_14() -> None:
 def test_arc_after_target_does_not_trigger() -> None:
     N = 3
     edges = [(0, 1), (1, 2), (2, 0)]
-    edges = {e: 1 for e in edges}
+    edges = dict.fromkeys(edges, 1)
     relations = {(1, 2, 0, 1): 0}
     inst = Instance(N=N, edges=edges, relations=relations, name="test")
 

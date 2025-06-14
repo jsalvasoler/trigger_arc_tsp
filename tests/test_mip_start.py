@@ -8,12 +8,16 @@ from trigger_arc_tsp.utils import INSTANCES_DIR
 
 
 def test_get_variables_from_tour() -> None:
-    inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
+    inst = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "examples/example_2.txt"),
+    )
 
     tour = [0, 2, 1, 4, 3]
     x, y, u, z = inst.get_variables_from_tour(tour)
 
-    edges_used = {(tour[i], tour[i + 1] if i + 1 < len(tour) else tour[0]) for i in range(len(tour))}
+    edges_used = {
+        (tour[i], tour[i + 1] if i + 1 < len(tour) else tour[0]) for i in range(len(tour))
+    }
 
     # check x
     assert all(x[e] == 1 for e in edges_used)
@@ -33,11 +37,15 @@ def test_get_variables_from_tour() -> None:
             assert y[rel] == 0
 
     # check z
-    assert z == {(a_1, a_2, b_1, b_2): u[a_1] + 1 <= u[b_1] for a_1, a_2, b_1, b_2 in inst.z_var_indices}
+    assert z == {
+        (a_1, a_2, b_1, b_2): u[a_1] + 1 <= u[b_1] for a_1, a_2, b_1, b_2 in inst.z_var_indices
+    }
 
 
 def test_get_mip_start_from_saved_solution() -> None:
-    inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
+    inst = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "examples/example_2.txt"),
+    )
 
     # we know that we saved the solution [0, 3, 2, 1, 4] for this instance
     x, y, u, _ = inst.get_mip_start()
@@ -50,7 +58,9 @@ def test_get_mip_start_from_saved_solution() -> None:
 
 
 def test_provide_mip_start_1() -> None:
-    inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_2.txt"))
+    inst = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "examples/example_2.txt")
+    )
 
     model = GurobiModel(inst)
     model.formulate()
@@ -67,7 +77,9 @@ def test_provide_mip_start_1() -> None:
 
 
 def test_provide_mip_start_2() -> None:
-    inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "instances_release_1/grf5.txt"))
+    inst = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "instances_release_1/grf5.txt")
+    )
 
     model = GurobiModel(inst)
     model.formulate()
@@ -104,7 +116,9 @@ def test_provide_mip_start_3() -> None:
 
 
 def test_that_improving_after_mip_start_improves_original_objective() -> None:
-    inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "instances_release_1/grf5.txt"))
+    inst = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "instances_release_1/grf5.txt")
+    )
 
     model_1 = GurobiModel(inst)
     model_1.formulate()

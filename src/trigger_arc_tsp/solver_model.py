@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import gurobipy as gp
-    import xpress as xp
 
     from trigger_arc_tsp.instance import Instance
 
@@ -23,7 +22,7 @@ class SolverModel:
         self.z_var_indices = self.instance.z_var_indices
 
     @abstractmethod
-    def read_model(self, model_path: str | os.PathLike) -> gp.Model | xp.problem:
+    def read_model(self, model_path: str | os.PathLike) -> gp.Model:
         pass
 
     def get_model_from_model_file(self) -> None | gp.Model:
@@ -54,8 +53,14 @@ class SolverModel:
 
         self.x = {key: variables[idx] for idx, key in enumerate(self.instance.edges)}
         self.u = {key: variables[num_x + idx] for idx, key in enumerate(self.u_var_indices)}
-        self.y = {key: variables[num_x + num_u + idx] for idx, key in enumerate(self.instance.relations)}
-        self.z = {key: variables[num_x + num_u + num_y + idx] for idx, key in enumerate(self.z_var_indices)}
+        self.y = {
+            key: variables[num_x + num_u + idx]
+            for idx, key in enumerate(self.instance.relations)
+        }
+        self.z = {
+            key: variables[num_x + num_u + num_y + idx]
+            for idx, key in enumerate(self.z_var_indices)
+        }
 
         # Ensure the total number of variables matches
         assert num_x + num_u + num_y + num_z == len(variables)
@@ -87,7 +92,6 @@ class SolverModel:
                 return
 
         if vars_:
-            # The user has already loaded the variables into the model, we just need to register them
             assert len(self.get_vars()) > 0
             self.x, self.y, self.u, self.z = vars_
         else:
@@ -126,7 +130,12 @@ class SolverModel:
 
     @abstractmethod
     def solve_model_with_parameters(
-        self, time_limit_sec: int = 60, heuristic_effort: float = 0.05, presolve: int = -1, *, mip_start: bool = False
+        self,
+        time_limit_sec: int = 60,
+        heuristic_effort: float = 0.05,
+        presolve: int = -1,
+        *,
+        mip_start: bool = False,
     ) -> None:
         pass
 
@@ -146,5 +155,5 @@ class SolverModel:
     def get_z(self) -> dict:
         return self.z
 
-    def get_model(self) -> gp.Model | xp.problem:
+    def get_model(self) -> gp.Model:
         return self.model

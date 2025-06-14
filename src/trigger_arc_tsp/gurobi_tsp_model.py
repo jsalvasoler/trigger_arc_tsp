@@ -26,11 +26,17 @@ class GurobiTSPModel:
 
         # Flow conservation constraints
         self.model.addConstrs(
-            (gp.quicksum(self.x[i, j] for j in self.instance.delta_out[i]) == 1 for i in self.instance.nodes),
+            (
+                gp.quicksum(self.x[i, j] for j in self.instance.delta_out[i]) == 1
+                for i in self.instance.nodes
+            ),
             name="flow_conservation_out",
         )
         self.model.addConstrs(
-            (gp.quicksum(self.x[j, i] for j in self.instance.delta_in[i]) == 1 for i in self.instance.nodes),
+            (
+                gp.quicksum(self.x[j, i] for j in self.instance.delta_in[i]) == 1
+                for i in self.instance.nodes
+            ),
             name="flow_conservation_in",
         )
 
@@ -60,7 +66,11 @@ class GurobiTSPModel:
         self.check_model_status()
 
     def solve_to_optimality(
-        self, time_limit_sec: int | None = None, best_bd_stop: float | None = None, *, logs: bool = True
+        self,
+        time_limit_sec: int | None = None,
+        best_bd_stop: float | None = None,
+        *,
+        logs: bool = True,
     ) -> None:
         self.check_model_is_formulated()
 

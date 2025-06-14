@@ -25,24 +25,38 @@ class GurobiModel(SolverModel):
 
     def add_variables(self) -> None:
         self.x = self.model.addVars(self.instance.edges, vtype=gp.GRB.BINARY, name="x")
-        self.u = self.model.addVars(self.u_var_indices, vtype=gp.GRB.CONTINUOUS, name="u", lb=0, ub=self.instance.N - 1)
+        self.u = self.model.addVars(
+            self.u_var_indices, vtype=gp.GRB.CONTINUOUS, name="u", lb=0, ub=self.instance.N - 1
+        )
         self.y = self.model.addVars(self.instance.relations, vtype=gp.GRB.BINARY, name="y")
         self.z = self.model.addVars(self.z_var_indices, vtype=gp.GRB.BINARY, name="z")
 
     def add_variables_relax_obj(self) -> None:
         self.x = self.model.addVars(self.instance.edges, vtype=gp.GRB.BINARY, name="x")
-        self.u = self.model.addVars(self.u_var_indices, vtype=gp.GRB.CONTINUOUS, name="u", lb=0, ub=self.instance.N - 1)
-        self.y = self.model.addVars(self.instance.relations, vtype=gp.GRB.CONTINUOUS, name="y", lb=0, ub=1)
-        self.z = self.model.addVars(self.z_var_indices, vtype=gp.GRB.CONTINUOUS, name="z", lb=0, ub=1)
+        self.u = self.model.addVars(
+            self.u_var_indices, vtype=gp.GRB.CONTINUOUS, name="u", lb=0, ub=self.instance.N - 1
+        )
+        self.y = self.model.addVars(
+            self.instance.relations, vtype=gp.GRB.CONTINUOUS, name="y", lb=0, ub=1
+        )
+        self.z = self.model.addVars(
+            self.z_var_indices, vtype=gp.GRB.CONTINUOUS, name="z", lb=0, ub=1
+        )
 
     def add_constraints(self) -> None:
         # (1) Flow conservation constraints
         self.model.addConstrs(
-            (gp.quicksum(self.x[i, j] for j in self.instance.delta_out[i]) == 1 for i in self.instance.nodes),
+            (
+                gp.quicksum(self.x[i, j] for j in self.instance.delta_out[i]) == 1
+                for i in self.instance.nodes
+            ),
             name="flow_conservation_out",
         )
         self.model.addConstrs(
-            (gp.quicksum(self.x[j, i] for j in self.instance.delta_in[i]) == 1 for i in self.instance.nodes),
+            (
+                gp.quicksum(self.x[j, i] for j in self.instance.delta_in[i]) == 1
+                for i in self.instance.nodes
+            ),
             name="flow_conservation_in",
         )
 
@@ -58,32 +72,50 @@ class GurobiModel(SolverModel):
 
         # (3) At most one relation can be active in R_a
         self.model.addConstrs(
-            (gp.quicksum(self.y[*b, *a] for b in self.instance.R_a[a]) <= self.x[a] for a in self.instance.R_a),
+            (
+                gp.quicksum(self.y[*b, *a] for b in self.instance.R_a[a]) <= self.x[a]
+                for a in self.instance.R_a
+            ),
             name="max_one_relation",
         )
 
         # (4) Relation r=(b,a) \in R_a is inactive if a or b are inactive
         self.model.addConstrs(
-            (self.y[*b, *a] <= self.x[a] for a in self.instance.R_a for b in self.instance.R_a[a]),
+            (
+                self.y[*b, *a] <= self.x[a]
+                for a in self.instance.R_a
+                for b in self.instance.R_a[a]
+            ),
             name="relation_inactive_if_target_inactive",
         )
         self.model.addConstrs(
-            (self.y[*b, *a] <= self.x[b] for a in self.instance.R_a for b in self.instance.R_a[a]),
+            (
+                self.y[*b, *a] <= self.x[b]
+                for a in self.instance.R_a
+                for b in self.instance.R_a[a]
+            ),
             name="relation_inactive_if_target_inactive",
         )
 
         # (5) Relation r=(b,a) \in R_a is inactive if b after a in the tour
         self.model.addConstrs(
-            (self.y[*b, *a] <= self.z[*b, *a] for a in self.instance.R_a for b in self.instance.R_a[a]),
+            (
+                self.y[*b, *a] <= self.z[*b, *a]
+                for a in self.instance.R_a
+                for b in self.instance.R_a[a]
+            ),
             name="trigger_before_arc",
         )
 
         # (6) at least one relation is active
-        # If we have u[b] < u[a] in the tour, and x[a] == x[b] == 1, then sum(y[c, a] for c in R_a) == 1
+        # If we have u[b] < u[a] in the tour,
+        # and x[a] == x[b] == 1, then sum(y[c, a] for c in R_a) == 1
         self.model.addConstrs(
             (
                 1 - self.z[*a, *b]
-                <= gp.quicksum(self.y[*b, *a] for b in self.instance.R_a[a]) + (1 - self.x[a]) + (1 - self.x[b])
+                <= gp.quicksum(self.y[*b, *a] for b in self.instance.R_a[a])
+                + (1 - self.x[a])
+                + (1 - self.x[b])
                 for a in self.instance.R_a
                 for b in self.instance.R_a[a]
             ),
@@ -95,7 +127,8 @@ class GurobiModel(SolverModel):
         # u[a_2] + 1 <= u[a_1] implies z[a_1, a_2] == 0
         self.model.addConstrs(
             (
-                self.u[a10] <= self.u[a20] + (self.instance.N - 1) * (1 - self.z[a10, a11, a20, a21])
+                self.u[a10]
+                <= self.u[a20] + (self.instance.N - 1) * (1 - self.z[a10, a11, a20, a21])
                 for a10, a11, a20, a21 in self.z
             ),
             name="model_z_variables_1",
@@ -109,7 +142,11 @@ class GurobiModel(SolverModel):
             name="model_z_variables_2",
         )
         self.model.addConstrs(
-            (self.z[a10, a11, a20, a21] == self.z[a20, a21, a10, a11] for a10, a11, a20, a21 in self.z if a10 == a20),
+            (
+                self.z[a10, a11, a20, a21] == self.z[a20, a21, a10, a11]
+                for a10, a11, a20, a21 in self.z
+                if a10 == a20
+            ),
             name="model_z_variables_3",
         )
 
@@ -134,7 +171,9 @@ class GurobiModel(SolverModel):
         # Set the objective function
         obj = gp.quicksum(
             self.x[a] * self.instance.edges[a]
-            + gp.quicksum(self.y[*b, *a] * self.instance.relations[*b, *a] for b in self.instance.R_a[a])
+            + gp.quicksum(
+                self.y[*b, *a] * self.instance.relations[*b, *a] for b in self.instance.R_a[a]
+            )
             for a in self.instance.edges
         )
         self.model.setObjective(obj, sense=gp.GRB.MINIMIZE)
@@ -142,14 +181,19 @@ class GurobiModel(SolverModel):
     def provide_mip_start(self, vars_: list[dict]) -> None:
         print("Providing MIP start")
         assert len(vars_) == 4
-        for var_name, var in zip(["x", "y", "u", "z"], vars_):
+        for var_name, var in zip(["x", "y", "u", "z"], vars_, strict=False):
             gb_var = getattr(self, var_name)
             for key, val in var.items():
                 if type(gb_var[key]) is gp.Var:
                     gb_var[key].Start = val
 
     def solve_model_with_parameters(
-        self, time_limit_sec: int = 60, heuristic_effort: float = 0.05, presolve: int = -1, *, mip_start: bool = False
+        self,
+        time_limit_sec: int = 60,
+        heuristic_effort: float = 0.05,
+        presolve: int = -1,
+        *,
+        mip_start: bool = False,
     ) -> None:
         if not self.formulated:
             raise ValueError("Model is not formulated")
@@ -183,7 +227,9 @@ class GurobiModel(SolverModel):
 
         cost = 0
         cost += sum(self.instance.edges[a] for a in self.instance.edges if x_vals[a] > 0.5)
-        cost += sum(self.instance.relations[a] for a in self.instance.relations if y_vals[a] > 0.5)
+        cost += sum(
+            self.instance.relations[a] for a in self.instance.relations if y_vals[a] > 0.5
+        )
 
         return tour, cost
 
@@ -205,7 +251,10 @@ def gurobi_main(
     model = GurobiModel(instance)
     model.formulate(relax_obj_modeling=relax_obj_modeling, read_model=read_model)
     model.solve_model_with_parameters(
-        time_limit_sec=time_limit_sec, heuristic_effort=heuristic_effort, mip_start=mip_start, presolve=presolve
+        time_limit_sec=time_limit_sec,
+        heuristic_effort=heuristic_effort,
+        mip_start=mip_start,
+        presolve=presolve,
     )
     tour, cost = model.get_original_solution()
 

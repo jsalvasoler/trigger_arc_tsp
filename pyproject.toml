@@ -1,13 +1,9 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "trigger-arc-tsp"
-dynamic = ["version"]
 description = ''
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
+version = "0.1.0"
 license = "MIT"
 keywords = []
 authors = [
@@ -16,8 +12,6 @@ authors = [
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -28,33 +22,14 @@ dependencies = [
   "gurobipy",
   "click",
   "ipython",
-  "tdqm",
+  "tqdm",
   "pandas",
-  "xpress",
 ]
 
 [project.urls]
 Documentation = "https://github.com/jsalvasoler/trigger-arc-tsp#readme"
 Issues = "https://github.com/jsalvasoler/trigger-arc-tsp/issues"
 Source = "https://github.com/jsalvasoler/trigger-arc-tsp"
-
-[tool.hatch.version]
-path = "src/trigger_arc_tsp/__about__.py"
-
-[tool.hatch.envs.default]
-python = "3.11"
-
-[tool.hatch.envs.types]
-extra-dependencies = [
-  "mypy>=1.0.0",
-  "hexaly @ https://pip.hexaly.com/simple/hexaly",
-]
-[tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/trigger_arc_tsp tests}"
-
-[tool.hatch.envs.default.scripts]
-interactive = "ipython"
-trigger_arc_tsp = "python3 -m trigger_arc_tsp {args}"
 
 [tool.coverage.run]
 source_pkgs = ["trigger_arc_tsp", "tests"]
@@ -75,6 +50,10 @@ exclude_lines = [
   "if TYPE_CHECKING:",
 ]
 
+[tool.ruff]
+line-length = 96
+exclude = ["src/trigger_arc_tsp/extra/instance_analysis.ipynb"]
+
 [tool.ruff.lint]
 extend-select = [
     "I", # isort
@@ -91,7 +70,6 @@ extend-select = [
 ]
 ignore = [
     "T201",
-    "ANN101",
     "ANN003",
     "S101",
     "N803",

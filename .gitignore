@@ -1,8 +1,9 @@
-# Data
 /instances/
 /solutions/
 /models/
 /cache/
+/build/
+*egg-info/
 model.ilp
 
 # Runner script
@@ -14,11 +15,10 @@ __pycache__/
 *$py.class
 
 # Virtual environments
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+.env/
+.venv/
+.env.bak/
+.venv.bak/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -31,6 +31,3 @@ venv.bak/
 
 # Pytest
 .cache/
-
-# xpress license
-xpauth.xpr

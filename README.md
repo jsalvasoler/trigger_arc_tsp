@@ -26,13 +26,14 @@ Feel free to check the `src/trigger_arc_tsp/__main__.py` file to see all the imp
 An example command to run GRASP is:
 
 ```bash
-hatch run trigger_arc_tsp grasp instances_release_2/grf134.txt --n_trials 500
+export PYTHONPATH=$PYTHONPATH:src
+uv run python -m trigger_arc_tsp grasp instances_release_2/grf134.txt --n_trials 500
 ```
 
 An example command to solve an instance with the Gurobi solver is:
 
 ```bash
-hatch run trigger_arc_tsp solver instances_release_2/grf103.txt gurobi \
+uv run python -m trigger_arc_tsp solver instances_release_2/grf103.txt gurobi \
     --time_limit_sec 300 \
     --heuristic_effort 1 \
     --mip_start \

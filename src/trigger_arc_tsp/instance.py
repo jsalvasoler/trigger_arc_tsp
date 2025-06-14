@@ -14,7 +14,9 @@ class Instance:
     def __init__(self, N: int, edges: dict, relations: dict, name: str) -> None:
         self.name = name
         self.model_name = name.removesuffix(".txt") + ".mps"
-        self.cache_file = os.path.join(CACHE_DIR, name.removesuffix(".txt") + "indices_cache.pkl")
+        self.cache_file = os.path.join(
+            CACHE_DIR, name.removesuffix(".txt") + "indices_cache.pkl"
+        )
 
         os.makedirs(CACHE_DIR, exist_ok=True)
         os.makedirs(os.path.dirname(self.cache_file), exist_ok=True)
@@ -37,7 +39,9 @@ class Instance:
             self.delta_in[j].add(i)
             self.delta_out[i].add(j)
 
-        self.relations = {rel: self.relations[rel] - self.edges[(rel[2], rel[3])] for rel in self.relations}
+        self.relations = {
+            rel: self.relations[rel] - self.edges[(rel[2], rel[3])] for rel in self.relations
+        }
 
         if not self._load_indices_from_cache():
             self._generate_z_var_indices()
@@ -94,8 +98,12 @@ class Instance:
 
             relations = {}
             for line in lines[1 + A : 1 + A + R]:
-                _, _, from_trigger, to_trigger, _, from_arc, to_arc, cost = map(float, line.split())
-                relations[(int(from_trigger), int(to_trigger), int(from_arc), int(to_arc))] = cost
+                _, _, from_trigger, to_trigger, _, from_arc, to_arc, cost = map(
+                    float, line.split()
+                )
+                relations[(int(from_trigger), int(to_trigger), int(from_arc), int(to_arc))] = (
+                    cost
+                )
 
             assert int(line.split(" ")[0]) == R - 1
 
@@ -136,7 +144,11 @@ class Instance:
         if tour[-1] == 0:
             tour = tour[:-1]
 
-        if len(tour) != self.N or len(set(tour)) != self.N or not set(tour).issubset(self.nodes):
+        if (
+            len(tour) != self.N
+            or len(set(tour)) != self.N
+            or not set(tour).issubset(self.nodes)
+        ):
             return False
 
         if tour[0] != 0:
@@ -160,7 +172,10 @@ class Instance:
         if objective is None:
             objective = self.compute_objective(tour)
         if not self.test_solution(tour, objective):
-            msg = f"Solution {tour} does not have the correct objective value for instance {self.name}"
+            msg = (
+                f"Solution {tour} does not have the correct objective value for instance "
+                f"{self.name}"
+            )
             msg += f" (computed: {self.compute_objective(tour)}, proposed: {objective})"
             warn(msg, stacklevel=1)
             objective = self.compute_objective(tour)
@@ -203,7 +218,11 @@ class Instance:
 
     def get_mip_start(self, *, use_tsp_only: bool = False) -> list[dict, dict, dict, dict]:
         best_known_solution = self.get_best_known_solution()
-        tour = best_known_solution if best_known_solution and not use_tsp_only else self.tsp_solution()
+        tour = (
+            best_known_solution
+            if best_known_solution and not use_tsp_only
+            else self.tsp_solution()
+        )
         return self.get_variables_from_tour(tour)
 
     def get_variables_from_tour(self, tour: list) -> list[dict, dict, dict, dict]:
@@ -211,7 +230,7 @@ class Instance:
         assert len(tour_edges) == self.N
         x = {edge: 1 if edge in tour_edges else 0 for edge in self.edges}
         u = {node: i for i, node in enumerate(tour)}
-        y = {rel: 0 for rel in self.relations}
+        y = dict.fromkeys(self.relations, 0)
         for a in tour_edges:
             assert u[a[0]] < u[a[1]] or a[1] == 0
             if a not in self.R_a:
@@ -223,13 +242,18 @@ class Instance:
             # sort the triggering relations by their index in the path (higher index last)
             triggering = sorted(triggering, key=lambda x: tour_edges.index(x))
             # remove the triggering arcs that happen after the arc a
-            triggering = [rel for rel in triggering if tour_edges.index(rel) < tour_edges.index(a)]
+            triggering = [
+                rel for rel in triggering if tour_edges.index(rel) < tour_edges.index(a)
+            ]
             if not triggering:
                 continue
             # the last relation in the list is the one that triggers the arc a
             y[*triggering[-1], *a] = 1
 
-        z = {(a_1, a_2, b_1, b_2): u[a_1] + 1 <= u[b_1] for a_1, a_2, b_1, b_2 in self.z_var_indices}
+        z = {
+            (a_1, a_2, b_1, b_2): u[a_1] + 1 <= u[b_1]
+            for a_1, a_2, b_1, b_2 in self.z_var_indices
+        }
 
         return x, y, u, z
 

@@ -4,7 +4,7 @@ from trigger_arc_tsp.milp_lns import MILPbasedLNS
 
 def test_lns_1() -> None:
     edges = [(0, 1), (0, 2), (1, 2), (2, 1), (1, 3), (2, 3), (3, 0)]
-    edges_with_cost = {e: 1 for e in edges}
+    edges_with_cost = dict.fromkeys(edges, 1)
     # The optimal tour should avoid (0,1) -> [0, 2, 1, 3]
     edges_with_cost[(0, 1)] = 10
     inst = Instance(4, edges_with_cost, relations={}, name="test")
@@ -21,7 +21,7 @@ def test_lns_1() -> None:
 
 def test_lns_reinserting_everything() -> None:
     edges = [(0, 1), (0, 2), (1, 2), (2, 1), (1, 3), (2, 3), (3, 0)]
-    edges_with_cost = {e: 1 for e in edges}
+    edges_with_cost = dict.fromkeys(edges, 1)
     # The optimal tour should avoid (0,1) -> [0, 2, 1, 3]
     edges_with_cost[(0, 1)] = 10
     inst = Instance(4, edges_with_cost, relations={}, name="test")

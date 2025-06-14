@@ -17,7 +17,9 @@ def test_tsp_model_1() -> None:
 
 
 def test_tsp_model_2() -> None:
-    inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "examples/example_1.txt"))
+    inst = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "examples/example_1.txt"),
+    )
     model = GurobiTSPModel(inst)
     model.formulate()
     model.solve_to_feasible_solution()
@@ -29,7 +31,9 @@ def test_tsp_model_2() -> None:
 
 
 def test_tsp_big_model() -> None:
-    inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "instances_release_1/grf1.txt"))
+    inst = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "instances_release_1/grf1.txt"),
+    )
     model = GurobiTSPModel(inst)
     model.formulate()
 
@@ -40,7 +44,9 @@ def test_tsp_big_model() -> None:
 
 
 def test_tsp_get_best_n() -> None:
-    inst = Instance.load_instance_from_file(os.path.join(INSTANCES_DIR, "instances_release_1/grf4.txt"))
+    inst = Instance.load_instance_from_file(
+        os.path.join(INSTANCES_DIR, "instances_release_1/grf4.txt"),
+    )
     model = GurobiTSPModel(inst)
     model.formulate()
 
