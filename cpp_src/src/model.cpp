@@ -186,10 +186,10 @@ void GurobiModel::solveModelWithParameters() {
 void GurobiModel::solveModelWithParameters(const SolverParameters& params) {
     checkModelIsFormulated();
 
-    if (params.mipStart) {
-        auto vars = instance_.getMipStart();
-        provideMipStart(vars);
-    }
+    // if (params.mipStart) {
+    //     auto vars = instance_.getMipStart();
+    //     provideMipStart(vars);
+    // }
 
     if (params.timeLimitSec > 0) {
         model_.set(GRB_DoubleParam_TimeLimit, params.timeLimitSec);
@@ -256,45 +256,45 @@ void GurobiModel::checkModelStatus() const {
     }
 }
 
-void GurobiModel::provideMipStart(
-    const std::vector<boost::unordered_map<std::string, double>>& vars) {
-    throw std::runtime_error("provideMipStart not implemented yet");
+// void GurobiModel::provideMipStart(
+//     const std::vector<boost::unordered_map<std::string, double>>& vars) {
+//     throw std::runtime_error("provideMipStart not implemented yet");
 
-    // Set x variables
-    for (const auto& [key, val] : vars[0]) {
-        size_t pos = key.find(',');
-        int i = std::stoi(key.substr(0, pos));
-        int j = std::stoi(key.substr(pos + 1));
-        x_[{i, j}].set(GRB_DoubleAttr_Start, val);
-    }
+//     // Set x variables
+//     for (const auto& [key, val] : vars[0]) {
+//         size_t pos = key.find(',');
+//         int i = std::stoi(key.substr(0, pos));
+//         int j = std::stoi(key.substr(pos + 1));
+//         x_[{i, j}].set(GRB_DoubleAttr_Start, val);
+//     }
 
-    // Set y variables
-    for (const auto& [key, val] : vars[1]) {
-        size_t pos1 = key.find(',');
-        size_t pos2 = key.find(',', pos1 + 1);
-        size_t pos3 = key.find(',', pos2 + 1);
-        int b0 = std::stoi(key.substr(0, pos1));
-        int b1 = std::stoi(key.substr(pos1 + 1, pos2 - pos1 - 1));
-        int a0 = std::stoi(key.substr(pos2 + 1, pos3 - pos2 - 1));
-        int a1 = std::stoi(key.substr(pos3 + 1));
-        y_[{b0, b1, a0, a1}].set(GRB_DoubleAttr_Start, val);
-    }
+//     // Set y variables
+//     for (const auto& [key, val] : vars[1]) {
+//         size_t pos1 = key.find(',');
+//         size_t pos2 = key.find(',', pos1 + 1);
+//         size_t pos3 = key.find(',', pos2 + 1);
+//         int b0 = std::stoi(key.substr(0, pos1));
+//         int b1 = std::stoi(key.substr(pos1 + 1, pos2 - pos1 - 1));
+//         int a0 = std::stoi(key.substr(pos2 + 1, pos3 - pos2 - 1));
+//         int a1 = std::stoi(key.substr(pos3 + 1));
+//         y_[{b0, b1, a0, a1}].set(GRB_DoubleAttr_Start, val);
+//     }
 
-    // Set u variables
-    for (const auto& [key, val] : vars[2]) {
-        int i = std::stoi(key);
-        u_[i].set(GRB_DoubleAttr_Start, val);
-    }
+//     // Set u variables
+//     for (const auto& [key, val] : vars[2]) {
+//         int i = std::stoi(key);
+//         u_[i].set(GRB_DoubleAttr_Start, val);
+//     }
 
-    // Set z variables
-    for (const auto& [key, val] : vars[3]) {
-        size_t pos1 = key.find(',');
-        size_t pos2 = key.find(',', pos1 + 1);
-        size_t pos3 = key.find(',', pos2 + 1);
-        int a1 = std::stoi(key.substr(0, pos1));
-        int a2 = std::stoi(key.substr(pos1 + 1, pos2 - pos1 - 1));
-        int b1 = std::stoi(key.substr(pos2 + 1, pos3 - pos2 - 1));
-        int b2 = std::stoi(key.substr(pos3 + 1));
-        z_[{a1, a2, b1, b2}].set(GRB_DoubleAttr_Start, val);
-    }
-}
+//     // Set z variables
+//     for (const auto& [key, val] : vars[3]) {
+//         size_t pos1 = key.find(',');
+//         size_t pos2 = key.find(',', pos1 + 1);
+//         size_t pos3 = key.find(',', pos2 + 1);
+//         int a1 = std::stoi(key.substr(0, pos1));
+//         int a2 = std::stoi(key.substr(pos1 + 1, pos2 - pos1 - 1));
+//         int b1 = std::stoi(key.substr(pos2 + 1, pos3 - pos2 - 1));
+//         int b2 = std::stoi(key.substr(pos3 + 1));
+//         z_[{a1, a2, b1, b2}].set(GRB_DoubleAttr_Start, val);
+//     }
+// }

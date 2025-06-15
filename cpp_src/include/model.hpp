@@ -58,6 +58,18 @@ public:
         return y_;
     }
 
+    double getMIPGap() const {
+        return model_.get(GRB_DoubleAttr_MIPGap);
+    }
+
+    double getWallTime() const {
+        return model_.get(GRB_DoubleAttr_Runtime);
+    }
+
+    double getObjBound() const {
+        return model_.get(GRB_DoubleAttr_ObjBound);
+    }
+
 private:
     const Instance& instance_;
     GRBEnv env_;
@@ -70,6 +82,7 @@ private:
     boost::unordered_map<std::tuple<int, int, int, int>, GRBVar> y_;  // Relation variables
     boost::unordered_map<std::tuple<int, int, int, int>, GRBVar> z_;  // Precedence variables
 
-    // Helper methods
-    void provideMipStart(const std::vector<boost::unordered_map<std::string, double>>& vars);
+    // // Helper methods
+    // void provideMipStart(const std::vector<boost::unordered_map<std::string, double>>& vars)
+    // const;
 };

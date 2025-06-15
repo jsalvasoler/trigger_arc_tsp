@@ -3,6 +3,7 @@
 /models/
 /cache/
 /build/
+/output/
 *egg-info/
 model.ilp
 
