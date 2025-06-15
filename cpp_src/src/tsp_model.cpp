@@ -73,19 +73,15 @@ void GurobiTSPModel::solveToFeasibleSolution() {
     checkModelStatus();
 }
 
-void GurobiTSPModel::solveToOptimality(std::optional<int> timeLimitSec,
-                                       std::optional<double> bestBdStop,
-                                       bool logs) {
+void GurobiTSPModel::solveToOptimality(std::optional<int> timeLimitSec, bool logs) {
     checkModelIsFormulated();
 
     if (!logs) {
         model_.set(GRB_IntParam_OutputFlag, 0);
     }
-    if (bestBdStop) {
-        model_.set(GRB_DoubleParam_BestBdStop, *bestBdStop);
-    }
+
     model_.set(GRB_DoubleParam_TimeLimit, timeLimitSec.value_or(60));
-    model_.set(GRB_DoubleParam_Heuristics, 0.1);
+    model_.set(GRB_IntParam_MIPFocus, 1);
 
     model_.optimize();
 

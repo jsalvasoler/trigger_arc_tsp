@@ -66,7 +66,7 @@ TEST_F(TSPModelTest, BigModel) {
 
     GurobiTSPModel model(*inst);
     model.formulate();
-    model.solveToOptimality(std::nullopt, std::nullopt, false);
+    model.solveToOptimality(std::nullopt, false);
 
     auto tour = model.getBestTour();
     EXPECT_EQ(tour.size(), inst->getN());
@@ -78,7 +78,7 @@ TEST_F(TSPModelTest, GetBestNTours) {
 
     GurobiTSPModel model(*inst);
     model.formulate();
-    model.solveToOptimality(std::nullopt, std::nullopt, false);
+    model.solveToOptimality(std::nullopt, false);
 
     auto best_tour = model.getBestTour();
     auto tours = model.getBestNTours(5);

@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <tsp_model.hpp>
 
 namespace fs = std::filesystem;
 
@@ -275,33 +276,43 @@ std::vector<boost::unordered_map<std::string, double>> Instance::getMipStart(
 
 std::vector<boost::unordered_map<std::string, double>> Instance::getVariablesFromTour(
     const std::vector<int>& tour) const {
+    // Create tour edges
     std::vector<std::pair<int, int>> tourEdges;
     for (size_t i = 0; i < tour.size(); ++i) {
         tourEdges.push_back({tour[i], (i < tour.size() - 1) ? tour[i + 1] : 0});
     }
+    assert(tourEdges.size() == static_cast<size_t>(N_));
 
+    // Initialize x variables (edge variables)
     boost::unordered_map<std::string, double> x;
     for (const auto& [edge, _] : edges_) {
         x[std::to_string(edge.first) + "," + std::to_string(edge.second)] =
             std::find(tourEdges.begin(), tourEdges.end(), edge) != tourEdges.end() ? 1.0 : 0.0;
     }
 
+    // Initialize u variables (node position variables)
     boost::unordered_map<std::string, double> u;
     for (size_t i = 0; i < tour.size(); ++i) {
         u[std::to_string(tour[i])] = static_cast<double>(i);
     }
 
+    // Initialize y variables (relation variables)
     boost::unordered_map<std::string, double> y;
     for (const auto& [rel, _] : relations_) {
         y[std::to_string(std::get<0>(rel)) + "," + std::to_string(std::get<1>(rel)) + "," +
           std::to_string(std::get<2>(rel)) + "," + std::to_string(std::get<3>(rel))] = 0.0;
     }
 
+    // Set y variables based on triggering relations
     for (const auto& a : tourEdges) {
-        auto it = R_a_.find(a);
-        if (it == R_a_.end())
-            continue;
+        assert(u[std::to_string(a.first)] < u[std::to_string(a.second)] || a.second == 0);
 
+        auto it = R_a_.find(a);
+        if (it == R_a_.end()) {
+            continue;
+        }
+
+        // Find triggering relations that are in the tour
         std::vector<std::pair<int, int>> triggering;
         for (const auto& b : it->second) {
             if (std::find(tourEdges.begin(), tourEdges.end(), b) != tourEdges.end()) {
@@ -309,15 +320,18 @@ std::vector<boost::unordered_map<std::string, double>> Instance::getVariablesFro
             }
         }
 
-        if (triggering.empty())
+        if (triggering.empty()) {
             continue;
+        }
 
+        // Sort triggering by their index in tour_edges
         std::sort(
             triggering.begin(), triggering.end(), [&tourEdges](const auto& b1, const auto& b2) {
                 return std::find(tourEdges.begin(), tourEdges.end(), b1) <
                        std::find(tourEdges.begin(), tourEdges.end(), b2);
             });
 
+        // Remove triggering arcs that happen after arc a
         auto aPos = std::find(tourEdges.begin(), tourEdges.end(), a);
         triggering.erase(
             std::remove_if(triggering.begin(),
@@ -336,6 +350,7 @@ std::vector<boost::unordered_map<std::string, double>> Instance::getVariablesFro
         }
     }
 
+    // Initialize z variables (precedence variables)
     boost::unordered_map<std::string, double> z;
     for (const auto& [a1, a2, b1, b2] : zVarIndices_) {
         std::string key = std::to_string(a1) + "," + std::to_string(a2) + "," + std::to_string(b1) +
@@ -347,7 +362,8 @@ std::vector<boost::unordered_map<std::string, double>> Instance::getVariablesFro
 }
 
 std::vector<int> Instance::tspSolution() const {
-    // TODO: Implement TSP solution using Gurobi
-    // This will require implementing the GurobiTSPModel class in C++
-    throw std::runtime_error("TSP solution not implemented yet");
+    GurobiTSPModel model(*this);
+    model.formulate();
+    model.solveToOptimality();
+    return model.getBestTour();
 }

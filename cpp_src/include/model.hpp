@@ -82,7 +82,6 @@ private:
     boost::unordered_map<std::tuple<int, int, int, int>, GRBVar> y_;  // Relation variables
     boost::unordered_map<std::tuple<int, int, int, int>, GRBVar> z_;  // Precedence variables
 
-    // // Helper methods
-    // void provideMipStart(const std::vector<boost::unordered_map<std::string, double>>& vars)
-    // const;
+    // Helper methods
+    void provideMipStart(const std::vector<boost::unordered_map<std::string, double>>& vars) const;
 };

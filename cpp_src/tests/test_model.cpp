@@ -364,3 +364,23 @@ TEST(GurobiModelTest, SolveWithParameters) {
     model.solveModelWithParameters(SolverParameters{.heuristicEffort = 0.658});
     EXPECT_DOUBLE_EQ(model.getModel().get(GRB_DoubleParam_Heuristics), 0.658);
 }
+
+TEST(GurobiModelTest, MIPStartFromTsp1) {
+    auto sourceDir = std::filesystem::current_path().parent_path();
+    auto instancePath = sourceDir / "tests" / "instances" / "example_1.txt";
+
+    auto instance = Instance::loadInstanceFromFile(instancePath.string());
+    GurobiModel model(*instance);
+    model.formulate();
+    model.solveModelWithParameters(SolverParameters{.mipStart = true});
+}
+
+TEST(GurobiModelTest, MIPStartFromTsp2) {
+    auto rootDir = std::filesystem::current_path().parent_path().parent_path();
+    auto instancePath = rootDir / "instances" / "instances_release_1" / "grf1.txt";
+
+    auto instance = Instance::loadInstanceFromFile(instancePath.string());
+    GurobiModel model(*instance);
+    model.formulate();
+    model.solveModelWithParameters(SolverParameters{.mipStart = true, .timeLimitSec = 3});
+}

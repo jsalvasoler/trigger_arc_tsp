@@ -16,9 +16,7 @@ public:
 
     void formulate();
     void solveToFeasibleSolution();
-    void solveToOptimality(std::optional<int> timeLimitSec = std::nullopt,
-                           std::optional<double> bestBdStop = std::nullopt,
-                           bool logs = true);
+    void solveToOptimality(std::optional<int> timeLimitSec = std::nullopt, bool logs = false);
 
     std::vector<int> getBestTour() const;
     std::vector<std::vector<int>> getBestNTours(int n) const;

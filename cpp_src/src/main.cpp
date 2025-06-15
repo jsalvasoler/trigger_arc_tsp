@@ -62,6 +62,7 @@ int main(int argc, char* argv[]) {
     }
 
     auto instance = Instance::loadInstanceFromFile(vm["instance-file"].as<std::string>());
+    auto bestKnownSolution = instance->getBestKnownSolution();
 
     SolverParameters params = {.timeLimitSec = vm["time-limit"].as<int>(),
                                .heuristicEffort = vm["heuristic-effort"].as<double>(),
