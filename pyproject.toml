@@ -24,6 +24,8 @@ dependencies = [
   "ipython",
   "tqdm",
   "pandas",
+  "pytest",
+  # "hexaly @ https://pip.hexaly.com/hexaly",
 ]
 
 [project.urls]
