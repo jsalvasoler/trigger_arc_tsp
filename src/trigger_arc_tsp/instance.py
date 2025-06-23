@@ -43,8 +43,8 @@ class Instance:
             rel: self.relations[rel] - self.edges[(rel[2], rel[3])] for rel in self.relations
         }
 
-        if not self._load_indices_from_cache():
-            self._generate_z_var_indices()
+        # if not self._load_indices_from_cache():
+        #     self._generate_z_var_indices()
 
     def _generate_z_var_indices(self) -> None:
         # print("Instance loading: Generating indices")
@@ -139,6 +139,22 @@ class Instance:
             cost += self.relations[*triggering[-1], *a]
 
         return cost
+    
+    def compute_objective_safe(self, tour: list) -> float:
+        """
+        Computes the objective value of a tour, if tour is valid.
+        Otherwise, returns M (a large constant).
+        """
+        M = 1e6  # A large constant to represent "no edge" or "no relation"
+
+        if len(tour) <= self.N - 1:
+            return M
+
+        for i in range(self.N - 1):
+            if (tour[i], tour[i + 1]) not in self.edges:
+                return M
+            
+        return self.compute_objective(tour)
 
     def check_solution_correctness(self, tour: list) -> bool:
         if tour[-1] == 0:
