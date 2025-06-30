@@ -332,39 +332,21 @@ float Instance::computePartialTourCost(const std::vector<int>& partialTour) cons
     }
 
     // Handle relations
-    for (const auto& a : path) {
+    for (auto aPos = path.begin(); aPos != path.end(); ++aPos) {
+        const auto& a = *aPos;
         auto it = R_a_.find(a);
         if (it == R_a_.end())
             continue;
 
-        std::vector<std::pair<int, int>> triggering;
-        for (const auto& b : it->second) {
-            if (std::find(path.begin(), path.end(), b) != path.end()) {
-                triggering.push_back(b);
+        // Iterate backwards from the current position to find the last triggering edge
+        for (auto edgeIt = aPos - 1; edgeIt >= path.begin(); --edgeIt) {
+            const auto& b = *edgeIt;
+            // Check if this edge is a potential trigger for edge a
+            if (std::find(it->second.begin(), it->second.end(), b) != it->second.end()) {
+                // Found the last trigger before the target edge
+                cost += relations_.at({b.first, b.second, a.first, a.second});
+                break;
             }
-        }
-
-        if (triggering.empty())
-            continue;
-
-        // Sort triggering by their index in path
-        std::sort(triggering.begin(), triggering.end(), [&path](const auto& b1, const auto& b2) {
-            return std::find(path.begin(), path.end(), b1) <
-                   std::find(path.begin(), path.end(), b2);
-        });
-
-        // Remove triggering arcs that happen after arc a
-        auto aPos = std::find(path.begin(), path.end(), a);
-        triggering.erase(std::remove_if(triggering.begin(),
-                                        triggering.end(),
-                                        [&path, aPos](const auto& b) {
-                                            return std::find(path.begin(), path.end(), b) >= aPos;
-                                        }),
-                         triggering.end());
-
-        if (!triggering.empty()) {
-            auto lastTrigger = triggering.back();
-            cost += relations_.at({lastTrigger.first, lastTrigger.second, a.first, a.second});
         }
     }
 
