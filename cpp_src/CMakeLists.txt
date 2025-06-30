@@ -62,6 +62,8 @@ set(SOURCES
     src/instance.cpp
     src/tsp_model.cpp
     src/model.cpp
+    src/method.cpp
+    src/randomized_greedy.cpp
 )
 
 # Add main executable
@@ -78,10 +80,14 @@ target_link_libraries(tsp_model_tests GTest::gtest_main ${Boost_LIBRARIES} ${GUR
 add_executable(model_tests tests/test_model.cpp ${SOURCES})
 target_link_libraries(model_tests GTest::gtest_main ${Boost_LIBRARIES} ${GUROBI_LIBRARIES})
 
+add_executable(randomized_greedy_tests tests/test_randomized_greedy.cpp ${SOURCES})
+target_link_libraries(randomized_greedy_tests GTest::gtest_main ${Boost_LIBRARIES} ${GUROBI_LIBRARIES})
+
 # Add tests to CTest
 add_test(NAME instance_tests COMMAND instance_tests)
 add_test(NAME tsp_model_tests COMMAND tsp_model_tests)
 add_test(NAME model_tests COMMAND model_tests)
+add_test(NAME randomized_greedy_tests COMMAND randomized_greedy_tests)
 
 # Set env variables for Gurobi
 

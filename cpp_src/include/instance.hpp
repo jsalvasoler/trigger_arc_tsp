@@ -20,9 +20,21 @@ public:
     // Static factory method
     static std::unique_ptr<Instance> loadInstanceFromFile(const std::string& filePath);
 
-    // Getters for TSP model
+    // Getters
     int getN() const {
         return N_;
+    }
+    int getA() const {
+        return A_;
+    }
+    int getR() const {
+        return R_;
+    }
+    const std::string& getName() const {
+        return name_;
+    }
+    const std::string& getModelName() const {
+        return modelName_;
     }
     const boost::unordered_map<std::pair<int, int>, double>& getEdges() const {
         return edges_;
@@ -56,20 +68,6 @@ public:
         const std::vector<int>& tour) const;
     std::vector<int> tspSolution() const;
     float computePartialTourCost(const std::vector<int>& partialTour) const;
-
-    // Getters
-    int getA() const {
-        return A_;
-    }
-    int getR() const {
-        return R_;
-    }
-    const std::string& getName() const {
-        return name_;
-    }
-    const std::string& getModelName() const {
-        return modelName_;
-    }
 
 private:
     // Member variables
