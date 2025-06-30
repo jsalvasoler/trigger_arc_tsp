@@ -77,3 +77,31 @@ TEST_F(InstanceTest, WriteSolutionToFile) {
     std::getline(file, line);
     EXPECT_TRUE(line.find("0,2,1,4,3 | 71 | ") == 0);
 }
+
+TEST_F(InstanceTest, MIPStartFromTsp1) {
+    auto instance = Instance::loadInstanceFromFile(instancePath_.string());
+
+    std::vector<int> tour;
+    std::vector<int> partial_tour;
+    std::vector<double> expected_partial_costs;
+
+    // Case 1
+    tour = {0, 2, 1, 4, 3, 0};
+    partial_tour = {0};
+    expected_partial_costs = {10, 25, 36, 56, 71};
+    for (int i = 1; i < (int)tour.size(); ++i) {
+        partial_tour.push_back(tour[i]);
+        double cost = instance->computePartialTourCost(partial_tour);
+        EXPECT_DOUBLE_EQ(cost, expected_partial_costs[i - 1]);
+    }
+
+    // Case 2
+    tour = {0, 3, 2, 1, 4, 0};
+    partial_tour = {0};
+    expected_partial_costs = {10, 30, 45, 56, 62};
+    for (int i = 1; i < (int)tour.size(); ++i) {
+        partial_tour.push_back(tour[i]);
+        double cost = instance->computePartialTourCost(partial_tour);
+        EXPECT_DOUBLE_EQ(cost, expected_partial_costs[i - 1]);
+    }
+}

@@ -55,6 +55,7 @@ public:
     std::vector<boost::unordered_map<std::string, double>> getVariablesFromTour(
         const std::vector<int>& tour) const;
     std::vector<int> tspSolution() const;
+    float computePartialTourCost(const std::vector<int>& partialTour) const;
 
     // Getters
     int getA() const {

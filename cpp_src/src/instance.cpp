@@ -106,53 +106,11 @@ std::unique_ptr<Instance> Instance::loadInstanceFromFile(const std::string& file
 }
 
 double Instance::computeObjective(const std::vector<int>& tour) const {
-    std::vector<std::pair<int, int>> path;
-    for (int i = 0; i < N_; ++i) {
-        path.push_back({tour[i], (i < N_ - 1) ? tour[i + 1] : 0});
+    std::vector<int> completeTour = tour;
+    if (completeTour.back() != 0) {
+        completeTour.push_back(0);
     }
-
-    double cost = 0.0;
-    for (const auto& edge : path) {
-        cost += edges_.at(edge);
-    }
-
-    for (const auto& a : path) {
-        auto it = R_a_.find(a);
-        if (it == R_a_.end())
-            continue;
-
-        std::vector<std::pair<int, int>> triggering;
-        for (const auto& b : it->second) {
-            if (std::find(path.begin(), path.end(), b) != path.end()) {
-                triggering.push_back(b);
-            }
-        }
-
-        if (triggering.empty())
-            continue;
-
-        // Sort triggering by their index in path
-        std::sort(triggering.begin(), triggering.end(), [&path](const auto& b1, const auto& b2) {
-            return std::find(path.begin(), path.end(), b1) <
-                   std::find(path.begin(), path.end(), b2);
-        });
-
-        // Remove triggering arcs that happen after arc a
-        auto aPos = std::find(path.begin(), path.end(), a);
-        triggering.erase(std::remove_if(triggering.begin(),
-                                        triggering.end(),
-                                        [&path, aPos](const auto& b) {
-                                            return std::find(path.begin(), path.end(), b) >= aPos;
-                                        }),
-                         triggering.end());
-
-        if (!triggering.empty()) {
-            auto lastTrigger = triggering.back();
-            cost += relations_.at({lastTrigger.first, lastTrigger.second, a.first, a.second});
-        }
-    }
-
-    return cost;
+    return static_cast<double>(computePartialTourCost(completeTour));
 }
 
 bool Instance::checkSolutionCorrectness(const std::vector<int>& tour) const {
@@ -359,6 +317,58 @@ std::vector<boost::unordered_map<std::string, double>> Instance::getVariablesFro
     }
 
     return {x, y, u, z};
+}
+
+float Instance::computePartialTourCost(const std::vector<int>& partialTour) const {
+    std::vector<std::pair<int, int>> path;
+    for (size_t i = 0; i < partialTour.size() - 1; ++i) {
+        path.push_back({partialTour[i], partialTour[i + 1]});
+    }
+
+    double cost = 0.0;
+    // Add edge costs
+    for (const auto& edge : path) {
+        cost += edges_.at(edge);
+    }
+
+    // Handle relations
+    for (const auto& a : path) {
+        auto it = R_a_.find(a);
+        if (it == R_a_.end())
+            continue;
+
+        std::vector<std::pair<int, int>> triggering;
+        for (const auto& b : it->second) {
+            if (std::find(path.begin(), path.end(), b) != path.end()) {
+                triggering.push_back(b);
+            }
+        }
+
+        if (triggering.empty())
+            continue;
+
+        // Sort triggering by their index in path
+        std::sort(triggering.begin(), triggering.end(), [&path](const auto& b1, const auto& b2) {
+            return std::find(path.begin(), path.end(), b1) <
+                   std::find(path.begin(), path.end(), b2);
+        });
+
+        // Remove triggering arcs that happen after arc a
+        auto aPos = std::find(path.begin(), path.end(), a);
+        triggering.erase(std::remove_if(triggering.begin(),
+                                        triggering.end(),
+                                        [&path, aPos](const auto& b) {
+                                            return std::find(path.begin(), path.end(), b) >= aPos;
+                                        }),
+                         triggering.end());
+
+        if (!triggering.empty()) {
+            auto lastTrigger = triggering.back();
+            cost += relations_.at({lastTrigger.first, lastTrigger.second, a.first, a.second});
+        }
+    }
+
+    return static_cast<float>(cost);
 }
 
 std::vector<int> Instance::tspSolution() const {
