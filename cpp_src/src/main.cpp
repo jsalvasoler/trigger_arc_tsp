@@ -10,6 +10,7 @@
 
 #include "instance.hpp"
 #include "model.hpp"
+#include "randomized_greedy.hpp"
 
 namespace po = boost::program_options;
 
@@ -30,6 +31,12 @@ int main(int argc, char* argv[]) {
 
     desc.add_options()("help,h", "Show help message")(
         "instance-file,i", po::value<std::string>()->required(), "Path to the instance file")(
+        "method",
+        po::value<std::string>()->default_value("gurobi"),
+        "Solution method (gurobi or randomized_greedy)")(
+        "alpha",
+        po::value<double>()->default_value(0.3),
+        "Alpha parameter for randomized greedy (0.0 to 1.0)")(
         "time-limit,t", po::value<int>()->default_value(60), "Time limit in seconds")(
         "heuristic-effort,e",
         po::value<double>()->default_value(0.05),
@@ -62,22 +69,48 @@ int main(int argc, char* argv[]) {
     }
 
     auto instance = Instance::loadInstanceFromFile(vm["instance-file"].as<std::string>());
-    auto bestKnownSolution = instance->getBestKnownSolution();
+    std::vector<int> tour;
+    double cost = std::numeric_limits<double>::infinity();
+    double mipGap = 0.0;
+    double wallTime = 0.0;
+    double objBound = 0.0;
+    std::string methodName = vm["method"].as<std::string>();
 
-    SolverParameters params = {.timeLimitSec = vm["time-limit"].as<int>(),
-                               .heuristicEffort = vm["heuristic-effort"].as<double>(),
-                               .presolve = vm["presolve"].as<int>(),
-                               .mipStart = vm.count("mip-start") > 0,
-                               .logs = vm.count("logs") > 0};
+    auto startTime = std::chrono::high_resolution_clock::now();
 
-    GurobiModel model(*instance);
-    model.formulate();
-    model.solveModelWithParameters(params);
+    if (methodName == "gurobi") {
+        SolverParameters params = {.timeLimitSec = vm["time-limit"].as<int>(),
+                                   .heuristicEffort = vm["heuristic-effort"].as<double>(),
+                                   .presolve = vm["presolve"].as<int>(),
+                                   .mipStart = vm.count("mip-start") > 0,
+                                   .logs = vm.count("logs") > 0};
 
-    auto [tour, cost] = model.getSolutionAndCost();
-    instance->saveSolution(tour, cost);
+        GurobiModel model(*instance);
+        model.formulate();
+        model.solveModelWithParameters(params);
 
-    // save output to file
+        std::tie(tour, cost) = model.getSolutionAndCost();
+        mipGap = model.getMIPGap();
+        wallTime = model.getWallTime();
+        objBound = model.getObjBound();
+    } else if (methodName == "randomized_greedy") {
+        double alpha = vm["alpha"].as<double>();
+        RandomizedGreedyConstruction greedy(*instance, alpha);
+        greedy.run();
+        tour = greedy.getSolution();
+        if (!tour.empty()) {
+            cost = instance->computeObjective(tour);
+        }
+        auto endTime = std::chrono::high_resolution_clock::now();
+        wallTime = std::chrono::duration<double>(endTime - startTime).count();
+    } else {
+        std::cerr << "Error: Unknown method '" << methodName << "'\n";
+        return 1;
+    }
+
+    if (!tour.empty()) {
+        instance->saveSolution(tour, cost);
+    }
 
     // Get current timestamp
     auto now = std::chrono::system_clock::now();
@@ -89,16 +122,20 @@ int main(int argc, char* argv[]) {
     boost::json::object json;
     json["instance_name"] = instance->getName();
     json["instance_file"] = vm["instance-file"].as<std::string>();
-    json["method"] = "gurobi";
-    json["time_limit"] = params.timeLimitSec;
-    json["heuristic_effort"] = params.heuristicEffort;
-    json["presolve"] = params.presolve;
-    json["mip_start"] = params.mipStart ? "true" : "false";
+    json["method"] = methodName;
+    if (methodName == "randomized_greedy") {
+        json["alpha"] = vm["alpha"].as<double>();
+    } else {
+        json["time_limit"] = vm["time-limit"].as<int>();
+        json["heuristic_effort"] = vm["heuristic-effort"].as<double>();
+        json["presolve"] = vm["presolve"].as<int>();
+        json["mip_start"] = vm.count("mip-start") > 0 ? "true" : "false";
+        json["mip_gap"] = mipGap;
+        json["obj_bound"] = objBound;
+    }
     json["tour"] = tourToString(tour);
     json["cost"] = cost;
-    json["mip_gap"] = model.getMIPGap();
-    json["wall_time"] = model.getWallTime();
-    json["obj_bound"] = model.getObjBound();
+    json["wall_time"] = wallTime;
     json["timestamp"] = timestamp;
 
     std::string outputDir = vm["output-dir"].as<std::string>();
