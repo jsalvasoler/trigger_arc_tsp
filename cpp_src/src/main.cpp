@@ -7,12 +7,18 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <filesystem>
 
 #include "instance.hpp"
 #include "model.hpp"
 #include "randomized_greedy.hpp"
 
+#ifdef USE_GUROBI
+#include "tsp_model.hpp"  // Assuming GurobiModel is defined here
+#endif
+
 namespace po = boost::program_options;
+namespace fs = std::filesystem;
 
 std::string tourToString(const std::vector<int>& tour) {
     std::stringstream ss;
@@ -29,39 +35,27 @@ int main(int argc, char* argv[]) {
     po::variables_map vm;
     po::options_description desc("Trigger Arc TSP Solver");
 
-    desc.add_options()("help,h", "Show help message")(
-        "instance-file,i", po::value<std::string>()->required(), "Path to the instance file")(
-        "method",
-        po::value<std::string>()->default_value("gurobi"),
-        "Solution method (gurobi or randomized_greedy)")(
-        "alpha",
-        po::value<double>()->default_value(0.3),
-        "Alpha parameter for randomized greedy (0.0 to 1.0)")(
-        "time-limit,t", po::value<int>()->default_value(60), "Time limit in seconds")(
-        "heuristic-effort,e",
-        po::value<double>()->default_value(0.05),
-        "Heuristic effort (0.0 to 1.0)")(
-        "presolve,p",
-        po::value<int>()->default_value(-1),
-        "Presolve level (-1: automatic, 0: off, 1: conservative, 2: aggressive)")(
-        "mip-start,m", "Use MIP start if available")("logs,l", "Show solver logs")(
-        "output-dir,o",
-        po::value<std::string>()->default_value("output"),
-        "Path to the output directory");
+    desc.add_options()
+        ("help,h", "Show help message")
+        ("instance-file,i", po::value<std::string>()->required(), "Path to the instance file")
+        ("method", po::value<std::string>()->default_value("gurobi"), "Solution method (gurobi or randomized_greedy)")
+        ("alpha", po::value<double>()->default_value(0.3), "Alpha parameter for randomized greedy (0.0 to 1.0)")
+        ("time-limit,t", po::value<int>()->default_value(60), "Time limit in seconds")
+        ("heuristic-effort,e", po::value<double>()->default_value(0.05), "Heuristic effort (0.0 to 1.0)")
+        ("presolve,p", po::value<int>()->default_value(-1), "Presolve level (-1: automatic, 0: off, 1: conservative, 2: aggressive)")
+        ("mip-start,m", "Use MIP start if available")
+        ("logs,l", "Show solver logs")
+        ("output-dir,o", po::value<std::string>()->default_value("output"), "Path to the output directory");
 
     try {
         po::store(po::parse_command_line(argc, argv, desc), vm);
-
         if (vm.count("help")) {
-            std::cout << std::fixed << std::setprecision(2);
-            std::cout << desc << "\n";
+            std::cout << std::fixed << std::setprecision(2) << desc << "\n";
             return 0;
         }
-
         po::notify(vm);
     } catch (const po::error& e) {
-        std::cerr << "Error parsing command line: " << e.what() << "\n";
-        std::cerr << "Use --help for usage information\n";
+        std::cerr << "Error parsing command line: " << e.what() << "\nUse --help for usage information\n";
         return 1;
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
@@ -79,11 +73,17 @@ int main(int argc, char* argv[]) {
     auto startTime = std::chrono::high_resolution_clock::now();
 
     if (methodName == "gurobi") {
-        SolverParameters params = {.timeLimitSec = vm["time-limit"].as<int>(),
-                                   .heuristicEffort = vm["heuristic-effort"].as<double>(),
-                                   .presolve = vm["presolve"].as<int>(),
-                                   .mipStart = vm.count("mip-start") > 0,
-                                   .logs = vm.count("logs") > 0};
+#ifndef USE_GUROBI
+        std::cerr << "Error: Gurobi support is not enabled in this build.\n";
+        return 1;
+#else
+        SolverParameters params = {
+            .timeLimitSec = vm["time-limit"].as<int>(),
+            .heuristicEffort = vm["heuristic-effort"].as<double>(),
+            .presolve = vm["presolve"].as<int>(),
+            .mipStart = vm.count("mip-start") > 0,
+            .logs = vm.count("logs") > 0
+        };
 
         GurobiModel model(*instance);
         model.formulate();
@@ -93,6 +93,7 @@ int main(int argc, char* argv[]) {
         mipGap = model.getMIPGap();
         wallTime = model.getWallTime();
         objBound = model.getObjBound();
+#endif
     } else if (methodName == "randomized_greedy") {
         double alpha = vm["alpha"].as<double>();
         RandomizedGreedyConstruction greedy(*instance, alpha);
@@ -112,7 +113,7 @@ int main(int argc, char* argv[]) {
         instance->saveSolution(tour, cost);
     }
 
-    // Get current timestamp
+    // Prepare JSON output (same as before)
     auto now = std::chrono::system_clock::now();
     auto time = std::chrono::system_clock::to_time_t(now);
     std::stringstream ss;
@@ -139,8 +140,9 @@ int main(int argc, char* argv[]) {
     json["timestamp"] = timestamp;
 
     std::string outputDir = vm["output-dir"].as<std::string>();
-    if (!std::filesystem::exists(outputDir)) {
-        std::filesystem::create_directories(outputDir);
+
+    if (!fs::exists(outputDir)) {
+        fs::create_directories(outputDir);
     }
 
     std::string outputPath = outputDir + "/" + timestamp + "_" + instance->getName() + ".json";

@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
+
+#ifdef USE_GUROBI
 #include <gurobi_c++.h>
+#endif 
 
 #include <boost/unordered_map.hpp>
 #include <cmath>
@@ -12,6 +15,7 @@
 #include "instance.hpp"
 #include "model.hpp"
 
+#ifdef USE_GUROBI
 // Test solving a non-formulated model
 TEST(GurobiModelTest, SolvingNonFormulatedModel) {
     int N = 3;
@@ -384,3 +388,10 @@ TEST(GurobiModelTest, MIPStartFromTsp2) {
     model.formulate();
     model.solveModelWithParameters(SolverParameters{.mipStart = true, .timeLimitSec = 3});
 }
+
+#else
+// Optional: a dummy test so your test suite compiles but does nothing
+TEST(GurobiModelTest, Disabled) {
+    GTEST_SKIP() << "Gurobi is not installed, skipping tests.";
+}
+#endif

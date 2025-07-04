@@ -4,6 +4,8 @@
 #include <memory>
 #include <stdexcept>
 
+#ifdef USE_GUROBI
+
 GurobiTSPModel::GurobiTSPModel(const Instance& instance)
     : instance_(instance), env_(), model_(env_) {}
 
@@ -29,7 +31,6 @@ void GurobiTSPModel::formulate() {
         u_[i] = model_.addVar(0.0, ub, 0.0, GRB_CONTINUOUS, name);
     }
 
-    // Update model to integrate new variables
     model_.update();
 
     // Flow conservation constraints
@@ -56,7 +57,6 @@ void GurobiTSPModel::formulate() {
                              "subtour_elimination_" + std::to_string(i) + "_" + std::to_string(j));
         }
     }
-    // Set objective function
     GRBLinExpr objExpr = 0;
     for (const auto& [edge, cost] : instance_.getEdges()) {
         objExpr += x_[edge] * cost;
@@ -133,3 +133,40 @@ void GurobiTSPModel::checkModelStatus() const {
         throw std::runtime_error("Model is infeasible");
     }
 }
+
+#else // USE_GUROBI not defined
+
+// Provide dummy implementations or empty bodies so linker is happy
+
+GurobiTSPModel::GurobiTSPModel(const Instance& instance)
+    : instance_(instance) {}
+
+void GurobiTSPModel::formulate() {
+    throw std::runtime_error("Gurobi support is disabled. Cannot formulate model.");
+}
+
+void GurobiTSPModel::solveToFeasibleSolution() {
+    throw std::runtime_error("Gurobi support is disabled. Cannot solve model.");
+}
+
+void GurobiTSPModel::solveToOptimality(std::optional<int> timeLimitSec, bool logs) {
+    throw std::runtime_error("Gurobi support is disabled. Cannot solve model.");
+}
+
+std::vector<int> GurobiTSPModel::getBestTour() const {
+    throw std::runtime_error("Gurobi support is disabled. Cannot get best tour.");
+}
+
+std::vector<std::vector<int>> GurobiTSPModel::getBestNTours(int n) const {
+    throw std::runtime_error("Gurobi support is disabled. Cannot get best tours.");
+}
+
+void GurobiTSPModel::checkModelIsFormulated() const {
+    throw std::runtime_error("Gurobi support is disabled.");
+}
+
+void GurobiTSPModel::checkModelStatus() const {
+    throw std::runtime_error("Gurobi support is disabled.");
+}
+
+#endif

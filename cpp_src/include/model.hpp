@@ -1,6 +1,17 @@
 #pragma once
 
+#ifdef USE_GUROBI
 #include <gurobi_c++.h>
+#else
+// Dummy placeholders to allow compilation without Gurobi
+struct GRBEnv {};
+struct GRBModel {
+    void update() {}
+    void optimize() {}
+    double get(int) const { return 0.0; }
+};
+struct GRBVar {};
+#endif
 
 #include <boost/unordered_map.hpp>
 #include <memory>
@@ -48,6 +59,7 @@ public:
     void checkModelStatus() const;
 
     // Getters for model and variables
+#ifdef USE_GUROBI
     const GRBModel& getModel() const {
         return model_;
     }
@@ -57,30 +69,27 @@ public:
     const boost::unordered_map<std::tuple<int, int, int, int>, GRBVar>& getY() const {
         return y_;
     }
+#endif
 
-    double getMIPGap() const {
-        return model_.get(GRB_DoubleAttr_MIPGap);
-    }
-
-    double getWallTime() const {
-        return model_.get(GRB_DoubleAttr_Runtime);
-    }
-
-    double getObjBound() const {
-        return model_.get(GRB_DoubleAttr_ObjBound);
-    }
+    double getMIPGap() const;
+    double getWallTime() const;
+    double getObjBound() const;
 
 private:
     const Instance& instance_;
+#ifdef USE_GUROBI
     GRBEnv env_;
     GRBModel model_;
+#endif
     bool formulated_ = false;
 
     // Variable maps
+#ifdef USE_GUROBI
     boost::unordered_map<std::pair<int, int>, GRBVar> x_;             // Edge variables
     boost::unordered_map<int, GRBVar> u_;                             // Node position variables
     boost::unordered_map<std::tuple<int, int, int, int>, GRBVar> y_;  // Relation variables
     boost::unordered_map<std::tuple<int, int, int, int>, GRBVar> z_;  // Precedence variables
+#endif
 
     // Helper methods
     void provideMipStart(const std::vector<boost::unordered_map<std::string, double>>& vars) const;

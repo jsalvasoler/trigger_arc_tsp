@@ -14,6 +14,7 @@
 
 namespace fs = std::filesystem;
 
+
 Instance::Instance(int N,
                    const boost::unordered_map<std::pair<int, int>, double>& edges,
                    const boost::unordered_map<std::tuple<int, int, int, int>, double>& relations,
@@ -353,9 +354,29 @@ float Instance::computePartialTourCost(const std::vector<int>& partialTour) cons
     return static_cast<float>(cost);
 }
 
+// ... (rest of your code unchanged)
+
+#ifdef USE_GUROBI
+
+#include "gurobi_tsp_model.hpp"  // include only when Gurobi is enabled
+
 std::vector<int> Instance::tspSolution() const {
     GurobiTSPModel model(*this);
     model.formulate();
     model.solveToOptimality();
     return model.getBestTour();
 }
+
+#else
+
+std::vector<int> Instance::tspSolution() const {
+    // Stub implementation when Gurobi is disabled
+    // Just return a trivial tour: 0, 1, 2, ..., N-1
+    std::vector<int> tour;
+    for (int i = 0; i < N_; ++i) {
+        tour.push_back(i);
+    }
+    return tour;
+}
+
+#endif

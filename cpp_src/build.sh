@@ -1,6 +1,4 @@
 #!/bin/bash
-
-# Exit on error
 set -e
 
 # Get the directory where the script is located
@@ -9,14 +7,18 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Default build type is Release
 BUILD_TYPE=${1:-Release}
 
-# Create build directory if it doesn't exist
+# Clean build directory
+rm -rf "${SCRIPT_DIR}/build"
 mkdir -p "${SCRIPT_DIR}/build"
-
-# Navigate to build directory
 cd "${SCRIPT_DIR}/build"
 
-# Run CMake and make
-cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} "${SCRIPT_DIR}"
-make -j$(sysctl -n hw.ncpu)
+# Run CMake with Boost paths specified
+cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DUSE_GUROBI=OFF \
+      -DBoost_INCLUDE_DIR=/usr/include \
+      -DBoost_LIBRARY_DIR=/usr/lib/x86_64-linux-gnu \
+      "${SCRIPT_DIR}"
 
-echo "Build completed successfully with build type: ${BUILD_TYPE}!" 
+# Compile using all available CPU cores
+make -j$(nproc)
+
+echo "✅ Build completed successfully with build type: ${BUILD_TYPE}!"
