@@ -95,15 +95,16 @@ std::pair<int, int> RandomizedGreedyConstruction::selectRandomizedGreedyEdge(
 
     if (alpha_ == 0.0) {
         // Pure greedy: always select the edge with the minimum cost.
-        double bestCost = std::numeric_limits<double>::infinity();
+        double bestIncrementalCost = std::numeric_limits<double>::infinity();
         std::optional<std::pair<int, int>> bestEdge;
 
         for (const auto& edge : feasibleEdges) {
             auto extendedTour = partialTour;
             extendedTour.push_back(edge.second);
-            double cost = instance_.computePartialTourCost(extendedTour);
-            if (!bestEdge.has_value() || cost < bestCost) {
-                bestCost = cost;
+            // Compute only the incremental cost from the last edge position
+            double incrementalCost = instance_.computePartialTourCost(extendedTour, partialTour.size() - 1);
+            if (!bestEdge.has_value() || incrementalCost < bestIncrementalCost) {
+                bestIncrementalCost = incrementalCost;
                 bestEdge = edge;
             }
         }
@@ -117,8 +118,9 @@ std::pair<int, int> RandomizedGreedyConstruction::selectRandomizedGreedyEdge(
     for (const auto& edge : feasibleEdges) {
         auto extendedTour = partialTour;
         extendedTour.push_back(edge.second);
-        double cost = instance_.computePartialTourCost(extendedTour);
-        edgeCosts.emplace_back(cost, edge);
+        // Compute only the incremental cost from the last edge position
+        double incrementalCost = instance_.computePartialTourCost(extendedTour, partialTour.size() - 1);
+        edgeCosts.emplace_back(incrementalCost, edge);
     }
 
     std::sort(edgeCosts.begin(), edgeCosts.end());

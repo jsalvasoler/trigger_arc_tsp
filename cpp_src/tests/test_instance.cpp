@@ -91,8 +91,13 @@ TEST_F(InstanceTest, MIPStartFromTsp1) {
     expected_partial_costs = {10, 25, 36, 56, 71};
     for (int i = 1; i < (int)tour.size(); ++i) {
         partial_tour.push_back(tour[i]);
-        double cost = instance->computePartialTourCost(partial_tour);
-        EXPECT_DOUBLE_EQ(cost, expected_partial_costs[i - 1]);
+        for (int j = 0; j < i; ++j) {  // j is the start index
+            double cost = instance->computePartialTourCost(partial_tour, j);
+            EXPECT_DOUBLE_EQ(cost,
+                             j == 0
+                                 ? expected_partial_costs[i - 1]
+                                 : expected_partial_costs[i - 1] - expected_partial_costs[j - 1]);
+        }
     }
 
     // Case 2
@@ -101,7 +106,12 @@ TEST_F(InstanceTest, MIPStartFromTsp1) {
     expected_partial_costs = {10, 30, 45, 56, 62};
     for (int i = 1; i < (int)tour.size(); ++i) {
         partial_tour.push_back(tour[i]);
-        double cost = instance->computePartialTourCost(partial_tour);
-        EXPECT_DOUBLE_EQ(cost, expected_partial_costs[i - 1]);
+        for (int j = 0; j < i; ++j) {  // j is the start index
+            double cost = instance->computePartialTourCost(partial_tour, j);
+            EXPECT_DOUBLE_EQ(cost,
+                             j == 0
+                                 ? expected_partial_costs[i - 1]
+                                 : expected_partial_costs[i - 1] - expected_partial_costs[j - 1]);
+        }
     }
 }

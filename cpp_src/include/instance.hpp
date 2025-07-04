@@ -49,6 +49,9 @@ public:
         return deltaOut_.at(node);
     }
     const std::vector<std::tuple<int, int, int, int>>& getZVarIndices() const {
+        if (zVarIndices_.empty()) {
+            generateZVarIndices();
+        }
         return zVarIndices_;
     }
     const boost::unordered_map<std::pair<int, int>, std::vector<std::pair<int, int>>>& getRA()
@@ -67,7 +70,8 @@ public:
     std::vector<boost::unordered_map<std::string, double>> getVariablesFromTour(
         const std::vector<int>& tour) const;
     std::vector<int> tspSolution() const;
-    float computePartialTourCost(const std::vector<int>& partialTour) const;
+    float computePartialTourCost(const std::vector<int>& partialTour, int startIdx = 0) const;
+    void generateZVarIndices() const;
 
 private:
     // Member variables
@@ -83,5 +87,5 @@ private:
 
     boost::unordered_map<int, boost::unordered_set<int>> deltaIn_;
     boost::unordered_map<int, boost::unordered_set<int>> deltaOut_;
-    std::vector<std::tuple<int, int, int, int>> zVarIndices_;
+    mutable std::vector<std::tuple<int, int, int, int>> zVarIndices_;
 };

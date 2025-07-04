@@ -49,24 +49,6 @@ Instance::Instance(int N,
         auto [b0, b1, a0, a1] = rel;
         cost -= edges_[{a0, a1}];
     }
-
-    // Generate z variable indices
-    boost::unordered_set<std::tuple<int, int, int, int>> zVarIndicesSet;
-    for (const auto& [a, bList] : R_a_) {
-        for (const auto& b : bList) {
-            if (b != std::make_pair(0, 0)) {
-                zVarIndicesSet.insert({a.first, a.second, b.first, b.second});
-                zVarIndicesSet.insert({b.first, b.second, a.first, a.second});
-            }
-            for (const auto& c : bList) {
-                if (b != c && b != std::make_pair(0, 0)) {
-                    zVarIndicesSet.insert({b.first, b.second, c.first, c.second});
-                }
-            }
-        }
-    }
-    zVarIndices_ =
-        std::vector<std::tuple<int, int, int, int>>(zVarIndicesSet.begin(), zVarIndicesSet.end());
 }
 
 std::unique_ptr<Instance> Instance::loadInstanceFromFile(const std::string& filePath) {
@@ -320,20 +302,20 @@ std::vector<boost::unordered_map<std::string, double>> Instance::getVariablesFro
     return {x, y, u, z};
 }
 
-float Instance::computePartialTourCost(const std::vector<int>& partialTour) const {
+float Instance::computePartialTourCost(const std::vector<int>& partialTour, int startIdx) const {
     std::vector<std::pair<int, int>> path;
     for (size_t i = 0; i < partialTour.size() - 1; ++i) {
         path.push_back({partialTour[i], partialTour[i + 1]});
     }
 
     double cost = 0.0;
-    // Add edge costs
-    for (const auto& edge : path) {
-        cost += edges_.at(edge);
+    // Add edge costs from startIdx to end of partialTour
+    for (size_t i = startIdx; i < path.size(); ++i) {
+        cost += edges_.at(path[i]);
     }
 
-    // Handle relations
-    for (auto aPos = path.begin(); aPos != path.end(); ++aPos) {
+    // Handle relations from startIdx to end of partialTour
+    for (auto aPos = path.begin() + startIdx; aPos != path.end(); ++aPos) {
         const auto& a = *aPos;
         auto it = R_a_.find(a);
         if (it == R_a_.end())
@@ -354,11 +336,29 @@ float Instance::computePartialTourCost(const std::vector<int>& partialTour) cons
     return static_cast<float>(cost);
 }
 
-// ... (rest of your code unchanged)
+void Instance::generateZVarIndices() const {
+    // Generate z variable indices
+    boost::unordered_set<std::tuple<int, int, int, int>> zVarIndicesSet;
+    for (const auto& [a, bList] : R_a_) {
+        for (const auto& b : bList) {
+            if (b != std::make_pair(0, 0)) {
+                zVarIndicesSet.insert({a.first, a.second, b.first, b.second});
+                zVarIndicesSet.insert({b.first, b.second, a.first, a.second});
+            }
+            for (const auto& c : bList) {
+                if (b != c && b != std::make_pair(0, 0)) {
+                    zVarIndicesSet.insert({b.first, b.second, c.first, c.second});
+                }
+            }
+        }
+    }
+    zVarIndices_ =
+        std::vector<std::tuple<int, int, int, int>>(zVarIndicesSet.begin(), zVarIndicesSet.end());
+}
 
 #ifdef USE_GUROBI
 
-#include "gurobi_tsp_model.hpp"  // include only when Gurobi is enabled
+#include "gurobi_tsp_model.hpp"
 
 std::vector<int> Instance::tspSolution() const {
     GurobiTSPModel model(*this);
