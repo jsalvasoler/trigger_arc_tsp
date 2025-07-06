@@ -36,6 +36,7 @@ private:
     void checkModelStatus() const;
     int getEdgeIndex(const std::pair<int, int>& edge) const;
     int getNodeIndex(int node) const;
+    GRBEnv createSilentEnvironmentSilently();
 
     const Instance& instance_;
     GRBEnv env_;

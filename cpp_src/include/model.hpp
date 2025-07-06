@@ -84,4 +84,5 @@ private:
 
     // Helper methods
     void provideMipStart(const std::vector<boost::unordered_map<std::string, double>>& vars) const;
+    GRBEnv createSilentEnvironmentSilently();
 };
