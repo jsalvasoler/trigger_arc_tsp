@@ -29,14 +29,11 @@ struct TSPPrior {
 
 class MIPRandomizedConstruction : public Method {
 public:
-    explicit MIPRandomizedConstruction(const Instance& instance,
-                                       int nTrials = 100,
-                                       int timeLimitSec = 10);
+    explicit MIPRandomizedConstruction(const Instance& instance, int timeLimitSec = 10);
     ~MIPRandomizedConstruction() override = default;
 
     void run() override;
     std::vector<int> getSolution() const;
-    double getBestCost() const;
 
     // Core evaluation methods (public for testing)
     std::pair<std::vector<int>, double> evaluateIndividual(TSPPrior& tspPrior, int timeLimitSec);
@@ -57,11 +54,9 @@ private:
         const boost::unordered_map<std::pair<int, int>, double>& tspEdges);
 
     // Member variables
-    int nTrials_;
     int timeLimitSec_;
-    std::vector<int> bestSolution_;
-    double bestCost_;
     mutable std::mt19937 rng_;
+    std::vector<int> bestTour_;
 };
 
 #endif  // MIP_RANDOMIZED_CONSTRUCTION_HPP

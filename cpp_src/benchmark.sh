@@ -29,7 +29,6 @@ if [[ " ${to_benchmark[@]} " =~ " mip_randomized_construction " ]]; then
     ### Benchmark MIP randomized construction
     n_trials_mip=20
     time_limit_mip=10
-    n_trials_per_run=5
 
     echo "=== Starting MIP Randomized Construction Benchmark ==="
 
@@ -38,7 +37,7 @@ if [[ " ${to_benchmark[@]} " =~ " mip_randomized_construction " ]]; then
     for instance in $(ls instances/instances_release_1/*.txt); do
         for trial in $(seq 1 $n_trials_mip); do
             echo "Running MIP-RC trial $trial for instance $instance"
-            cpp_src/build/trigger_arc_tsp --instance-file $instance --method mip_randomized_construction --n-trials $n_trials_per_run --time-limit $time_limit_mip --logs --output-dir output/mip_randomized_construction/$(basename $instance)
+            cpp_src/build/trigger_arc_tsp --instance-file $instance --method mip_randomized_construction --time-limit $time_limit_mip --logs --output-dir output/mip_randomized_construction/$(basename $instance)
         done
     done
 fi

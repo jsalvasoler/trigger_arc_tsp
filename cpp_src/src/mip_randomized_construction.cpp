@@ -7,59 +7,25 @@
 #include <iostream>
 #include <stdexcept>
 
-MIPRandomizedConstruction::MIPRandomizedConstruction(const Instance& instance,
-                                                     int nTrials,
-                                                     int timeLimitSec)
+MIPRandomizedConstruction::MIPRandomizedConstruction(const Instance& instance, int timeLimitSec)
     : Method(instance),
-      nTrials_(nTrials),
       timeLimitSec_(timeLimitSec),
-      bestSolution_(),
-      bestCost_(std::numeric_limits<double>::infinity()),
       rng_(std::chrono::steady_clock::now().time_since_epoch().count()) {}
 
 void MIPRandomizedConstruction::run() {
-    // Initialize with best known solution if available
-    auto bestKnownSolution = instance_.getBestKnownSolution();
-    if (bestKnownSolution.has_value()) {
-        bestSolution_ = bestKnownSolution.value();
-        bestCost_ = instance_.computeObjective(bestSolution_);
-    }
+    // Generate a single random permutation and evaluate
+    auto permutation = generateRandomPermutation();
+    std::uniform_real_distribution<double> dist(0.1, 3.0);
+    TSPPrior tspPrior(permutation, dist(rng_), dist(rng_));
 
-    // Generate random permutations and evaluate each
-    auto randomPermutations = generateNRandomPermutations(nTrials_);
-
-    int iteration = 0;
-    for (const auto& permutation : randomPermutations) {
-        // Create TSP prior with random alpha and beta
-        std::uniform_real_distribution<double> dist(0.1, 3.0);
-        TSPPrior tspPrior(permutation, dist(rng_), dist(rng_));
-
-        try {
-            auto [tour, cost] = evaluateIndividual(tspPrior, timeLimitSec_);
-
-            if (!tour.empty() && cost < bestCost_) {
-                bestSolution_ = tour;
-                bestCost_ = cost;
-                std::cout << "Iteration " << iteration << "/" << nTrials_
-                          << " - New best cost: " << bestCost_ << std::endl;
-            }
-        } catch (const std::exception& e) {
-            std::cerr << "Error evaluating individual: " << e.what() << std::endl;
-        }
-
-        iteration++;
-    }
-
-    std::cout << "MIP Randomized Construction completed." << std::endl;
-    std::cout << "Best cost: " << bestCost_ << std::endl;
+    auto [tour, cost] = evaluateIndividual(tspPrior, timeLimitSec_);
+    // assert tour is not empty
+    assert(!tour.empty());
+    bestTour_ = tour;
 }
 
 std::vector<int> MIPRandomizedConstruction::getSolution() const {
-    return bestSolution_;
-}
-
-double MIPRandomizedConstruction::getBestCost() const {
-    return bestCost_;
+    return bestTour_;
 }
 
 std::pair<std::vector<int>, double> MIPRandomizedConstruction::evaluateIndividual(

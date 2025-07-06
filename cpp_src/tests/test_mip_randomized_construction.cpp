@@ -39,7 +39,7 @@ TEST_F(MIPRandomizedConstructionTest, ComputeNodeDistances1) {
     boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
     Instance inst(3, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1, 1);
+    MIPRandomizedConstruction mipRC(inst, 1);
     std::vector<int> nodePriorities = {0, 1, 2};
     auto nodeDist = mipRC.computeNodeDist(nodePriorities);
 
@@ -58,7 +58,7 @@ TEST_F(MIPRandomizedConstructionTest, ComputeNodeDistances2) {
     boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
     Instance inst(5, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1, 1);
+    MIPRandomizedConstruction mipRC(inst, 1);
     std::vector<int> nodePriorities = {0, 1, 2, 3, 4};
     auto nodeDist = mipRC.computeNodeDist(nodePriorities);
 
@@ -80,7 +80,7 @@ TEST_F(MIPRandomizedConstructionTest, TSPSearchSolutionFindsOnlyFeasible) {
     boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
     Instance inst(3, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1, 1);
+    MIPRandomizedConstruction mipRC(inst, 1);
     TSPPrior tspPrior({0, 2, 1}, 0.5, 0.5);
 
     auto [tour, cost] = mipRC.evaluateIndividual(tspPrior, 5);
@@ -96,7 +96,7 @@ TEST_F(MIPRandomizedConstructionTest, GetEdgesForTSPSearch1) {
     boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {{{0, 1, 2, 0}, 0.0}};
     Instance inst(3, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1, 1);
+    MIPRandomizedConstruction mipRC(inst, 1);
     TSPPrior tspPrior({0, 1, 2}, 0.5, 0.5);
     auto modifiedEdges = mipRC.getEdgesForTSPSearch(tspPrior);
 
@@ -117,7 +117,7 @@ TEST_F(MIPRandomizedConstructionTest, GetEdgesForTSPSearch2) {
                                                                               {{0, 2, 3, 4}, -1.0}};
     Instance inst(5, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1, 1);
+    MIPRandomizedConstruction mipRC(inst, 1);
     std::vector<int> tour1 = {0, 1, 2, 3, 4};
     std::vector<int> tour2 = {0, 2, 1, 3, 4};
 
@@ -165,7 +165,7 @@ TEST_F(MIPRandomizedConstructionTest, TSPSearch2) {
                                                                               {{0, 2, 3, 4}, -1.0}};
     Instance inst(5, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1, 1);
+    MIPRandomizedConstruction mipRC(inst, 1);
     std::vector<int> tour1 = {0, 1, 2, 3, 4};
     std::vector<int> tour2 = {0, 2, 1, 3, 4};
 
@@ -191,7 +191,7 @@ TEST_F(MIPRandomizedConstructionTest, GenerateRandomPermutation) {
     boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
     Instance inst(5, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1, 1);
+    MIPRandomizedConstruction mipRC(inst, 1);
 
     // Test multiple random permutations
     std::map<std::pair<int, int>, int> positionCounts;  // (element, position) -> count
@@ -226,7 +226,7 @@ TEST_F(MIPRandomizedConstructionTest, BestAmongMultipleTSPFeasibleSolutionsIsSel
     auto inst = Instance::loadInstanceFromFile(grf4Path_.string());
     ASSERT_NE(inst, nullptr);
 
-    MIPRandomizedConstruction mipRC(*inst, 1, 10);
+    MIPRandomizedConstruction mipRC(*inst, 10);
 
     // Create a TSP prior with sequential priorities
     std::vector<int> priorities;
@@ -247,7 +247,7 @@ TEST_F(MIPRandomizedConstructionTest, SolvesExampleInstance) {
     auto inst = Instance::loadInstanceFromFile(examplePath_.string());
     ASSERT_NE(inst, nullptr);
 
-    MIPRandomizedConstruction mipRC(*inst, 5, 5);  // Few trials, short time limit
+    MIPRandomizedConstruction mipRC(*inst, 5);  // Short time limit
     mipRC.run();
     auto tour = mipRC.getSolution();
 
@@ -260,14 +260,13 @@ TEST_F(MIPRandomizedConstructionTest, ReturnsValidCost) {
     auto inst = Instance::loadInstanceFromFile(examplePath_.string());
     ASSERT_NE(inst, nullptr);
 
-    MIPRandomizedConstruction mipRC(*inst, 3, 5);
+    MIPRandomizedConstruction mipRC(*inst, 5);
     mipRC.run();
     auto tour = mipRC.getSolution();
-    auto cost = mipRC.getBestCost();
 
     if (!tour.empty()) {
-        double expectedCost = inst->computeObjective(tour);
-        EXPECT_DOUBLE_EQ(cost, expectedCost);
+        double cost = inst->computeObjective(tour);
+        EXPECT_GT(cost, 0.0);  // Cost should be positive
     }
 }
 
@@ -279,7 +278,7 @@ TEST_F(MIPRandomizedConstructionTest, SolvesGRF1) {
     auto inst = Instance::loadInstanceFromFile(grf1Path_.string());
     ASSERT_NE(inst, nullptr);
 
-    MIPRandomizedConstruction mipRC(*inst, 3, 5);  // Few trials for faster execution
+    MIPRandomizedConstruction mipRC(*inst, 5);  // Short time limit for faster execution
     mipRC.run();
     auto tour = mipRC.getSolution();
 
@@ -296,7 +295,7 @@ TEST_F(MIPRandomizedConstructionTest, SolvesGRF4) {
     auto inst = Instance::loadInstanceFromFile(grf4Path_.string());
     ASSERT_NE(inst, nullptr);
 
-    MIPRandomizedConstruction mipRC(*inst, 3, 5);  // Few trials for faster execution
+    MIPRandomizedConstruction mipRC(*inst, 5);  // Short time limit for faster execution
     mipRC.run();
     auto tour = mipRC.getSolution();
 
