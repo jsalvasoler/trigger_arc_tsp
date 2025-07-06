@@ -9,6 +9,7 @@
 #include <string>
 
 #include "instance.hpp"
+#include "mip_randomized_construction.hpp"
 #include "model.hpp"
 #include "randomized_greedy.hpp"
 
@@ -33,10 +34,13 @@ int main(int argc, char* argv[]) {
         "instance-file,i", po::value<std::string>()->required(), "Path to the instance file")(
         "method",
         po::value<std::string>()->default_value("gurobi"),
-        "Solution method (gurobi or randomized_greedy)")(
+        "Solution method (gurobi, randomized_greedy, or mip_randomized_construction)")(
         "alpha",
         po::value<double>()->default_value(0.3),
         "Alpha parameter for randomized greedy (0.0 to 1.0)")(
+        "n-trials,n",
+        po::value<int>()->default_value(50),
+        "Number of trials for MIP randomized construction")(
         "time-limit,t", po::value<int>()->default_value(60), "Time limit in seconds")(
         "heuristic-effort,e",
         po::value<double>()->default_value(0.05),
@@ -103,6 +107,18 @@ int main(int argc, char* argv[]) {
         }
         auto endTime = std::chrono::high_resolution_clock::now();
         wallTime = std::chrono::duration<double>(endTime - startTime).count();
+    } else if (methodName == "mip_randomized_construction") {
+        int nTrials = vm["n-trials"].as<int>();
+        int timeLimitSec = vm["time-limit"].as<int>();
+
+        MIPRandomizedConstruction mipRC(*instance, nTrials, timeLimitSec);
+        mipRC.run();
+        tour = mipRC.getSolution();
+        if (!tour.empty()) {
+            cost = mipRC.getBestCost();
+        }
+        auto endTime = std::chrono::high_resolution_clock::now();
+        wallTime = std::chrono::duration<double>(endTime - startTime).count();
     } else {
         std::cerr << "Error: Unknown method '" << methodName << "'\n";
         return 1;
@@ -125,6 +141,9 @@ int main(int argc, char* argv[]) {
     json["method"] = methodName;
     if (methodName == "randomized_greedy") {
         json["alpha"] = vm["alpha"].as<double>();
+    } else if (methodName == "mip_randomized_construction") {
+        json["n_trials"] = vm["n-trials"].as<int>();
+        json["time_limit"] = vm["time-limit"].as<int>();
     } else {
         json["time_limit"] = vm["time-limit"].as<int>();
         json["heuristic_effort"] = vm["heuristic-effort"].as<double>();
