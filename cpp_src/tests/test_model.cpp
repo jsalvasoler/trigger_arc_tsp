@@ -382,5 +382,5 @@ TEST(GurobiModelTest, MIPStartFromTsp2) {
     auto instance = Instance::loadInstanceFromFile(instancePath.string());
     GurobiModel model(*instance);
     model.formulate();
-    model.solveModelWithParameters(SolverParameters{.mipStart = true, .timeLimitSec = 3});
+    model.solveModelWithParameters(SolverParameters{.timeLimitSec = 3, .mipStart = true});
 }

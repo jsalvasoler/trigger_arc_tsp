@@ -9,6 +9,11 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Default build type is Release
 BUILD_TYPE=${1:-Release}
 
+# Clean previous build
+rm -rf "${SCRIPT_DIR}/build"
+mkdir -p "${SCRIPT_DIR}/build"
+cd "${SCRIPT_DIR}/build"
+
 # Create build directory if it doesn't exist
 mkdir -p "${SCRIPT_DIR}/build"
 
