@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 3.10...3.27)
 project(TriggerArcTSP_CPP VERSION 1.0)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Set CMake policies
-cmake_policy(SET CMP0167 NEW)  # Use new Boost package finding mechanism
+# cmake_policy(SET CMP0167 NEW)  # Use new Boost package finding mechanism
 
 # Build type if not specified
 if(NOT CMAKE_BUILD_TYPE)
@@ -28,7 +28,8 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 include_directories(include ${Boost_INCLUDE_DIRS})
 
 # Gurobi paths
-set(GUROBI_ROOT "/Library/gurobi1202/macos_universal2")
+# set(GUROBI_ROOT "/Library/gurobi1202/macos_universal2")
+set(GUROBI_ROOT "/opt/gurobi12.0.2/linux64/")
 set(GUROBI_LIB_DIR "${GUROBI_ROOT}/lib")
 set(GUROBI_INCLUDE_DIR "${GUROBI_ROOT}/include")
 
