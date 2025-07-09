@@ -269,6 +269,75 @@ TEST_F(MIPRandomizedConstructionTest, ApplyAlphaRandomizationToEdges) {
     EXPECT_NE(randomizedEdges[std::make_pair(2, 0)], 3.0);
 }
 
+TEST_F(MIPRandomizedConstructionTest, OptionalAlphaParameterBias) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    // Test with specific alpha value for Bias type
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Bias, 0.5);
+
+    auto permutation = mipRC.generateRandomPermutation();
+    TSPPrior tspPrior(permutation, 0.5, 0.5);  // Expected alpha should be 0.5
+
+    // The constructor should use the provided alpha value
+    // We can't directly test the stored alpha_ value since it's private,
+    // but we can verify the functionality works
+    EXPECT_NO_THROW(mipRC.run());
+    auto tour = mipRC.getSolution();
+    EXPECT_FALSE(tour.empty());
+}
+
+TEST_F(MIPRandomizedConstructionTest, OptionalAlphaParameterRandom) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    // Test with specific alpha value for Random type
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Random, 0.1);
+
+    // The constructor should use the provided alpha value
+    EXPECT_NO_THROW(mipRC.run());
+    auto tour = mipRC.getSolution();
+    EXPECT_FALSE(tour.empty());
+}
+
+TEST_F(MIPRandomizedConstructionTest, OptionalAlphaAndBetaParametersBias) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    // Test with specific alpha and beta values for Bias type
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Bias, 0.5, 1.0);
+
+    EXPECT_NO_THROW(mipRC.run());
+    auto tour = mipRC.getSolution();
+    EXPECT_FALSE(tour.empty());
+}
+
+TEST_F(MIPRandomizedConstructionTest, DefaultParametersStillWork) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    // Test that default parameters still work (no alpha/beta specified)
+    MIPRandomizedConstruction mipRC1(inst, 1, ConstructionType::Bias);
+    MIPRandomizedConstruction mipRC2(inst, 1, ConstructionType::Random);
+
+    EXPECT_NO_THROW(mipRC1.run());
+    EXPECT_NO_THROW(mipRC2.run());
+
+    auto tour1 = mipRC1.getSolution();
+    auto tour2 = mipRC2.getSolution();
+
+    EXPECT_FALSE(tour1.empty());
+    EXPECT_FALSE(tour2.empty());
+}
+
 TEST_F(MIPRandomizedConstructionTest, SolveRandomizedTSP) {
     boost::unordered_map<std::pair<int, int>, double> edges = {
         {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};

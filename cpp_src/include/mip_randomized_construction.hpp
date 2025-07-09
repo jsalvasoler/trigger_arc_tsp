@@ -4,6 +4,7 @@
 #include <boost/unordered_map.hpp>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <random>
 #include <vector>
 
@@ -33,7 +34,9 @@ class MIPRandomizedConstruction : public Method {
 public:
     explicit MIPRandomizedConstruction(const Instance& instance,
                                        int timeLimitSec = 10,
-                                       ConstructionType type = ConstructionType::Bias);
+                                       ConstructionType type = ConstructionType::Bias,
+                                       std::optional<double> alpha = std::nullopt,
+                                       std::optional<double> beta = std::nullopt);
     ~MIPRandomizedConstruction() override = default;
 
     void run() override;
@@ -62,6 +65,8 @@ private:
     // Member variables
     int timeLimitSec_;
     ConstructionType type_;
+    double alpha_;
+    double beta_;
     mutable std::mt19937 rng_;
     std::vector<int> bestTour_;
 };

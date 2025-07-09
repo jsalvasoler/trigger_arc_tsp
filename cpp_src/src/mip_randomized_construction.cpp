@@ -5,32 +5,44 @@
 #include <chrono>
 #include <cmath>
 #include <iostream>
+#include <optional>
 #include <stdexcept>
 
 MIPRandomizedConstruction::MIPRandomizedConstruction(const Instance& instance,
                                                      int timeLimitSec,
-                                                     ConstructionType type)
+                                                     ConstructionType type,
+                                                     std::optional<double> alpha,
+                                                     std::optional<double> beta)
     : Method(instance),
       timeLimitSec_(timeLimitSec),
       type_(type),
-      rng_(std::chrono::steady_clock::now().time_since_epoch().count()) {}
+      rng_(std::chrono::steady_clock::now().time_since_epoch().count()) {
+    // Initialize alpha and beta based on construction type and provided values
+    if (type_ == ConstructionType::Bias) {
+        // For Bias type: alpha and beta default to [0.1, 3.0] range
+        std::uniform_real_distribution<double> dist(0.1, 3.0);
+        alpha_ = alpha.value_or(dist(rng_));
+        beta_ = beta.value_or(dist(rng_));
+    } else {  // type_ == ConstructionType::Random
+        // For Random type: alpha defaults to [0.0, 1.0] range, beta is not used but set to 0.0
+        std::uniform_real_distribution<double> dist(0.0, 1.0);
+        alpha_ = alpha.value_or(dist(rng_));
+        beta_ = beta.value_or(0.0);  // Beta is not used in Random type
+    }
+}
 
 void MIPRandomizedConstruction::run() {
     std::vector<int> tour;
     double cost;
 
     if (type_ == ConstructionType::Bias) {
-        // Generate a random permutation and alpha and beta
+        // Generate a random permutation and use stored alpha and beta
         auto permutation = generateRandomPermutation();
-        std::uniform_real_distribution<double> dist(0.1, 3.0);
-        TSPPrior tspPrior(permutation, dist(rng_), dist(rng_));
+        TSPPrior tspPrior(permutation, alpha_, beta_);
         std::tie(tour, cost) = evaluateIndividual(tspPrior, timeLimitSec_);
     } else {  // type_ == ConstructionType::Random
-        // generate random alpha
-        std::uniform_real_distribution<double> dist(0.0, 1.0);
-        double alpha = dist(rng_);
-
-        std::tie(tour, cost) = solveRandomizedTSP(alpha, timeLimitSec_);
+        // Use stored alpha
+        std::tie(tour, cost) = solveRandomizedTSP(alpha_, timeLimitSec_);
     }
 
     assert(!tour.empty());
