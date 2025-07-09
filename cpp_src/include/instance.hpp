@@ -9,6 +9,36 @@
 #include <utility>
 #include <vector>
 
+class TwoOptIteratorTracker {
+public:
+    TwoOptIteratorTracker(const int n) : n_(n), i_(0), j_(1) {}
+
+    std::optional<std::pair<int, int>> next() {
+        if (i_ < n_ - 1) {
+            if (j_ < n_) {
+                return std::make_pair(i_, j_++);
+            } else {
+                ++i_;
+                j_ = i_ + 1;
+                if (j_ < n_) {
+                    return std::make_pair(i_, j_++);
+                }
+            }
+        }
+        return std::nullopt;
+    }
+
+    void reset() {
+        i_ = 0;
+        j_ = 1;
+    }
+
+private:
+    int n_;
+    int i_;
+    int j_;
+};
+
 class Instance {
 public:
     // Constructor
@@ -72,8 +102,9 @@ public:
     std::vector<int> tspSolution() const;
     float computePartialTourCost(const std::vector<int>& partialTour, int startIdx = 0) const;
     void generateZVarIndices() const;
-    void get_two_opt_neigbhor(std::vector<int>& tour);
-    std::vector<std::vector<int>> get_all_two_opt_neigbhor(std::vector<int>& tour);
+    void get_two_opt_neigbhor(std::vector<int>& tour, int i, int j) const;
+
+    TwoOptIteratorTracker twoOptIteratorTracker_;
 
 private:
     // Member variables

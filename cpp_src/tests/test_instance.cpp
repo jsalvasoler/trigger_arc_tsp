@@ -117,46 +117,54 @@ TEST_F(InstanceTest, MIPStartFromTsp1) {
 }
 
 TEST_F(InstanceTest, TwoOptMethod) {
-    auto instance = Instance::loadInstanceFromFile(instancePath_.string());
+    /*
+    Source: https://en.wikipedia.org/wiki/2-opt
 
-    std::vector<int> tour = {0, 2, 1, 4, 3, 0};
-    auto tour_tmp = tour;
+    Here is an example of the above with arbitrary input:
 
-    instance->get_two_opt_neigbhor(tour);  // Apply 2-opt mutation
+    Example route: A → B → E → D → C → F → G → H → A
+    Example parameters: v1=1, v2=4 (assuming starting index is 0)
+    Contents of new_route by step:
+    (A → B)
+    A → B → (C → D → E)
+    A → B → C → D → E → (F → G → H → A)
+    */
+    boost::unordered_map<std::pair<int, int>, double> edges = {{{0, 1}, 1.0},
+                                                               {{1, 2}, 1.0},
+                                                               {{2, 3}, 1.0},
+                                                               {{3, 4}, 1.0},
+                                                               {{4, 5}, 1.0},
+                                                               {{5, 6}, 1.0},
+                                                               {{6, 7}, 1.0},
+                                                               {{7, 8}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(8, edges, relations, "test");
+
+    std::vector<int> tour = {0, 1, 4, 3, 2, 5, 6, 7, 0};
+
+    inst.get_two_opt_neigbhor(tour, 1, 4);  // Apply 2-opt mutation
 
     // Check that the tour length remains the same
-    EXPECT_EQ(tour.size(), tour_tmp.size());
+    EXPECT_EQ(tour.size(), 9);
+
+    // check that the result is the expected one:
+    std::vector<int> expected_tour = {0, 1, 2, 3, 4, 5, 6, 7, 0};
+    EXPECT_EQ(tour, expected_tour);
 }
 
 TEST_F(InstanceTest, AllTwoOptNeighbors) {
     auto instance = Instance::loadInstanceFromFile(instancePath_.string());
+    int n = instance->getN();
 
-    std::vector<int> tour = {0, 2, 1, 4, 3};
+    std::vector<int> original_tour = {0, 2, 1, 4, 3, 0};
 
-    // Call method under test
-    auto neighbors = instance->get_all_two_opt_neigbhor(tour);
-
-    // Total expected neighbors = n * (n - 1) / 2 for swap(i, j)
-    int n = tour.size();
-    int expected_count = n * (n - 1) / 2;
-
-    // Check number of neighbors
-    EXPECT_EQ(neighbors.size(), expected_count);
-
-    // All neighbors should be different from original tour but same size
-    for (const auto& neighbor : neighbors) {
-        EXPECT_EQ(neighbor.size(), tour.size());
-        EXPECT_NE(neighbor, tour);  // Ensure at least one element changed
+    int count = 0;
+    while (auto opt = instance->twoOptIteratorTracker_.next()) {
+        std::vector<int> tour = original_tour;
+        instance->get_two_opt_neigbhor(tour, opt->first, opt->second);
+        count++;
     }
-
-    // Optional: Check that all neighbors are permutations of the original tour
-    for (const auto& neighbor : neighbors) {
-        auto sorted_neighbor = neighbor;
-        auto sorted_original = tour;
-        std::sort(sorted_neighbor.begin(), sorted_neighbor.end());
-        std::sort(sorted_original.begin(), sorted_original.end());
-        EXPECT_EQ(sorted_neighbor, sorted_original);
-    }
+    EXPECT_EQ(count, n * (n - 1) / 2);
 }
 
 TEST_F(InstanceTest, TestSolutionCorrectness) {
