@@ -28,8 +28,11 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 include_directories(include ${Boost_INCLUDE_DIRS})
 
 # Gurobi paths
-# set(GUROBI_ROOT "/Library/gurobi1202/macos_universal2")
-set(GUROBI_ROOT "/opt/gurobi12.0.2/linux64/")
+if(APPLE)
+    set(GUROBI_ROOT "/Library/gurobi1202/macos_universal2")
+else()
+    set(GUROBI_ROOT "/opt/gurobi12.0.2/linux64/")
+endif()
 set(GUROBI_LIB_DIR "${GUROBI_ROOT}/lib")
 set(GUROBI_INCLUDE_DIR "${GUROBI_ROOT}/include")
 

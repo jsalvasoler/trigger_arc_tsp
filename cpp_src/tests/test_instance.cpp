@@ -157,8 +157,8 @@ TEST_F(InstanceTest, AllTwoOptNeighbors) {
         std::sort(sorted_original.begin(), sorted_original.end());
         EXPECT_EQ(sorted_neighbor, sorted_original);
     }
+}
 
-  
 TEST_F(InstanceTest, TestSolutionCorrectness) {
     boost::unordered_map<std::pair<int, int>, double> edges = {
         {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
