@@ -122,7 +122,7 @@ MIPRandomizedConstruction::applyAlphaRandomizationToEdges(double alpha) {
     // all edges become edge + alpha * random_uniform(-1, 1)
     auto newEdges = instance_.getEdges();
     for (const auto& [edge, cost] : newEdges) {
-        newEdges[edge] = cost + alpha * (rng_() / (double)rng_.max());
+        newEdges[edge] = cost + alpha * ((rng_() / (double)rng_.max()) * 2 - 1);
     }
     return newEdges;
 }
