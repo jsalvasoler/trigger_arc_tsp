@@ -37,11 +37,11 @@ source_pkgs = ["trigger_arc_tsp", "tests"]
 branch = true
 parallel = true
 omit = [
-  "src/trigger_arc_tsp/__about__.py",
+  "py_src/trigger_arc_tsp/__about__.py",
 ]
 
 [tool.coverage.paths]
-trigger_arc_tsp = ["src/trigger_arc_tsp", "*/trigger-arc-tsp/src/trigger_arc_tsp"]
+trigger_arc_tsp = ["py_src/trigger_arc_tsp", "*/trigger-arc-tsp/py_src/trigger_arc_tsp"]
 tests = ["tests", "*/trigger-arc-tsp/tests"]
 
 [tool.coverage.report]
@@ -53,7 +53,7 @@ exclude_lines = [
 
 [tool.ruff]
 line-length = 96
-exclude = ["src/trigger_arc_tsp/extra/instance_analysis.ipynb"]
+exclude = ["py_src/trigger_arc_tsp/extra/instance_analysis.ipynb"]
 
 [tool.ruff.lint]
 extend-select = [

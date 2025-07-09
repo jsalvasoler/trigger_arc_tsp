@@ -107,10 +107,21 @@ bool Instance::checkSolutionCorrectness(const std::vector<int>& tour) const {
     }
 
     boost::unordered_set<int> uniqueNodes(tour.begin(), tour.end());
-    return uniqueNodes.size() == static_cast<size_t>(N_) &&
-           std::all_of(uniqueNodes.begin(), uniqueNodes.end(), [this](int node) {
-               return node >= 0 && node < N_;
-           });
+    if (uniqueNodes.size() != static_cast<size_t>(N_) ||
+        !std::all_of(uniqueNodes.begin(), uniqueNodes.end(), [this](int node) {
+            return node >= 0 && node < N_;
+        })) {
+        return false;
+    }
+
+    // check if all edges in the tour are valid
+    for (size_t i = 0; i < tour.size(); ++i) {
+        if (edges_.find({tour[i], (i < tour.size() - 1) ? tour[i + 1] : 0}) == edges_.end()) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool Instance::testSolution(const std::vector<int>& tour, double proposedObjective) const {

@@ -6,7 +6,15 @@
 
 #include "instance.hpp"
 
-GurobiModel::GurobiModel(const Instance& instance) : instance_(instance), env_(), model_(env_) {}
+GurobiModel::GurobiModel(const Instance& instance)
+    : instance_(instance), env_(createSilentEnvironmentSilently()), model_(env_) {}
+
+GRBEnv GurobiModel::createSilentEnvironmentSilently() {
+    GRBEnv env(true);
+    env.set(GRB_IntParam_OutputFlag, 0);
+    env.start();
+    return env;
+}
 
 void GurobiModel::formulate() {
     addVariables();

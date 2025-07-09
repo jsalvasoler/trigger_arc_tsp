@@ -102,7 +102,8 @@ std::pair<int, int> RandomizedGreedyConstruction::selectRandomizedGreedyEdge(
             auto extendedTour = partialTour;
             extendedTour.push_back(edge.second);
             // Compute only the incremental cost from the last edge position
-            double incrementalCost = instance_.computePartialTourCost(extendedTour, partialTour.size() - 1);
+            double incrementalCost =
+                instance_.computePartialTourCost(extendedTour, partialTour.size() - 1);
             if (!bestEdge.has_value() || incrementalCost < bestIncrementalCost) {
                 bestIncrementalCost = incrementalCost;
                 bestEdge = edge;
@@ -119,7 +120,8 @@ std::pair<int, int> RandomizedGreedyConstruction::selectRandomizedGreedyEdge(
         auto extendedTour = partialTour;
         extendedTour.push_back(edge.second);
         // Compute only the incremental cost from the last edge position
-        double incrementalCost = instance_.computePartialTourCost(extendedTour, partialTour.size() - 1);
+        double incrementalCost =
+            instance_.computePartialTourCost(extendedTour, partialTour.size() - 1);
         edgeCosts.emplace_back(incrementalCost, edge);
     }
 

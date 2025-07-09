@@ -10,6 +10,7 @@
 #include <filesystem>
 
 #include "instance.hpp"
+#include "mip_randomized_construction.hpp"
 #include "model.hpp"
 #include "randomized_greedy.hpp"
 
@@ -34,7 +35,7 @@ int main(int argc, char* argv[]) {
         "instance-file,i", po::value<std::string>()->required(), "Path to the instance file")(
         "method",
         po::value<std::string>()->default_value("gurobi"),
-        "Solution method (gurobi or randomized_greedy)")(
+        "Solution method (gurobi, randomized_greedy, or mip_randomized_construction)")(
         "alpha",
         po::value<double>()->default_value(0.3),
         "Alpha parameter for randomized greedy (0.0 to 1.0)")(
@@ -104,6 +105,17 @@ int main(int argc, char* argv[]) {
         }
         auto endTime = std::chrono::high_resolution_clock::now();
         wallTime = std::chrono::duration<double>(endTime - startTime).count();
+    } else if (methodName == "mip_randomized_construction") {
+        int timeLimitSec = vm["time-limit"].as<int>();
+
+        MIPRandomizedConstruction mipRC(*instance, timeLimitSec);
+        mipRC.run();
+        tour = mipRC.getSolution();
+        if (!tour.empty()) {
+            cost = instance->computeObjective(tour);
+        }
+        auto endTime = std::chrono::high_resolution_clock::now();
+        wallTime = std::chrono::duration<double>(endTime - startTime).count();
     } else {
         std::cerr << "Error: Unknown method '" << methodName << "'\n";
         return 1;
@@ -126,6 +138,8 @@ int main(int argc, char* argv[]) {
     json["method"] = methodName;
     if (methodName == "randomized_greedy") {
         json["alpha"] = vm["alpha"].as<double>();
+    } else if (methodName == "mip_randomized_construction") {
+        json["time_limit"] = vm["time-limit"].as<int>();
     } else {
         json["time_limit"] = vm["time-limit"].as<int>();
         json["heuristic_effort"] = vm["heuristic-effort"].as<double>();
