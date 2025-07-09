@@ -7,7 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Set CMake policies
-# cmake_policy(SET CMP0167 NEW)  # Use new Boost package finding mechanism
+if (APPLE)
+    cmake_policy(SET CMP0167 NEW)  # Use new Boost package finding mechanism
+endif()
 
 # Build type if not specified
 if(NOT CMAKE_BUILD_TYPE)

@@ -27,9 +27,13 @@ struct TSPPrior {
           bestTour() {}
 };
 
+enum class ConstructionType { Bias, Random };
+
 class MIPRandomizedConstruction : public Method {
 public:
-    explicit MIPRandomizedConstruction(const Instance& instance, int timeLimitSec = 10);
+    explicit MIPRandomizedConstruction(const Instance& instance,
+                                       int timeLimitSec = 10,
+                                       ConstructionType type = ConstructionType::Bias);
     ~MIPRandomizedConstruction() override = default;
 
     void run() override;
@@ -37,8 +41,10 @@ public:
 
     // Core evaluation methods (public for testing)
     std::pair<std::vector<int>, double> evaluateIndividual(TSPPrior& tspPrior, int timeLimitSec);
+    std::pair<std::vector<int>, double> solveRandomizedTSP(double alpha, int timeLimitSec);
     boost::unordered_map<std::pair<int, int>, double> getEdgesForTSPSearch(
         const TSPPrior& tspPrior);
+    boost::unordered_map<std::pair<int, int>, double> applyAlphaRandomizationToEdges(double alpha);
 
     // Node distance computation (public for testing)
     boost::unordered_map<std::pair<int, int>, double> computeNodeDist(
@@ -55,6 +61,7 @@ private:
 
     // Member variables
     int timeLimitSec_;
+    ConstructionType type_;
     mutable std::mt19937 rng_;
     std::vector<int> bestTour_;
 };

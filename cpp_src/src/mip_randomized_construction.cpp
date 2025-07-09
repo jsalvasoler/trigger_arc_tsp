@@ -7,25 +7,65 @@
 #include <iostream>
 #include <stdexcept>
 
-MIPRandomizedConstruction::MIPRandomizedConstruction(const Instance& instance, int timeLimitSec)
+MIPRandomizedConstruction::MIPRandomizedConstruction(const Instance& instance,
+                                                     int timeLimitSec,
+                                                     ConstructionType type)
     : Method(instance),
       timeLimitSec_(timeLimitSec),
+      type_(type),
       rng_(std::chrono::steady_clock::now().time_since_epoch().count()) {}
 
 void MIPRandomizedConstruction::run() {
-    // Generate a single random permutation and evaluate
-    auto permutation = generateRandomPermutation();
-    std::uniform_real_distribution<double> dist(0.1, 3.0);
-    TSPPrior tspPrior(permutation, dist(rng_), dist(rng_));
+    std::vector<int> tour;
+    double cost;
 
-    auto [tour, cost] = evaluateIndividual(tspPrior, timeLimitSec_);
-    // assert tour is not empty
+    if (type_ == ConstructionType::Bias) {
+        // Generate a random permutation and alpha and beta
+        auto permutation = generateRandomPermutation();
+        std::uniform_real_distribution<double> dist(0.1, 3.0);
+        TSPPrior tspPrior(permutation, dist(rng_), dist(rng_));
+        std::tie(tour, cost) = evaluateIndividual(tspPrior, timeLimitSec_);
+    } else {  // type_ == ConstructionType::Random
+        // generate random alpha
+        std::uniform_real_distribution<double> dist(0.0, 1.0);
+        double alpha = dist(rng_);
+
+        std::tie(tour, cost) = solveRandomizedTSP(alpha, timeLimitSec_);
+    }
+
     assert(!tour.empty());
     bestTour_ = tour;
 }
 
 std::vector<int> MIPRandomizedConstruction::getSolution() const {
     return bestTour_;
+}
+
+std::pair<std::vector<int>, double> MIPRandomizedConstruction::solveRandomizedTSP(
+    double alpha, int timeLimitSec) {
+    double bestCost = std::numeric_limits<double>::infinity();
+    std::vector<int> bestTour = {};
+
+    // 1. apply alpha randomization to edges
+    auto edges = applyAlphaRandomizationToEdges(alpha);
+
+    // 2. solve TSP with random edges
+    auto tspInstance = createTSPInstance(edges);
+    GurobiTSPModel model(*tspInstance);
+    model.formulate();
+    model.solveToOptimality(timeLimitSec, false);
+
+    // 3. get best tour
+    auto tours = model.getBestNTours(15);
+    for (const auto& tour : tours) {
+        double cost = instance_.computeObjective(tour);
+        if (cost < bestCost) {
+            bestTour = tour;
+            bestCost = cost;
+        }
+    }
+
+    return {bestTour, bestCost};
 }
 
 std::pair<std::vector<int>, double> MIPRandomizedConstruction::evaluateIndividual(
@@ -63,6 +103,16 @@ std::pair<std::vector<int>, double> MIPRandomizedConstruction::evaluateIndividua
     tspPrior.relGap = model.getModel().get(GRB_DoubleAttr_MIPGap);
 
     return {bestTour, bestCost};
+}
+
+boost::unordered_map<std::pair<int, int>, double>
+MIPRandomizedConstruction::applyAlphaRandomizationToEdges(double alpha) {
+    // all edges become edge + alpha * random_uniform(-1, 1)
+    auto newEdges = instance_.getEdges();
+    for (const auto& [edge, cost] : newEdges) {
+        newEdges[edge] = cost + alpha * (rng_() / (double)rng_.max());
+    }
+    return newEdges;
 }
 
 boost::unordered_map<std::pair<int, int>, double> MIPRandomizedConstruction::getEdgesForTSPSearch(
