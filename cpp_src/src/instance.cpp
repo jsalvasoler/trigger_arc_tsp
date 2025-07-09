@@ -361,3 +361,32 @@ std::vector<int> Instance::tspSolution() const {
     model.solveToOptimality();
     return model.getBestTour();
 }
+
+void Instance::get_two_opt_neigbhor(std::vector<int>& tour) {
+    // modify (inline) the tour passed as parameter 
+    // Warning: Doesn't check solution validity
+    int n = tour.size();
+
+    srand(std::time(nullptr));
+    int a = rand() % (n);
+    int b = rand() % (n);
+    
+    std::swap(tour[a], tour[b]);
+}
+
+std::vector<std::vector<int>> Instance::get_all_two_opt_neigbhor(std::vector<int>& tour) {
+    // returns all neighbors of the solution 
+    // Warning: Doesn't check solution validity
+    int n = tour.size();
+    std::vector<std::vector<int>> res;
+
+    for (int i = 0; i < n - 1; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            std::vector<int> neighbor = tour;
+            std::swap(neighbor[i], neighbor[j]);
+            res.push_back(neighbor);
+        }
+    }
+
+    return res;
+}
