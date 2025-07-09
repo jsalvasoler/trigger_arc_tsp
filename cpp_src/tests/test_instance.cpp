@@ -146,7 +146,7 @@ TEST_F(InstanceTest, AllTwoOptNeighbors) {
     // All neighbors should be different from original tour but same size
     for (const auto& neighbor : neighbors) {
         EXPECT_EQ(neighbor.size(), tour.size());
-        EXPECT_NE(neighbor, tour); // Ensure at least one element changed
+        EXPECT_NE(neighbor, tour);  // Ensure at least one element changed
     }
 
     // Optional: Check that all neighbors are permutations of the original tour

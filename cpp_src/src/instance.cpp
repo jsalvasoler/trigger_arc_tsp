@@ -374,19 +374,19 @@ std::vector<int> Instance::tspSolution() const {
 }
 
 void Instance::get_two_opt_neigbhor(std::vector<int>& tour) {
-    // modify (inline) the tour passed as parameter 
+    // modify (inline) the tour passed as parameter
     // Warning: Doesn't check solution validity
     int n = tour.size();
 
     srand(std::time(nullptr));
     int a = rand() % (n);
     int b = rand() % (n);
-    
+
     std::swap(tour[a], tour[b]);
 }
 
 std::vector<std::vector<int>> Instance::get_all_two_opt_neigbhor(std::vector<int>& tour) {
-    // returns all neighbors of the solution 
+    // returns all neighbors of the solution
     // Warning: Doesn't check solution validity
     int n = tour.size();
     std::vector<std::vector<int>> res;
