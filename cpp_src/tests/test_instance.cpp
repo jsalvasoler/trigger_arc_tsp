@@ -115,3 +115,25 @@ TEST_F(InstanceTest, MIPStartFromTsp1) {
         }
     }
 }
+
+TEST_F(InstanceTest, TestSolutionCorrectness) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    std::vector<int> tour = {0, 1, 2, 0};
+    EXPECT_TRUE(inst.checkSolutionCorrectness(tour));
+    tour.push_back(0);
+    EXPECT_TRUE(inst.checkSolutionCorrectness(tour));
+
+    tour = {0, 1, 2, 1};
+    EXPECT_FALSE(inst.checkSolutionCorrectness(tour));
+    tour.push_back(0);
+    EXPECT_FALSE(inst.checkSolutionCorrectness(tour));
+
+    tour = {0, 1, 2, 0, 1};
+    EXPECT_FALSE(inst.checkSolutionCorrectness(tour));
+    tour.push_back(0);
+    EXPECT_FALSE(inst.checkSolutionCorrectness(tour));
+}

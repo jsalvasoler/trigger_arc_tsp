@@ -1,11 +1,22 @@
 #include "tsp_model.hpp"
 
 #include <algorithm>
+#include <fstream>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 
+#include "gurobi_c++.h"
+
 GurobiTSPModel::GurobiTSPModel(const Instance& instance)
-    : instance_(instance), env_(), model_(env_) {}
+    : instance_(instance), env_(createSilentEnvironmentSilently()), model_(env_) {}
+
+GRBEnv GurobiTSPModel::createSilentEnvironmentSilently() {
+    GRBEnv env(true);
+    env.set(GRB_IntParam_OutputFlag, 0);
+    env.start();
+    return env;
+}
 
 void GurobiTSPModel::formulate() {
     formulated_ = true;
