@@ -266,7 +266,6 @@ void GurobiModel::checkModelStatus() const {
 
 void GurobiModel::provideMipStart(
     const std::vector<boost::unordered_map<std::string, double>>& vars) const {
-    std::cout << "Providing MIP start" << std::endl;
     assert(vars.size() == 4);
 
     // Set x variables (edge variables)
