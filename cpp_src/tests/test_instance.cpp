@@ -142,7 +142,7 @@ TEST_F(InstanceTest, TwoOptMethod) {
 
     std::vector<int> tour = {0, 1, 4, 3, 2, 5, 6, 7, 0};
 
-    inst.get_two_opt_neigbhor(tour, 1, 4);  // Apply 2-opt mutation
+    inst.get_two_opt_neighbor(tour, 1, 4);  // Apply 2-opt mutation
 
     // Check that the tour length remains the same
     EXPECT_EQ(tour.size(), 9);
@@ -161,7 +161,7 @@ TEST_F(InstanceTest, AllTwoOptNeighbors) {
     int count = 0;
     while (auto opt = instance->twoOptIteratorTracker_.next()) {
         std::vector<int> tour = original_tour;
-        instance->get_two_opt_neigbhor(tour, opt->first, opt->second);
+        instance->get_two_opt_neighbor(tour, opt->first, opt->second);
         count++;
     }
     EXPECT_EQ(count, n * (n - 1) / 2);

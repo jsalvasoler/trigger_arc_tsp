@@ -55,7 +55,7 @@ std::optional<std::vector<int>> GRASP::localSearch(const std::vector<int>& tour)
     if (is_local_search_type_enabled(LocalSearch::TwoOpt)) {
         while (auto next_pair = instance_.twoOptIteratorTracker_.next()) {
             std::vector<int> new_tour = tour;
-            instance_.get_two_opt_neigbhor(new_tour, next_pair->first, next_pair->second);
+            instance_.get_two_opt_neighbor(new_tour, next_pair->first, next_pair->second);
             if (!instance_.checkSolutionCorrectness(new_tour)) {
                 continue;
             }

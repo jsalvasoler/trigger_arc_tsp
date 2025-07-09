@@ -105,7 +105,7 @@ public:
     std::vector<int> tspSolution() const;
     float computePartialTourCost(const std::vector<int>& partialTour, int startIdx = 0) const;
     void generateZVarIndices() const;
-    void get_two_opt_neigbhor(std::vector<int>& tour, int i, int j) const;
+    void get_two_opt_neighbor(std::vector<int>& tour, int i, int j) const;
 
     mutable TwoOptIteratorTracker twoOptIteratorTracker_;
 

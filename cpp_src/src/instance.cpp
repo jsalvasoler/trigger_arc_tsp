@@ -374,7 +374,7 @@ std::vector<int> Instance::tspSolution() const {
     return model.getBestTour();
 }
 
-void Instance::get_two_opt_neigbhor(std::vector<int>& tour, int i, int j) const {
+void Instance::get_two_opt_neighbor(std::vector<int>& tour, int i, int j) const {
     // Replaces edges (tour[i], tour[i+1]) and (tour[j], tour[j+1])
     // with (tour[i], tour[j]) and (tour[i+1], tour[j+1]).
     // This is achieved by reversing the segment from tour[i+1] to tour[j].
