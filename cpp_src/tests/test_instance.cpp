@@ -116,6 +116,49 @@ TEST_F(InstanceTest, MIPStartFromTsp1) {
     }
 }
 
+TEST_F(InstanceTest, TwoOptMethod) {
+    auto instance = Instance::loadInstanceFromFile(instancePath_.string());
+
+    std::vector<int> tour = {0, 2, 1, 4, 3, 0};
+    auto tour_tmp = tour;
+
+    instance->get_two_opt_neigbhor(tour);  // Apply 2-opt mutation
+
+    // Check that the tour length remains the same
+    EXPECT_EQ(tour.size(), tour_tmp.size());
+}
+
+TEST_F(InstanceTest, AllTwoOptNeighbors) {
+    auto instance = Instance::loadInstanceFromFile(instancePath_.string());
+
+    std::vector<int> tour = {0, 2, 1, 4, 3};
+
+    // Call method under test
+    auto neighbors = instance->get_all_two_opt_neigbhor(tour);
+
+    // Total expected neighbors = n * (n - 1) / 2 for swap(i, j)
+    int n = tour.size();
+    int expected_count = n * (n - 1) / 2;
+
+    // Check number of neighbors
+    EXPECT_EQ(neighbors.size(), expected_count);
+
+    // All neighbors should be different from original tour but same size
+    for (const auto& neighbor : neighbors) {
+        EXPECT_EQ(neighbor.size(), tour.size());
+        EXPECT_NE(neighbor, tour); // Ensure at least one element changed
+    }
+
+    // Optional: Check that all neighbors are permutations of the original tour
+    for (const auto& neighbor : neighbors) {
+        auto sorted_neighbor = neighbor;
+        auto sorted_original = tour;
+        std::sort(sorted_neighbor.begin(), sorted_neighbor.end());
+        std::sort(sorted_original.begin(), sorted_original.end());
+        EXPECT_EQ(sorted_neighbor, sorted_original);
+    }
+
+  
 TEST_F(InstanceTest, TestSolutionCorrectness) {
     boost::unordered_map<std::pair<int, int>, double> edges = {
         {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
