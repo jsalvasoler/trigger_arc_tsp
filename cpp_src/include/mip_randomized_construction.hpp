@@ -40,7 +40,7 @@ public:
     ~MIPRandomizedConstruction() override = default;
 
     void run() override;
-    std::vector<int> getSolution() const;
+    std::vector<int> getSolution() const override;
 
     // Core evaluation methods (public for testing)
     std::pair<std::vector<int>, double> evaluateIndividual(TSPPrior& tspPrior, int timeLimitSec);

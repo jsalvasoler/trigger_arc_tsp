@@ -13,7 +13,7 @@ public:
     ~RandomizedGreedyConstruction() override = default;
 
     void run() override;
-    std::vector<int> getSolution() const;
+    std::vector<int> getSolution() const override;
 
 private:
     std::vector<int> constructSolution();
