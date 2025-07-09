@@ -146,7 +146,7 @@ TEST_F(InstanceTest, AllTwoOptNeighbors) {
     // All neighbors should be different from original tour but same size
     for (const auto& neighbor : neighbors) {
         EXPECT_EQ(neighbor.size(), tour.size());
-        EXPECT_NE(neighbor, tour); // Ensure at least one element changed
+        EXPECT_NE(neighbor, tour);  // Ensure at least one element changed
     }
 
     // Optional: Check that all neighbors are permutations of the original tour
@@ -157,8 +157,8 @@ TEST_F(InstanceTest, AllTwoOptNeighbors) {
         std::sort(sorted_original.begin(), sorted_original.end());
         EXPECT_EQ(sorted_neighbor, sorted_original);
     }
+}
 
-  
 TEST_F(InstanceTest, TestSolutionCorrectness) {
     boost::unordered_map<std::pair<int, int>, double> edges = {
         {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
