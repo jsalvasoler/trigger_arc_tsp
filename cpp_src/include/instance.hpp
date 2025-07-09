@@ -14,18 +14,16 @@ public:
     TwoOptIteratorTracker(const int n) : n_(n), i_(0), j_(1) {}
 
     std::optional<std::pair<int, int>> next() {
-        if (i_ < n_ - 1) {
-            if (j_ < n_) {
-                return std::make_pair(i_, j_++);
-            } else {
-                ++i_;
-                j_ = i_ + 1;
-                if (j_ < n_) {
-                    return std::make_pair(i_, j_++);
-                }
-            }
+        if (j_ >= n_) {
+            i_++;
+            j_ = i_ + 1;
         }
-        return std::nullopt;
+
+        if (i_ >= n_ - 1) {
+            return std::nullopt;
+        }
+
+        return std::make_pair(i_, j_++);
     }
 
     void reset() {
@@ -89,11 +87,16 @@ public:
         return R_a_;
     }
 
+    void resetTrackers() const {
+        twoOptIteratorTracker_.reset();
+    }
+
     // Core methods
     double computeObjective(const std::vector<int>& tour) const;
     bool checkSolutionCorrectness(const std::vector<int>& tour) const;
     bool testSolution(const std::vector<int>& tour, double proposedObjective) const;
-    void saveSolution(const std::vector<int>& tour, std::optional<double> objective = std::nullopt);
+    void saveSolution(const std::vector<int>& tour,
+                      std::optional<double> objective = std::nullopt) const;
     std::optional<std::vector<int>> getBestKnownSolution(int idx = 0) const;
     std::vector<boost::unordered_map<std::string, double>> getMipStart(
         bool useTspOnly = false) const;
@@ -104,7 +107,7 @@ public:
     void generateZVarIndices() const;
     void get_two_opt_neigbhor(std::vector<int>& tour, int i, int j) const;
 
-    TwoOptIteratorTracker twoOptIteratorTracker_;
+    mutable TwoOptIteratorTracker twoOptIteratorTracker_;
 
 private:
     // Member variables

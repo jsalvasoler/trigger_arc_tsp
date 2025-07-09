@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 
+#include "grasp.hpp"
 #include "instance.hpp"
 #include "mip_randomized_construction.hpp"
 #include "model.hpp"
@@ -35,7 +36,7 @@ int main(int argc, char* argv[]) {
         "instance-file,i", po::value<std::string>()->required(), "Path to the instance file")(
         "method",
         po::value<std::string>()->default_value("gurobi"),
-        "Solution method (gurobi, randomized_greedy, or mip_randomized_construction)")(
+        "Solution method (gurobi, randomized_greedy, mip_randomized_construction, or grasp)")(
         "alpha",
         po::value<double>()->default_value(0.3),
         "Alpha parameter for randomized greedy (0.0 to 1.0)")(
@@ -47,6 +48,15 @@ int main(int argc, char* argv[]) {
         po::value<int>()->default_value(-1),
         "Presolve level (-1: automatic, 0: off, 1: conservative, 2: aggressive)")(
         "mip-start,m", "Use MIP start if available")("logs,l", "Show solver logs")(
+        "n-trials", po::value<int>()->default_value(10), "Number of trials for GRASP")(
+        "beta", po::value<double>()->default_value(0.5), "Beta parameter for GRASP")(
+        "start-with-best", "Start GRASP with the best known solution")(
+        "constructive-heuristic",
+        po::value<std::string>()->default_value("RandomizedGreedy"),
+        "Constructive heuristic for GRASP (RandomizedGreedy, MIPRandomizedGreedyBias, "
+        "MIPRandomizedGreedyRandom)")("local-searches",
+                                      po::value<std::vector<std::string>>()->multitoken(),
+                                      "Local searches for GRASP (TwoOpt, SwapTwo, Relocate)")(
         "output-dir,o",
         po::value<std::string>()->default_value("output"),
         "Path to the output directory");
@@ -111,6 +121,59 @@ int main(int argc, char* argv[]) {
         MIPRandomizedConstruction mipRC(*instance, timeLimitSec);
         mipRC.run();
         tour = mipRC.getSolution();
+        if (!tour.empty()) {
+            cost = instance->computeObjective(tour);
+        }
+        auto endTime = std::chrono::high_resolution_clock::now();
+        wallTime = std::chrono::duration<double>(endTime - startTime).count();
+    } else if (methodName == "grasp") {
+        int n_trials = vm["n-trials"].as<int>();
+        double alpha = vm["alpha"].as<double>();
+        double beta = vm["beta"].as<double>();
+        bool start_with_best = vm.count("start-with-best") > 0;
+        int time_limit_sec = vm["time-limit"].as<int>();
+
+        std::string constructive_heuristic_str = vm["constructive-heuristic"].as<std::string>();
+        ConstructiveHeuristicType constructive_heuristic;
+        if (constructive_heuristic_str == "RandomizedGreedy") {
+            constructive_heuristic = ConstructiveHeuristicType::RandomizedGreedy;
+        } else if (constructive_heuristic_str == "MIPRandomizedGreedyBias") {
+            constructive_heuristic = ConstructiveHeuristicType::MIPRandomizedGreedyBias;
+        } else if (constructive_heuristic_str == "MIPRandomizedGreedyRandom") {
+            constructive_heuristic = ConstructiveHeuristicType::MIPRandomizedGreedyRandom;
+        } else {
+            std::cerr << "Error: Unknown constructive heuristic '" << constructive_heuristic_str
+                      << "'\n";
+            return 1;
+        }
+
+        std::vector<LocalSearch> local_searches;
+        if (vm.count("local-searches")) {
+            for (const auto& ls_str : vm["local-searches"].as<std::vector<std::string>>()) {
+                if (ls_str == "TwoOpt") {
+                    local_searches.push_back(LocalSearch::TwoOpt);
+                } else if (ls_str == "SwapTwo") {
+                    local_searches.push_back(LocalSearch::SwapTwo);
+                } else if (ls_str == "Relocate") {
+                    local_searches.push_back(LocalSearch::Relocate);
+                } else {
+                    std::cerr << "Error: Unknown local search '" << ls_str << "'\n";
+                    return 1;
+                }
+            }
+        }
+
+        GRASP grasp(*instance,
+                    n_trials,
+                    alpha,
+                    beta,
+                    constructive_heuristic,
+                    local_searches,
+                    vm.count("logs") > 0,
+                    start_with_best,
+                    time_limit_sec);
+        grasp.run();
+        tour = grasp.getSolution();
         if (!tour.empty()) {
             cost = instance->computeObjective(tour);
         }

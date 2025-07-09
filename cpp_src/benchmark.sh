@@ -7,7 +7,8 @@
 # define what to benchmark with a map
 to_benchmark=(
     # "randomized_greedy"
-    "mip_randomized_construction"
+    # "mip_randomized_construction"
+    "grasp"
 )
 
 if [[ " ${to_benchmark[@]} " =~ " randomized_greedy " ]]; then
@@ -41,5 +42,45 @@ if [[ " ${to_benchmark[@]} " =~ " mip_randomized_construction " ]]; then
         done
     done
 fi
+
+if [[ " ${to_benchmark[@]} " =~ " grasp " ]]; then
+
+    ### Benchmark GRASP
+    n_trials_grasp=1000
+    time_limit_grasp=120
+    alpha_grasp=0.3
+    beta_grasp=0.5
+    local_searches_grasp="TwoOpt"
+
+    constructive_heuristics_grasp=(
+        # "RandomizedGreedy"
+        "MIPRandomizedGreedyBias"
+        # "MIPRandomizedGreedyRandom"
+    )
+
+    echo "=== Starting GRASP Benchmark ==="
+
+    for instance in $(ls instances/instances_release_1/*.txt); do
+        if [[ ! $instance == *"grf13.txt" ]]; then
+            echo "Skipping instance $instance as it does not end with grf1.txt"
+            continue
+        fi
+        for heuristic in "${constructive_heuristics_grasp[@]}"; do
+            echo "Running GRASP for instance $instance with heuristic $heuristic"
+            cpp_src/build/trigger_arc_tsp \
+                --instance-file $instance \
+                --method grasp \
+                --time-limit $time_limit_grasp \
+                --n-trials $n_trials_grasp \
+                --alpha $alpha_grasp \
+                --beta $beta_grasp \
+                --constructive-heuristic $heuristic \
+                --local-searches $local_searches_grasp \
+                --logs \
+                --output-dir output/grasp/$(basename $instance)_heuristic_${heuristic}
+        done
+    done
+fi
+
 
 echo "=== Benchmark Complete ==="

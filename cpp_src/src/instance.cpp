@@ -134,7 +134,7 @@ bool Instance::testSolution(const std::vector<int>& tour, double proposedObjecti
     return std::abs(cost - proposedObjective) < 1e-6;
 }
 
-void Instance::saveSolution(const std::vector<int>& tour, std::optional<double> objective) {
+void Instance::saveSolution(const std::vector<int>& tour, std::optional<double> objective) const {
     if (!checkSolutionCorrectness(tour)) {
         throw std::runtime_error("Invalid solution for instance " + name_);
     }
