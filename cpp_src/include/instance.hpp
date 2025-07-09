@@ -72,6 +72,8 @@ public:
     std::vector<int> tspSolution() const;
     float computePartialTourCost(const std::vector<int>& partialTour, int startIdx = 0) const;
     void generateZVarIndices() const;
+    void get_two_opt_neigbhor(std::vector<int>& tour);
+    std::vector<std::vector<int>> get_all_two_opt_neigbhor(std::vector<int>& tour);
 
 private:
     // Member variables
