@@ -46,7 +46,7 @@ The `cpp_src` directory contains several useful scripts:
 You can then run the solver from `cpp_src/build` directory, for example:
 
 ```bash
-./bin/trigger_arc_tsp --method grasp --instance-file ../../instances/instances_release_1/grf1.txt --n-trials 10 --local-searches TwoOpt SwapTwo Relocate --constructive-heuristic RandomizedGreedy --logs
+./bin/trigger_arc_tsp --method grasp --instance-file ../../instances/instances_release_1/grf1.txt --n-trials 10 --local-searches TwoOpt SwapTwo Relocate --constructive-heuristic SimpleRandomized --logs
 ```
 
 Run `./bin/trigger_arc_tsp --help` to see all available options.
@@ -57,11 +57,12 @@ Our solver includes an implementation of the Greedy Randomized Adaptive Search P
 
 #### Construction Phase
 
-In the construction phase, a feasible solution is built using a randomized greedy approach. We support the following constructive heuristics:
+In the construction phase, a feasible solution is built using a randomized approach. We support the following constructive heuristics:
 
 -   `RandomizedGreedy`: A simple randomized greedy construction.
 -   `MIPRandomizedGreedyBias`: A more advanced construction that uses a MIP model on a restricted set of edges with a bias towards promising edges.
 -   `MIPRandomizedGreedyRandom`: Similar to the above, but with a more random selection of edges.
+-   `SimpleRandomized`: A very simple construction heuristic that randomly selects the next node from the neighbors of the current node. It's very fast but not very effective.
 
 You can specify the constructive heuristic using the `--constructive-heuristic` flag.
 

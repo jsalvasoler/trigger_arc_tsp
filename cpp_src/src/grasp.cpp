@@ -8,6 +8,7 @@
 
 #include "mip_randomized_construction.hpp"
 #include "randomized_greedy.hpp"
+#include "simple_randomized_construction.hpp"
 
 GRASP::GRASP(const Instance& instance,
              int n_trials,
@@ -39,6 +40,9 @@ GRASP::GRASP(const Instance& instance,
         case ConstructiveHeuristicType::MIPRandomizedGreedyRandom:
             constructive_heuristic_ = std::make_unique<MIPRandomizedConstruction>(
                 instance_, 10, ConstructionType::Random);
+            break;
+        case ConstructiveHeuristicType::SimpleRandomized:
+            constructive_heuristic_ = std::make_unique<SimpleRandomizedConstruction>(instance_);
             break;
     }
 }
@@ -134,6 +138,11 @@ void GRASP::run() {
         // 1. construct initial tour
         constructive_heuristic_->run();
         auto tour = constructive_heuristic_->getSolution();
+        if (tour.empty()) {
+            // some heuristics can fail to construct a tour
+            iteration_++;
+            continue;
+        }
         double current_cost = instance_.computeObjective(tour);
         if (current_cost < best_cost_) {
             log_iteration(current_cost, best_cost_, get_time_elapsed(), true);

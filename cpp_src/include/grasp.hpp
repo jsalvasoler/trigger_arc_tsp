@@ -8,6 +8,7 @@ enum class ConstructiveHeuristicType {
     RandomizedGreedy,
     MIPRandomizedGreedyBias,
     MIPRandomizedGreedyRandom,
+    SimpleRandomized
 };
 
 enum class LocalSearch {
