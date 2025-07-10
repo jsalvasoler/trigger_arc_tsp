@@ -6,6 +6,13 @@ set -e
 # Get the directory where the script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
+# Check for 'clean' argument
+if [ "$1" == "clean" ]; then
+    echo "Cleaning build directory..."
+    rm -rf "${SCRIPT_DIR}/build"
+    shift # Remove 'clean' from arguments
+fi
+
 # Default build type is Release
 BUILD_TYPE=${1:-Release}
 
