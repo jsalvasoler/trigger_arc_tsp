@@ -1,4 +1,4 @@
-# Trigger Arc TSP (C++ Version)
+# Trigger Arc TSP
 
 This is the C++ implementation for the Trigger Arc TSP competition hosted by the [Metaheuristics Summer School](https://fourclicks.eu/fck/mess2024/frontend/#/home/dashboard) organizers.
 
