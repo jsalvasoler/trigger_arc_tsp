@@ -33,13 +33,18 @@ protected:
     fs::path grf4Path_;
 };
 
+// Parameterized test class for testing both construction types
+class MIPRandomizedConstructionParameterizedTest
+    : public MIPRandomizedConstructionTest,
+      public ::testing::WithParamInterface<ConstructionType> {};
+
 TEST_F(MIPRandomizedConstructionTest, ComputeNodeDistances1) {
     boost::unordered_map<std::pair<int, int>, double> edges = {
         {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
     boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
     Instance inst(3, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1);
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Bias);
     std::vector<int> nodePriorities = {0, 1, 2};
     auto nodeDist = mipRC.computeNodeDist(nodePriorities);
 
@@ -58,7 +63,7 @@ TEST_F(MIPRandomizedConstructionTest, ComputeNodeDistances2) {
     boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
     Instance inst(5, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1);
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Bias);
     std::vector<int> nodePriorities = {0, 1, 2, 3, 4};
     auto nodeDist = mipRC.computeNodeDist(nodePriorities);
 
@@ -80,7 +85,7 @@ TEST_F(MIPRandomizedConstructionTest, TSPSearchSolutionFindsOnlyFeasible) {
     boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
     Instance inst(3, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1);
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Bias);
     TSPPrior tspPrior({0, 2, 1}, 0.5, 0.5);
 
     auto [tour, cost] = mipRC.evaluateIndividual(tspPrior, 5);
@@ -96,7 +101,7 @@ TEST_F(MIPRandomizedConstructionTest, GetEdgesForTSPSearch1) {
     boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {{{0, 1, 2, 0}, 0.0}};
     Instance inst(3, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1);
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Bias);
     TSPPrior tspPrior({0, 1, 2}, 0.5, 0.5);
     auto modifiedEdges = mipRC.getEdgesForTSPSearch(tspPrior);
 
@@ -117,7 +122,7 @@ TEST_F(MIPRandomizedConstructionTest, GetEdgesForTSPSearch2) {
                                                                               {{0, 2, 3, 4}, -1.0}};
     Instance inst(5, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1);
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Bias);
     std::vector<int> tour1 = {0, 1, 2, 3, 4};
     std::vector<int> tour2 = {0, 2, 1, 3, 4};
 
@@ -165,7 +170,7 @@ TEST_F(MIPRandomizedConstructionTest, TSPSearch2) {
                                                                               {{0, 2, 3, 4}, -1.0}};
     Instance inst(5, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1);
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Bias);
     std::vector<int> tour1 = {0, 1, 2, 3, 4};
     std::vector<int> tour2 = {0, 2, 1, 3, 4};
 
@@ -191,7 +196,7 @@ TEST_F(MIPRandomizedConstructionTest, GenerateRandomPermutation) {
     boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
     Instance inst(5, edges, relations, "test");
 
-    MIPRandomizedConstruction mipRC(inst, 1);
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Bias);
 
     // Test multiple random permutations
     std::map<std::pair<int, int>, int> positionCounts;  // (element, position) -> count
@@ -226,7 +231,7 @@ TEST_F(MIPRandomizedConstructionTest, BestAmongMultipleTSPFeasibleSolutionsIsSel
     auto inst = Instance::loadInstanceFromFile(grf4Path_.string());
     ASSERT_NE(inst, nullptr);
 
-    MIPRandomizedConstruction mipRC(*inst, 10);
+    MIPRandomizedConstruction mipRC(*inst, 10, ConstructionType::Bias);
 
     // Create a TSP prior with sequential priorities
     std::vector<int> priorities;
@@ -243,24 +248,133 @@ TEST_F(MIPRandomizedConstructionTest, BestAmongMultipleTSPFeasibleSolutionsIsSel
     EXPECT_DOUBLE_EQ(bestCost, inst->computeObjective(bestTour));
 }
 
-TEST_F(MIPRandomizedConstructionTest, SolvesExampleInstance) {
+TEST_F(MIPRandomizedConstructionTest, ApplyAlphaRandomizationToEdges) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 2.0}, {{2, 0}, 3.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Random);
+
+    // Test with alpha = 0 (should not change edges)
+    auto randomizedEdges = mipRC.applyAlphaRandomizationToEdges(0.0);
+    EXPECT_DOUBLE_EQ(randomizedEdges[std::make_pair(0, 1)], 1.0);
+    EXPECT_DOUBLE_EQ(randomizedEdges[std::make_pair(1, 2)], 2.0);
+    EXPECT_DOUBLE_EQ(randomizedEdges[std::make_pair(2, 0)], 3.0);
+
+    // Test with alpha > 0 (should change edges)
+    randomizedEdges = mipRC.applyAlphaRandomizationToEdges(1.0);
+    EXPECT_NE(randomizedEdges[std::make_pair(0, 1)], 1.0);
+    EXPECT_NE(randomizedEdges[std::make_pair(1, 2)], 2.0);
+    EXPECT_NE(randomizedEdges[std::make_pair(2, 0)], 3.0);
+}
+
+TEST_F(MIPRandomizedConstructionTest, OptionalAlphaParameterBias) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    // Test with specific alpha value for Bias type
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Bias, 0.5);
+
+    auto permutation = mipRC.generateRandomPermutation();
+    TSPPrior tspPrior(permutation, 0.5, 0.5);  // Expected alpha should be 0.5
+
+    // The constructor should use the provided alpha value
+    // We can't directly test the stored alpha_ value since it's private,
+    // but we can verify the functionality works
+    EXPECT_NO_THROW(mipRC.run());
+    auto tour = mipRC.getSolution();
+    EXPECT_FALSE(tour.empty());
+}
+
+TEST_F(MIPRandomizedConstructionTest, OptionalAlphaParameterRandom) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    // Test with specific alpha value for Random type
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Random, 0.1);
+
+    // The constructor should use the provided alpha value
+    EXPECT_NO_THROW(mipRC.run());
+    auto tour = mipRC.getSolution();
+    EXPECT_FALSE(tour.empty());
+}
+
+TEST_F(MIPRandomizedConstructionTest, OptionalAlphaAndBetaParametersBias) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    // Test with specific alpha and beta values for Bias type
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Bias, 0.5, 1.0);
+
+    EXPECT_NO_THROW(mipRC.run());
+    auto tour = mipRC.getSolution();
+    EXPECT_FALSE(tour.empty());
+}
+
+TEST_F(MIPRandomizedConstructionTest, DefaultParametersStillWork) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    // Test that default parameters still work (no alpha/beta specified)
+    MIPRandomizedConstruction mipRC1(inst, 1, ConstructionType::Bias);
+    MIPRandomizedConstruction mipRC2(inst, 1, ConstructionType::Random);
+
+    EXPECT_NO_THROW(mipRC1.run());
+    EXPECT_NO_THROW(mipRC2.run());
+
+    auto tour1 = mipRC1.getSolution();
+    auto tour2 = mipRC2.getSolution();
+
+    EXPECT_FALSE(tour1.empty());
+    EXPECT_FALSE(tour2.empty());
+}
+
+TEST_F(MIPRandomizedConstructionTest, SolveRandomizedTSP) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Random);
+
+    auto [tour, cost] = mipRC.solveRandomizedTSP(0.1, 5);
+
+    EXPECT_FALSE(tour.empty());
+    EXPECT_EQ(tour.size(), 3);
+    EXPECT_TRUE(inst.checkSolutionCorrectness(tour));
+    EXPECT_GT(cost, 0.0);
+}
+
+TEST_P(MIPRandomizedConstructionParameterizedTest, SolvesExampleInstance) {
+    ConstructionType type = GetParam();
     auto inst = Instance::loadInstanceFromFile(examplePath_.string());
     ASSERT_NE(inst, nullptr);
 
-    MIPRandomizedConstruction mipRC(*inst, 5);  // Short time limit
+    MIPRandomizedConstruction mipRC(*inst, 5, type);
     mipRC.run();
     auto tour = mipRC.getSolution();
 
-    ASSERT_FALSE(tour.empty()) << "MIP randomized construction failed to find a solution.";
+    ASSERT_FALSE(tour.empty()) << "MIP randomized construction failed to find a solution for type "
+                               << (type == ConstructionType::Bias ? "Bias" : "Random");
     EXPECT_EQ(tour.size(), inst->getN());
     EXPECT_TRUE(inst->checkSolutionCorrectness(tour));
 }
 
-TEST_F(MIPRandomizedConstructionTest, ReturnsValidCost) {
+TEST_P(MIPRandomizedConstructionParameterizedTest, ReturnsValidCost) {
+    ConstructionType type = GetParam();
     auto inst = Instance::loadInstanceFromFile(examplePath_.string());
     ASSERT_NE(inst, nullptr);
 
-    MIPRandomizedConstruction mipRC(*inst, 5);
+    MIPRandomizedConstruction mipRC(*inst, 5, type);
     mipRC.run();
     auto tour = mipRC.getSolution();
 
@@ -270,7 +384,8 @@ TEST_F(MIPRandomizedConstructionTest, ReturnsValidCost) {
     }
 }
 
-TEST_F(MIPRandomizedConstructionTest, SolvesGRF1) {
+TEST_P(MIPRandomizedConstructionParameterizedTest, SolvesGRF1) {
+    ConstructionType type = GetParam();
     if (!fs::exists(grf1Path_)) {
         GTEST_SKIP() << "GRF1 instance not found at " << grf1Path_;
     }
@@ -278,16 +393,19 @@ TEST_F(MIPRandomizedConstructionTest, SolvesGRF1) {
     auto inst = Instance::loadInstanceFromFile(grf1Path_.string());
     ASSERT_NE(inst, nullptr);
 
-    MIPRandomizedConstruction mipRC(*inst, 5);  // Short time limit for faster execution
+    MIPRandomizedConstruction mipRC(*inst, 5, type);
     mipRC.run();
     auto tour = mipRC.getSolution();
 
-    ASSERT_FALSE(tour.empty()) << "MIP randomized construction failed to find a solution for GRF1.";
+    ASSERT_FALSE(tour.empty())
+        << "MIP randomized construction failed to find a solution for GRF1 with type "
+        << (type == ConstructionType::Bias ? "Bias" : "Random");
     EXPECT_EQ(tour.size(), inst->getN());
     EXPECT_TRUE(inst->checkSolutionCorrectness(tour));
 }
 
-TEST_F(MIPRandomizedConstructionTest, SolvesGRF4) {
+TEST_P(MIPRandomizedConstructionParameterizedTest, SolvesGRF4) {
+    ConstructionType type = GetParam();
     if (!fs::exists(grf4Path_)) {
         GTEST_SKIP() << "GRF4 instance not found at " << grf4Path_;
     }
@@ -295,11 +413,21 @@ TEST_F(MIPRandomizedConstructionTest, SolvesGRF4) {
     auto inst = Instance::loadInstanceFromFile(grf4Path_.string());
     ASSERT_NE(inst, nullptr);
 
-    MIPRandomizedConstruction mipRC(*inst, 5);  // Short time limit for faster execution
+    MIPRandomizedConstruction mipRC(*inst, 5, type);
     mipRC.run();
     auto tour = mipRC.getSolution();
 
-    ASSERT_FALSE(tour.empty()) << "MIP randomized construction failed to find a solution for GRF4.";
+    ASSERT_FALSE(tour.empty())
+        << "MIP randomized construction failed to find a solution for GRF4 with type "
+        << (type == ConstructionType::Bias ? "Bias" : "Random");
     EXPECT_EQ(tour.size(), inst->getN());
     EXPECT_TRUE(inst->checkSolutionCorrectness(tour));
 }
+
+// Instantiate the parameterized tests for both construction types
+INSTANTIATE_TEST_SUITE_P(BothConstructionTypes,
+                         MIPRandomizedConstructionParameterizedTest,
+                         ::testing::Values(ConstructionType::Bias, ConstructionType::Random),
+                         [](const ::testing::TestParamInfo<ConstructionType>& info) {
+                             return info.param == ConstructionType::Bias ? "Bias" : "Random";
+                         });
