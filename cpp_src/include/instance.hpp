@@ -37,6 +37,34 @@ private:
     int j_;
 };
 
+class SwapTwoIteratorTracker {
+public:
+    SwapTwoIteratorTracker(const int n) : n_(n), i_(1), j_(2) {}
+
+    std::optional<std::pair<int, int>> next() {
+        if (j_ >= n_) {
+            i_++;
+            j_ = i_ + 1;
+        }
+
+        if (i_ >= n_ - 1) {
+            return std::nullopt;
+        }
+
+        return std::make_pair(i_, j_++);
+    }
+
+    void reset() {
+        i_ = 1;
+        j_ = 2;
+    }
+
+private:
+    int n_;
+    int i_;
+    int j_;
+};
+
 class Instance {
 public:
     // Constructor
@@ -89,6 +117,7 @@ public:
 
     void resetTrackers() const {
         twoOptIteratorTracker_.reset();
+        swapTwoIteratorTracker_.reset();
     }
 
     // Core methods
@@ -106,8 +135,10 @@ public:
     float computePartialTourCost(const std::vector<int>& partialTour, int startIdx = 0) const;
     void generateZVarIndices() const;
     void get_two_opt_neighbor(std::vector<int>& tour, int i, int j) const;
+    void get_swap_two_neighbor(std::vector<int>& tour, int i, int j) const;
 
     mutable TwoOptIteratorTracker twoOptIteratorTracker_;
+    mutable SwapTwoIteratorTracker swapTwoIteratorTracker_;
 
 private:
     // Member variables

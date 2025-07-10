@@ -68,7 +68,17 @@ std::optional<std::vector<int>> GRASP::localSearch(const std::vector<int>& tour)
     }
 
     if (is_local_search_type_enabled(LocalSearch::SwapTwo)) {
-        // TODO: implement swap two
+        while (auto next_pair = instance_.swapTwoIteratorTracker_.next()) {
+            std::vector<int> new_tour = tour;
+            instance_.get_swap_two_neighbor(new_tour, next_pair->first, next_pair->second);
+            if (!instance_.checkSolutionCorrectness(new_tour)) {
+                continue;
+            }
+            double new_cost = instance_.computeObjective(new_tour);
+            if (new_cost < current_cost) {
+                return new_tour;
+            }
+        }
     }
     if (is_local_search_type_enabled(LocalSearch::Relocate)) {
         // TODO: implement relocate

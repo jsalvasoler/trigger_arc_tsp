@@ -19,6 +19,7 @@ Instance::Instance(int N,
                    const boost::unordered_map<std::tuple<int, int, int, int>, double>& relations,
                    const std::string& name)
     : twoOptIteratorTracker_(N),
+      swapTwoIteratorTracker_(N),
       name_(name),
       modelName_(name.substr(0, name.find_last_of('.')) + ".mps"),
       N_(N),
@@ -380,4 +381,10 @@ void Instance::get_two_opt_neighbor(std::vector<int>& tour, int i, int j) const 
     // This is achieved by reversing the segment from tour[i+1] to tour[j].
     // Assumes i < j.
     std::reverse(tour.begin() + i + 1, tour.begin() + j + 1);
+}
+
+void Instance::get_swap_two_neighbor(std::vector<int>& tour, int i, int j) const {
+    // Swaps nodes at indices i and j of the tour.
+    // Assumes i and j are valid indices for the tour, and not 0.
+    std::swap(tour[i], tour[j]);
 }
