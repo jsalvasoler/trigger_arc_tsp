@@ -1,5 +1,4 @@
-#ifndef MIP_RANDOMIZED_CONSTRUCTION_HPP
-#define MIP_RANDOMIZED_CONSTRUCTION_HPP
+#pragma once
 
 #include <boost/unordered_map.hpp>
 #include <limits>
@@ -70,5 +69,3 @@ private:
     mutable std::mt19937 rng_;
     std::vector<int> bestTour_;
 };
-
-#endif  // MIP_RANDOMIZED_CONSTRUCTION_HPP

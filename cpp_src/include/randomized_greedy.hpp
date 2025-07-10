@@ -1,5 +1,4 @@
-#ifndef RANDOMIZED_GREEDY_HPP
-#define RANDOMIZED_GREEDY_HPP
+#pragma once
 
 #include <boost/unordered_set.hpp>
 #include <random>
@@ -28,5 +27,3 @@ private:
     double bestCost_;
     mutable std::mt19937 rng_;
 };
-
-#endif  // RANDOMIZED_GREEDY_HPP

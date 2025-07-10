@@ -1,5 +1,4 @@
-#ifndef METHOD_HPP
-#define METHOD_HPP
+#pragma once
 
 #include "instance.hpp"
 
@@ -14,5 +13,3 @@ public:
 protected:
     const Instance& instance_;
 };
-
-#endif  // METHOD_HPP

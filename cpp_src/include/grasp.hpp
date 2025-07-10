@@ -1,6 +1,4 @@
-#ifndef GRASP_HPP
-#define GRASP_HPP
-
+#pragma once
 #include <memory>
 
 #include "instance.hpp"
@@ -54,5 +52,3 @@ private:
                        double time_elapsed,
                        bool improvement = false);
 };
-
-#endif  // GRASP_HPP
