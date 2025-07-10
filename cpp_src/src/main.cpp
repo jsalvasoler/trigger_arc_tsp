@@ -114,6 +114,8 @@ int main(int argc, char* argv[]) {
         tour = greedy.getSolution();
         if (!tour.empty()) {
             cost = instance->computeObjective(tour);
+        } else {
+            cost = std::numeric_limits<double>::infinity();
         }
         auto endTime = std::chrono::high_resolution_clock::now();
         wallTime = std::chrono::duration<double>(endTime - startTime).count();
@@ -125,6 +127,8 @@ int main(int argc, char* argv[]) {
         tour = mipRC.getSolution();
         if (!tour.empty()) {
             cost = instance->computeObjective(tour);
+        } else {
+            cost = std::numeric_limits<double>::infinity();
         }
         auto endTime = std::chrono::high_resolution_clock::now();
         wallTime = std::chrono::duration<double>(endTime - startTime).count();
@@ -134,6 +138,8 @@ int main(int argc, char* argv[]) {
         tour = simple.getSolution();
         if (!tour.empty()) {
             cost = instance->computeObjective(tour);
+        } else {
+            cost = std::numeric_limits<double>::infinity();
         }
         auto endTime = std::chrono::high_resolution_clock::now();
         wallTime = std::chrono::duration<double>(endTime - startTime).count();
@@ -189,6 +195,8 @@ int main(int argc, char* argv[]) {
         tour = grasp.getSolution();
         if (!tour.empty()) {
             cost = instance->computeObjective(tour);
+        } else {
+            cost = std::numeric_limits<double>::infinity();
         }
         auto endTime = std::chrono::high_resolution_clock::now();
         wallTime = std::chrono::duration<double>(endTime - startTime).count();
