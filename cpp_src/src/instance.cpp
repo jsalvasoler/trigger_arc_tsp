@@ -18,7 +18,8 @@ Instance::Instance(int N,
                    const boost::unordered_map<std::pair<int, int>, double>& edges,
                    const boost::unordered_map<std::tuple<int, int, int, int>, double>& relations,
                    const std::string& name)
-    : name_(name),
+    : twoOptIteratorTracker_(N),
+      name_(name),
       modelName_(name.substr(0, name.find_last_of('.')) + ".mps"),
       N_(N),
       A_(edges.size()),
@@ -133,7 +134,7 @@ bool Instance::testSolution(const std::vector<int>& tour, double proposedObjecti
     return std::abs(cost - proposedObjective) < 1e-6;
 }
 
-void Instance::saveSolution(const std::vector<int>& tour, std::optional<double> objective) {
+void Instance::saveSolution(const std::vector<int>& tour, std::optional<double> objective) const {
     if (!checkSolutionCorrectness(tour)) {
         throw std::runtime_error("Invalid solution for instance " + name_);
     }
@@ -373,31 +374,10 @@ std::vector<int> Instance::tspSolution() const {
     return model.getBestTour();
 }
 
-void Instance::get_two_opt_neigbhor(std::vector<int>& tour) {
-    // modify (inline) the tour passed as parameter
-    // Warning: Doesn't check solution validity
-    int n = tour.size();
-
-    srand(std::time(nullptr));
-    int a = rand() % (n);
-    int b = rand() % (n);
-
-    std::swap(tour[a], tour[b]);
-}
-
-std::vector<std::vector<int>> Instance::get_all_two_opt_neigbhor(std::vector<int>& tour) {
-    // returns all neighbors of the solution
-    // Warning: Doesn't check solution validity
-    int n = tour.size();
-    std::vector<std::vector<int>> res;
-
-    for (int i = 0; i < n - 1; ++i) {
-        for (int j = i + 1; j < n; ++j) {
-            std::vector<int> neighbor = tour;
-            std::swap(neighbor[i], neighbor[j]);
-            res.push_back(neighbor);
-        }
-    }
-
-    return res;
+void Instance::get_two_opt_neighbor(std::vector<int>& tour, int i, int j) const {
+    // Replaces edges (tour[i], tour[i+1]) and (tour[j], tour[j+1])
+    // with (tour[i], tour[j]) and (tour[i+1], tour[j+1]).
+    // This is achieved by reversing the segment from tour[i+1] to tour[j].
+    // Assumes i < j.
+    std::reverse(tour.begin() + i + 1, tour.begin() + j + 1);
 }

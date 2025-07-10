@@ -1,5 +1,4 @@
-#ifndef RANDOMIZED_GREEDY_HPP
-#define RANDOMIZED_GREEDY_HPP
+#pragma once
 
 #include <boost/unordered_set.hpp>
 #include <random>
@@ -13,7 +12,7 @@ public:
     ~RandomizedGreedyConstruction() override = default;
 
     void run() override;
-    std::vector<int> getSolution() const;
+    std::vector<int> getSolution() const override;
 
 private:
     std::vector<int> constructSolution();
@@ -28,5 +27,3 @@ private:
     double bestCost_;
     mutable std::mt19937 rng_;
 };
-
-#endif  // RANDOMIZED_GREEDY_HPP

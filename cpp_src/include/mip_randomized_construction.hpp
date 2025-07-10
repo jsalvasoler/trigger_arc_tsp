@@ -1,5 +1,4 @@
-#ifndef MIP_RANDOMIZED_CONSTRUCTION_HPP
-#define MIP_RANDOMIZED_CONSTRUCTION_HPP
+#pragma once
 
 #include <boost/unordered_map.hpp>
 #include <limits>
@@ -40,7 +39,7 @@ public:
     ~MIPRandomizedConstruction() override = default;
 
     void run() override;
-    std::vector<int> getSolution() const;
+    std::vector<int> getSolution() const override;
 
     // Core evaluation methods (public for testing)
     std::pair<std::vector<int>, double> evaluateIndividual(TSPPrior& tspPrior, int timeLimitSec);
@@ -70,5 +69,3 @@ private:
     mutable std::mt19937 rng_;
     std::vector<int> bestTour_;
 };
-
-#endif  // MIP_RANDOMIZED_CONSTRUCTION_HPP

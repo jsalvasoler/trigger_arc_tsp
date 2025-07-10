@@ -71,6 +71,7 @@ set(SOURCES
     src/method.cpp
     src/randomized_greedy.cpp
     src/mip_randomized_construction.cpp
+    src/grasp.cpp
 )
 
 # Add main executable
@@ -93,12 +94,16 @@ target_link_libraries(randomized_greedy_tests GTest::gtest_main ${Boost_LIBRARIE
 add_executable(mip_randomized_construction_tests tests/test_mip_randomized_construction.cpp ${SOURCES})
 target_link_libraries(mip_randomized_construction_tests GTest::gtest_main ${Boost_LIBRARIES} ${GUROBI_LIBRARIES})
 
+add_executable(grasp_tests tests/test_grasp.cpp ${SOURCES})
+target_link_libraries(grasp_tests GTest::gtest_main ${Boost_LIBRARIES} ${GUROBI_LIBRARIES})
+
 # Add tests to CTest
 add_test(NAME instance_tests COMMAND instance_tests)
 add_test(NAME tsp_model_tests COMMAND tsp_model_tests)
 add_test(NAME model_tests COMMAND model_tests)
 add_test(NAME randomized_greedy_tests COMMAND randomized_greedy_tests)
 add_test(NAME mip_randomized_construction_tests COMMAND mip_randomized_construction_tests)
+add_test(NAME grasp_tests COMMAND grasp_tests)
 
 # Set env variables for Gurobi
 
