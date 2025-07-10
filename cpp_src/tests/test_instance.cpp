@@ -219,8 +219,8 @@ TEST_F(InstanceTest, AllRelocateNeighbors) {
         instance->get_relocate_neighbor(tour, opt->first, opt->second);
         count++;
     }
-    // n-1 nodes can be swapped (all but node 0)
-    EXPECT_EQ(count, (n - 1) * (n - 2) / 2);
+    // n-1 nodes can be relocated to n-2 positions
+    EXPECT_EQ(count, (n - 1) * (n - 2));
 }
 
 TEST_F(InstanceTest, TestSolutionCorrectness) {
