@@ -163,6 +163,17 @@ TEST_F(InstanceTest, SwapTwoMethod) {
     EXPECT_EQ(tour, expected_tour);
 }
 
+TEST_F(InstanceTest, RelocateMethod) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(5, edges, relations, "test");
+
+    std::vector<int> tour = {0, 1, 2, 3, 4};
+    inst.get_relocate_neighbor(tour, 1, 3);
+    std::vector<int> expected_tour = {0, 2, 3, 1, 4};
+    EXPECT_EQ(tour, expected_tour);
+}
+
 TEST_F(InstanceTest, AllTwoOptNeighbors) {
     auto instance = Instance::loadInstanceFromFile(instancePath_.string());
     int n = instance->getN();
@@ -189,6 +200,23 @@ TEST_F(InstanceTest, AllSwapTwoNeighbors) {
     while (auto opt = instance->swapTwoIteratorTracker_.next()) {
         std::vector<int> tour = original_tour;
         instance->get_swap_two_neighbor(tour, opt->first, opt->second);
+        count++;
+    }
+    // n-1 nodes can be swapped (all but node 0)
+    EXPECT_EQ(count, (n - 1) * (n - 2) / 2);
+}
+
+TEST_F(InstanceTest, AllRelocateNeighbors) {
+    auto instance = Instance::loadInstanceFromFile(instancePath_.string());
+    int n = instance->getN();
+
+    std::vector<int> original_tour = {0, 2, 1, 4, 3};
+
+    int count = 0;
+    instance->relocateIteratorTracker_.reset();
+    while (auto opt = instance->relocateIteratorTracker_.next()) {
+        std::vector<int> tour = original_tour;
+        instance->get_relocate_neighbor(tour, opt->first, opt->second);
         count++;
     }
     // n-1 nodes can be swapped (all but node 0)

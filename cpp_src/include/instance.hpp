@@ -37,9 +37,9 @@ private:
     int j_;
 };
 
-class SwapTwoIteratorTracker {
+class NodePairIteratorTracker {
 public:
-    SwapTwoIteratorTracker(const int n) : n_(n), i_(1), j_(2) {}
+    NodePairIteratorTracker(const int n) : n_(n), i_(1), j_(2) {}
 
     std::optional<std::pair<int, int>> next() {
         if (j_ >= n_) {
@@ -118,6 +118,7 @@ public:
     void resetTrackers() const {
         twoOptIteratorTracker_.reset();
         swapTwoIteratorTracker_.reset();
+        relocateIteratorTracker_.reset();
     }
 
     // Core methods
@@ -136,9 +137,11 @@ public:
     void generateZVarIndices() const;
     void get_two_opt_neighbor(std::vector<int>& tour, int i, int j) const;
     void get_swap_two_neighbor(std::vector<int>& tour, int i, int j) const;
+    void get_relocate_neighbor(std::vector<int>& tour, int i, int j) const;
 
     mutable TwoOptIteratorTracker twoOptIteratorTracker_;
-    mutable SwapTwoIteratorTracker swapTwoIteratorTracker_;
+    mutable NodePairIteratorTracker swapTwoIteratorTracker_;
+    mutable NodePairIteratorTracker relocateIteratorTracker_;
 
 private:
     // Member variables

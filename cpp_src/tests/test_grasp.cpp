@@ -87,6 +87,39 @@ TEST_P(GRASPParameterizedTest, SolvesExampleInstanceWithTwoOptAndSwapTwo) {
     EXPECT_TRUE(inst->checkSolutionCorrectness(tour));
 }
 
+TEST_P(GRASPParameterizedTest, SolvesExampleInstanceWithRelocate) {
+    ConstructiveHeuristicType heuristicType = GetParam();
+    auto inst = Instance::loadInstanceFromFile(examplePath_.string());
+    ASSERT_NE(inst, nullptr);
+
+    GRASP grasp(*inst, 1, 0.2, 0.2, heuristicType, {LocalSearch::Relocate});
+    grasp.run();
+    auto tour = grasp.getSolution();
+
+    ASSERT_FALSE(tour.empty()) << "GRASP failed to find a solution for example instance.";
+    EXPECT_EQ(tour.size(), inst->getN());
+    EXPECT_TRUE(inst->checkSolutionCorrectness(tour));
+}
+
+TEST_P(GRASPParameterizedTest, SolvesExampleInstanceWithAllLocalSearches) {
+    ConstructiveHeuristicType heuristicType = GetParam();
+    auto inst = Instance::loadInstanceFromFile(examplePath_.string());
+    ASSERT_NE(inst, nullptr);
+
+    GRASP grasp(*inst,
+                1,
+                0.2,
+                0.2,
+                heuristicType,
+                {LocalSearch::TwoOpt, LocalSearch::SwapTwo, LocalSearch::Relocate});
+    grasp.run();
+    auto tour = grasp.getSolution();
+
+    ASSERT_FALSE(tour.empty()) << "GRASP failed to find a solution for example instance.";
+    EXPECT_EQ(tour.size(), inst->getN());
+    EXPECT_TRUE(inst->checkSolutionCorrectness(tour));
+}
+
 TEST_P(GRASPParameterizedTest, SolvesGRF1) {
     ConstructiveHeuristicType heuristicType = GetParam();
     if (!fs::exists(grf1Path_)) {

@@ -20,6 +20,7 @@ Instance::Instance(int N,
                    const std::string& name)
     : twoOptIteratorTracker_(N),
       swapTwoIteratorTracker_(N),
+      relocateIteratorTracker_(N),
       name_(name),
       modelName_(name.substr(0, name.find_last_of('.')) + ".mps"),
       N_(N),
@@ -387,4 +388,12 @@ void Instance::get_swap_two_neighbor(std::vector<int>& tour, int i, int j) const
     // Swaps nodes at indices i and j of the tour.
     // Assumes i and j are valid indices for the tour, and not 0.
     std::swap(tour[i], tour[j]);
+}
+
+void Instance::get_relocate_neighbor(std::vector<int>& tour, int i, int j) const {
+    // Relocates the node at index i to index j.
+    // Assumes i and j are valid indices for the tour, and not 0.
+    int node_to_move = tour[i];
+    tour.erase(tour.begin() + i);
+    tour.insert(tour.begin() + j, node_to_move);
 }
