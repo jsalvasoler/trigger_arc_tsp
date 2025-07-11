@@ -138,7 +138,7 @@ void GRASP::run() {
         // 1. construct initial tour
         constructive_heuristic_->run();
         auto tour = constructive_heuristic_->getSolution();
-        if (tour.empty()) {
+        if (tour.empty() || !instance_.checkSolutionCorrectness(tour)) {
             // some heuristics can fail to construct a tour
             iteration_++;
             continue;
