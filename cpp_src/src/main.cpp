@@ -14,6 +14,7 @@
 #include "mip_randomized_construction.hpp"
 #include "model.hpp"
 #include "randomized_greedy.hpp"
+#include "simple_randomized_construction.hpp"
 
 namespace po = boost::program_options;
 
@@ -36,10 +37,10 @@ int main(int argc, char* argv[]) {
         "instance-file,i", po::value<std::string>()->required(), "Path to the instance file")(
         "method",
         po::value<std::string>()->default_value("gurobi"),
-        "Solution method (gurobi, randomized_greedy, mip_randomized_construction, or grasp)")(
-        "alpha",
-        po::value<double>()->default_value(0.3),
-        "Alpha parameter for randomized greedy (0.0 to 1.0)")(
+        "Solution method (gurobi, randomized_greedy, mip_randomized_construction, grasp, "
+        "or simple_randomized)")("alpha",
+                                 po::value<double>()->default_value(0.3),
+                                 "Alpha parameter for randomized greedy (0.0 to 1.0)")(
         "time-limit,t", po::value<int>()->default_value(60), "Time limit in seconds")(
         "heuristic-effort,e",
         po::value<double>()->default_value(0.05),
@@ -54,9 +55,10 @@ int main(int argc, char* argv[]) {
         "constructive-heuristic",
         po::value<std::string>()->default_value("RandomizedGreedy"),
         "Constructive heuristic for GRASP (RandomizedGreedy, MIPRandomizedGreedyBias, "
-        "MIPRandomizedGreedyRandom)")("local-searches",
-                                      po::value<std::vector<std::string>>()->multitoken(),
-                                      "Local searches for GRASP (TwoOpt, SwapTwo, Relocate)")(
+        "MIPRandomizedGreedyRandom, SimpleRandomized)")(
+        "local-searches",
+        po::value<std::vector<std::string>>()->multitoken(),
+        "Local searches for GRASP (TwoOpt, SwapTwo, Relocate)")(
         "output-dir,o",
         po::value<std::string>()->default_value("output"),
         "Path to the output directory");
@@ -112,6 +114,8 @@ int main(int argc, char* argv[]) {
         tour = greedy.getSolution();
         if (!tour.empty()) {
             cost = instance->computeObjective(tour);
+        } else {
+            cost = std::numeric_limits<double>::infinity();
         }
         auto endTime = std::chrono::high_resolution_clock::now();
         wallTime = std::chrono::duration<double>(endTime - startTime).count();
@@ -123,6 +127,19 @@ int main(int argc, char* argv[]) {
         tour = mipRC.getSolution();
         if (!tour.empty()) {
             cost = instance->computeObjective(tour);
+        } else {
+            cost = std::numeric_limits<double>::infinity();
+        }
+        auto endTime = std::chrono::high_resolution_clock::now();
+        wallTime = std::chrono::duration<double>(endTime - startTime).count();
+    } else if (methodName == "simple_randomized") {
+        SimpleRandomizedConstruction simple(*instance);
+        simple.run();
+        tour = simple.getSolution();
+        if (!tour.empty()) {
+            cost = instance->computeObjective(tour);
+        } else {
+            cost = std::numeric_limits<double>::infinity();
         }
         auto endTime = std::chrono::high_resolution_clock::now();
         wallTime = std::chrono::duration<double>(endTime - startTime).count();
@@ -141,6 +158,8 @@ int main(int argc, char* argv[]) {
             constructive_heuristic = ConstructiveHeuristicType::MIPRandomizedGreedyBias;
         } else if (constructive_heuristic_str == "MIPRandomizedGreedyRandom") {
             constructive_heuristic = ConstructiveHeuristicType::MIPRandomizedGreedyRandom;
+        } else if (constructive_heuristic_str == "SimpleRandomized") {
+            constructive_heuristic = ConstructiveHeuristicType::SimpleRandomized;
         } else {
             std::cerr << "Error: Unknown constructive heuristic '" << constructive_heuristic_str
                       << "'\n";
@@ -176,6 +195,8 @@ int main(int argc, char* argv[]) {
         tour = grasp.getSolution();
         if (!tour.empty()) {
             cost = instance->computeObjective(tour);
+        } else {
+            cost = std::numeric_limits<double>::infinity();
         }
         auto endTime = std::chrono::high_resolution_clock::now();
         wallTime = std::chrono::duration<double>(endTime - startTime).count();
@@ -203,6 +224,8 @@ int main(int argc, char* argv[]) {
         json["alpha"] = vm["alpha"].as<double>();
     } else if (methodName == "mip_randomized_construction") {
         json["time_limit"] = vm["time-limit"].as<int>();
+    } else if (methodName == "simple_randomized") {
+        // No parameters to add
     } else {
         json["time_limit"] = vm["time-limit"].as<int>();
         json["heuristic_effort"] = vm["heuristic-effort"].as<double>();
