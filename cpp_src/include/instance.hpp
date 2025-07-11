@@ -9,30 +9,53 @@
 #include <utility>
 #include <vector>
 
-class TwoOptIteratorTracker {
+class NeighborhoodIterator {
 public:
-    TwoOptIteratorTracker(const int n) : n_(n), i_(0), j_(1) {}
+    NeighborhoodIterator(int n, bool include_zero, bool allow_all_pairs)
+        : n_(n), include_zero_(include_zero), allow_all_pairs_(allow_all_pairs) {
+        reset();
+    }
 
     std::optional<std::pair<int, int>> next() {
-        if (j_ >= n_) {
-            i_++;
-            j_ = i_ + 1;
-        }
+        if (allow_all_pairs_) {
+            while (i_ < n_) {
+                if (j_ >= n_) {
+                    i_++;
+                    j_ = start_i_;
+                    continue;
+                }
+                if (i_ == j_) {
+                    j_++;
+                    continue;
+                }
+                return std::make_pair(i_, j_++);
+            }
+        } else {  // i < j
+            if (j_ >= n_) {
+                i_++;
+                j_ = i_ + 1;
+            }
 
-        if (i_ >= n_ - 1) {
-            return std::nullopt;
-        }
+            if (i_ >= n_ - 1) {
+                return std::nullopt;
+            }
 
-        return std::make_pair(i_, j_++);
+            return std::make_pair(i_, j_++);
+        }
+        return std::nullopt;
     }
 
     void reset() {
-        i_ = 0;
-        j_ = 1;
+        start_i_ = include_zero_ ? 0 : 1;
+        i_ = start_i_;
+        j_ = allow_all_pairs_ ? start_i_ : i_ + 1;
     }
 
 private:
-    int n_;
+    const int n_;
+    const bool include_zero_;
+    const bool allow_all_pairs_;
+    int start_i_;
     int i_;
     int j_;
 };
@@ -89,6 +112,8 @@ public:
 
     void resetTrackers() const {
         twoOptIteratorTracker_.reset();
+        swapTwoIteratorTracker_.reset();
+        relocateIteratorTracker_.reset();
     }
 
     // Core methods
@@ -106,8 +131,12 @@ public:
     float computePartialTourCost(const std::vector<int>& partialTour, int startIdx = 0) const;
     void generateZVarIndices() const;
     void get_two_opt_neighbor(std::vector<int>& tour, int i, int j) const;
+    void get_swap_two_neighbor(std::vector<int>& tour, int i, int j) const;
+    void get_relocate_neighbor(std::vector<int>& tour, int i, int j) const;
 
-    mutable TwoOptIteratorTracker twoOptIteratorTracker_;
+    mutable NeighborhoodIterator twoOptIteratorTracker_;
+    mutable NeighborhoodIterator swapTwoIteratorTracker_;
+    mutable NeighborhoodIterator relocateIteratorTracker_;
 
 private:
     // Member variables

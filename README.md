@@ -46,5 +46,31 @@ The `cpp_src` directory contains several useful scripts:
 You can then run the solver from `cpp_src/build` directory, for example:
 
 ```bash
-./bin/trigger_arc_tsp <algorithm> <instance_path> [options]
-``` 
+./bin/trigger_arc_tsp --method grasp --instance-file ../../instances/instances_release_1/grf1.txt --n-trials 10 --local-searches TwoOpt SwapTwo Relocate --constructive-heuristic RandomizedGreedy --logs
+```
+
+Run `./bin/trigger_arc_tsp --help` to see all available options.
+
+### GRASP Implementation
+
+Our solver includes an implementation of the Greedy Randomized Adaptive Search Procedure (GRASP) metaheuristic. GRASP is an iterative process where each iteration consists of two phases: a construction phase and a local search phase.
+
+#### Construction Phase
+
+In the construction phase, a feasible solution is built using a randomized greedy approach. We support the following constructive heuristics:
+
+-   `RandomizedGreedy`: A simple randomized greedy construction.
+-   `MIPRandomizedGreedyBias`: A more advanced construction that uses a MIP model on a restricted set of edges with a bias towards promising edges.
+-   `MIPRandomizedGreedyRandom`: Similar to the above, but with a more random selection of edges.
+
+You can specify the constructive heuristic using the `--constructive-heuristic` flag.
+
+#### Local Search Phase
+
+Once a solution is constructed, a local search is applied to improve it until a local optimum is found. We support the following local search neighborhoods:
+
+-   `TwoOpt`: The classic 2-opt neighborhood, which involves reversing a segment of the tour.
+-   `SwapTwo`: Swaps two nodes in the tour.
+-   `Relocate`: Moves a node to a different position in the tour.
+
+You can specify one or more local searches to be applied using the `--local-searches` flag. They will be applied in the order they are provided. 
