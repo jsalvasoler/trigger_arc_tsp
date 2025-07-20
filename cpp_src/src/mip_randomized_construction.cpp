@@ -127,6 +127,16 @@ MIPRandomizedConstruction::applyAlphaRandomizationToEdges(double alpha) {
     return newEdges;
 }
 
+boost::unordered_map<std::pair<int, int>, double>
+MIPRandomizedConstruction::applyBetaRandomizationToEdges(double beta) {
+    // all edges become edge * beta * random_uniform(0, 1)
+    auto newEdges = instance_.getEdges();
+    for (const auto& [edge, cost] : newEdges) {
+        newEdges[edge] = cost * (beta * (rng_() / (double)rng_.max()));
+    }
+    return newEdges;
+}
+
 boost::unordered_map<std::pair<int, int>, double> MIPRandomizedConstruction::getEdgesForTSPSearch(
     const TSPPrior& tspPrior) {
     // 1. Compute node distances based on priorities

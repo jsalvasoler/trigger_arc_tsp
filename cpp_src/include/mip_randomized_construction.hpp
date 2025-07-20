@@ -47,6 +47,7 @@ public:
     boost::unordered_map<std::pair<int, int>, double> getEdgesForTSPSearch(
         const TSPPrior& tspPrior);
     boost::unordered_map<std::pair<int, int>, double> applyAlphaRandomizationToEdges(double alpha);
+    boost::unordered_map<std::pair<int, int>, double> applyBetaRandomizationToEdges(double beta);
 
     // Node distance computation (public for testing)
     boost::unordered_map<std::pair<int, int>, double> computeNodeDist(
