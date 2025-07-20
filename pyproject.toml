@@ -25,6 +25,7 @@ dependencies = [
   "tqdm",
   "pandas",
   "pytest",
+  "ipykernel",
 ]
 
 [project.urls]
