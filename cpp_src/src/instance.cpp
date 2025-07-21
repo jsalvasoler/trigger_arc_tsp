@@ -211,12 +211,6 @@ std::optional<std::vector<int>> Instance::getBestKnownSolution(int idx) const {
         tour.push_back(std::stoi(item));
     }
 
-    std::cout << "Best known solution for " << name_ << ": ";
-    for (int node : tour) {
-        std::cout << node << " ";
-    }
-    std::cout << "with objective " << solutions[idx].second << std::endl;
-
     return tour;
 }
 

@@ -4,11 +4,11 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <functional>
 
 #include "grasp.hpp"
 #include "instance.hpp"

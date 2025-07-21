@@ -1,11 +1,11 @@
 #include "grasp.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <sstream>
-#include <chrono>
 
 #include "mip_randomized_construction.hpp"
 #include "randomized_greedy.hpp"
