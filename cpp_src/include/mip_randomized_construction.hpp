@@ -43,7 +43,9 @@ public:
 
     // Core evaluation methods (public for testing)
     std::pair<std::vector<int>, double> evaluateIndividual(TSPPrior& tspPrior, int timeLimitSec);
-    std::pair<std::vector<int>, double> solveRandomizedTSP(double alpha, int timeLimitSec);
+    std::pair<std::vector<int>, double> solveRandomizedTSP(std::optional<double> alpha,
+                                                           std::optional<double> beta,
+                                                           int timeLimitSec);
     boost::unordered_map<std::pair<int, int>, double> getEdgesForTSPSearch(
         const TSPPrior& tspPrior);
     boost::unordered_map<std::pair<int, int>, double> applyAlphaRandomizationToEdges(double alpha);
