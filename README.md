@@ -75,3 +75,19 @@ Once a solution is constructed, a local search is applied to improve it until a 
 -   `Relocate`: Moves a node to a different position in the tour.
 
 You can specify one or more local searches to be applied using the `--local-searches` flag. They will be applied in the order they are provided. 
+
+## 📄 Report Compilation (LaTeX)
+
+The report located in the report/ directory is compiled using **LaTeX**.
+
+### Required LaTeX packages
+
+Ensure the following LaTeX packages are installed:
+ii  texlive-base                           2023.20240207-1                         all          TeX Live: Essential programs and files
+ii  texlive-binaries                       2023.20230311.66589-9build3             amd64        Binaries for TeX Live
+ii  texlive-fonts-recommended              2023.20240207-1                         all          TeX Live: Recommended fonts
+ii  texlive-latex-base                     2023.20240207-1                         all          TeX Live: LaTeX fundamental packages
+ii  texlive-latex-extra                    2023.20240207-1                         all          TeX Live: LaTeX additional packages
+ii  texlive-latex-recommended              2023.20240207-1                         all          TeX Live: LaTeX recommended packages
+ii  texlive-pictures                       2023.20240207-1                         all          TeX Live: Graphics, pictures, diagrams
+ii  texlive-plain-generic                  2023.20240207-1                         all          TeX Live: Plain (La)TeX packages
