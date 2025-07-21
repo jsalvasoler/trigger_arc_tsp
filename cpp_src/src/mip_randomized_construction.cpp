@@ -42,7 +42,7 @@ void MIPRandomizedConstruction::run() {
         std::tie(tour, cost) = evaluateIndividual(tspPrior, timeLimitSec_);
     } else {  // type_ == ConstructionType::Random
         // Use stored alpha
-        std::tie(tour, cost) = solveRandomizedTSP(alpha_, timeLimitSec_);
+        std::tie(tour, cost) = solveRandomizedTSP(alpha_, std::nullopt, timeLimitSec_);
     }
 
     assert(!tour.empty());
@@ -54,12 +54,28 @@ std::vector<int> MIPRandomizedConstruction::getSolution() const {
 }
 
 std::pair<std::vector<int>, double> MIPRandomizedConstruction::solveRandomizedTSP(
-    double alpha, int timeLimitSec) {
+    std::optional<double> alpha, std::optional<double> beta, int timeLimitSec) {
+    // Error handling: exactly one of alpha or beta must be provided
+    if (alpha.has_value() && beta.has_value()) {
+        throw std::invalid_argument(
+            "Both alpha and beta cannot be provided simultaneously in solveRandomizedTSP");
+    }
+    if (!alpha.has_value() && !beta.has_value()) {
+        throw std::invalid_argument("Either alpha or beta must be provided in solveRandomizedTSP");
+    }
+
     double bestCost = std::numeric_limits<double>::infinity();
     std::vector<int> bestTour = {};
 
-    // 1. apply alpha randomization to edges
-    auto edges = applyAlphaRandomizationToEdges(alpha);
+    // Apply the appropriate randomization based on which parameter is provided
+    boost::unordered_map<std::pair<int, int>, double> edges;
+    if (alpha.has_value()) {
+        // 1. apply alpha randomization to edges
+        edges = applyAlphaRandomizationToEdges(alpha.value());
+    } else {
+        // 1. apply beta randomization to edges
+        edges = applyBetaRandomizationToEdges(beta.value());
+    }
 
     // 2. solve TSP with random edges
     auto tspInstance = createTSPInstance(edges);
@@ -123,6 +139,16 @@ MIPRandomizedConstruction::applyAlphaRandomizationToEdges(double alpha) {
     auto newEdges = instance_.getEdges();
     for (const auto& [edge, cost] : newEdges) {
         newEdges[edge] = cost + alpha * ((rng_() / (double)rng_.max()) * 2 - 1);
+    }
+    return newEdges;
+}
+
+boost::unordered_map<std::pair<int, int>, double>
+MIPRandomizedConstruction::applyBetaRandomizationToEdges(double beta) {
+    // all edges become edge * beta * random_uniform(0, 1)
+    auto newEdges = instance_.getEdges();
+    for (const auto& [edge, cost] : newEdges) {
+        newEdges[edge] = cost * (beta * (rng_() / (double)rng_.max()));
     }
     return newEdges;
 }

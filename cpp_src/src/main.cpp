@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -81,6 +82,34 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
+
+    std::stringstream param_ss;
+    param_ss << "instance-file=" << vm["instance-file"].as<std::string>() << ";"
+             << "method=" << vm["method"].as<std::string>() << ";"
+             << "alpha=" << vm["alpha"].as<double>() << ";"
+             << "time-limit=" << vm["time-limit"].as<int>() << ";"
+             << "heuristic-effort=" << vm["heuristic-effort"].as<double>() << ";"
+             << "presolve=" << vm["presolve"].as<int>() << ";"
+             << "mip-start=" << (vm.count("mip-start") > 0) << ";"
+             << "logs=" << (vm.count("logs") > 0) << ";"
+             << "n-trials=" << vm["n-trials"].as<int>() << ";"
+             << "beta=" << vm["beta"].as<double>() << ";"
+             << "start-with-best=" << (vm.count("start-with-best") > 0) << ";"
+             << "constructive-heuristic=" << vm["constructive-heuristic"].as<std::string>() << ";";
+    if (vm.count("local-searches")) {
+        param_ss << "local-searches=";
+        const auto& searches = vm["local-searches"].as<std::vector<std::string>>();
+        for (size_t i = 0; i < searches.size(); ++i) {
+            param_ss << searches[i] << (i < searches.size() - 1 ? "," : "");
+        }
+        param_ss << ";";
+    }
+
+    std::string param_string = param_ss.str();
+    std::hash<std::string> hasher;
+    size_t param_hash = hasher(param_string);
+
+    std::cout << "Parameters hash: " << param_hash << std::endl;
 
     auto instance = Instance::loadInstanceFromFile(vm["instance-file"].as<std::string>());
     std::vector<int> tour;
@@ -217,6 +246,7 @@ int main(int argc, char* argv[]) {
     std::string timestamp = ss.str();
 
     boost::json::object json;
+    json["parameters_hash"] = param_hash;
     json["instance_name"] = instance->getName();
     json["instance_file"] = vm["instance-file"].as<std::string>();
     json["method"] = methodName;

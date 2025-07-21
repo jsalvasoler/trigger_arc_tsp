@@ -346,12 +346,50 @@ TEST_F(MIPRandomizedConstructionTest, SolveRandomizedTSP) {
 
     MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Random);
 
-    auto [tour, cost] = mipRC.solveRandomizedTSP(0.1, 5);
+    auto [tour, cost] = mipRC.solveRandomizedTSP(0.1, std::nullopt, 5);
 
     EXPECT_FALSE(tour.empty());
     EXPECT_EQ(tour.size(), 3);
     EXPECT_TRUE(inst.checkSolutionCorrectness(tour));
     EXPECT_GT(cost, 0.0);
+}
+
+TEST_F(MIPRandomizedConstructionTest, SolveRandomizedTSPWithBeta) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Random);
+
+    auto [tour, cost] = mipRC.solveRandomizedTSP(std::nullopt, 0.5, 5);
+
+    EXPECT_FALSE(tour.empty());
+    EXPECT_EQ(tour.size(), 3);
+    EXPECT_TRUE(inst.checkSolutionCorrectness(tour));
+    EXPECT_GT(cost, 0.0);
+}
+
+TEST_F(MIPRandomizedConstructionTest, SolveRandomizedTSPErrorBothAlphaAndBeta) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Random);
+
+    EXPECT_THROW(mipRC.solveRandomizedTSP(0.1, 0.5, 5), std::invalid_argument);
+}
+
+TEST_F(MIPRandomizedConstructionTest, SolveRandomizedTSPErrorNeitherAlphaNorBeta) {
+    boost::unordered_map<std::pair<int, int>, double> edges = {
+        {{0, 1}, 1.0}, {{1, 2}, 1.0}, {{2, 0}, 1.0}};
+    boost::unordered_map<std::tuple<int, int, int, int>, double> relations = {};
+    Instance inst(3, edges, relations, "test");
+
+    MIPRandomizedConstruction mipRC(inst, 1, ConstructionType::Random);
+
+    EXPECT_THROW(mipRC.solveRandomizedTSP(std::nullopt, std::nullopt, 5), std::invalid_argument);
 }
 
 TEST_P(MIPRandomizedConstructionParameterizedTest, SolvesExampleInstance) {
