@@ -251,9 +251,7 @@ int main(int argc, char* argv[]) {
     json["method"] = methodName;
     if (methodName == "randomized_greedy") {
         json["alpha"] = vm["alpha"].as<double>();
-    } else if (methodName == "mip_randomized_construction") {
-        json["time_limit"] = vm["time-limit"].as<int>();
-    } else if (methodName == "simple_randomized") {
+    } else if (methodName == "mip_randomized_construction" || methodName == "simple_randomized") {
         json["alpha"] = vm["alpha"].as<double>();
         json["beta"] = vm["beta"].as<double>();
     } else {
@@ -274,12 +272,13 @@ int main(int argc, char* argv[]) {
         std::filesystem::create_directories(outputDir);
     }
 
-    std::string outputPath = outputDir + "/" + instance->getName() + "_" + std::to_string(param_hash) + ".json";
+    std::string outputPath =
+        outputDir + "/" + instance->getName() + "_" + std::to_string(param_hash) + ".json";
     std::ofstream outputFile;
     if (std::filesystem::exists(outputPath)) {
-        outputFile.open(outputPath, std::ios::app); // Open in append mode
+        outputFile.open(outputPath, std::ios::app);  // Open in append mode
     } else {
-        outputFile.open(outputPath); // Open in default mode (write)
+        outputFile.open(outputPath);  // Open in default mode (write)
     }
     if (!outputFile.is_open()) {
         std::cerr << "Error: Could not open output file: " << outputPath << std::endl;
