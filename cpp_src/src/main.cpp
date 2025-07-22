@@ -251,9 +251,11 @@ int main(int argc, char* argv[]) {
     json["method"] = methodName;
     if (methodName == "randomized_greedy") {
         json["alpha"] = vm["alpha"].as<double>();
-    } else if (methodName == "mip_randomized_construction" || methodName == "simple_randomized") {
+    } else if (methodName == "mip_randomized_construction") {
         json["alpha"] = vm["alpha"].as<double>();
         json["beta"] = vm["beta"].as<double>();
+    } else if (methodName == "simple_randomized") {
+        // nothing to add
     } else {
         json["time_limit"] = vm["time-limit"].as<int>();
         json["heuristic_effort"] = vm["heuristic-effort"].as<double>();
