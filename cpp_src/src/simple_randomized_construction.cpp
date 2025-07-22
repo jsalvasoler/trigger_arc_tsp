@@ -27,12 +27,21 @@ std::vector<int> SimpleRandomizedConstruction::constructSolution() {
 
     while (tour.size() < static_cast<size_t>(instance_.getN())) {
         int last_node = tour.back();
+        const size_t expectedTourSize = static_cast<size_t>(instance_.getN());
+        const bool isChoosingFinalNode = tour.size() == (expectedTourSize - 1);
 
         std::vector<int> feasible_neighbors;
         const auto& neighbors = instance_.getDeltaOut(last_node);
         for (int neighbor : neighbors) {
             if (visited_nodes.find(neighbor) == visited_nodes.end()) {
-                feasible_neighbors.push_back(neighbor);
+                if (isChoosingFinalNode) {
+                    // For the final node, ensure it can reach node 0
+                    if (instance_.getDeltaOut(neighbor).count(0)) {
+                        feasible_neighbors.push_back(neighbor);
+                    }
+                } else {
+                    feasible_neighbors.push_back(neighbor);
+                }
             }
         }
 
