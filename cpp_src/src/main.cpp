@@ -84,8 +84,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::stringstream param_ss;
-    param_ss << "instance-file=" << vm["instance-file"].as<std::string>() << ";"
-             << "method=" << vm["method"].as<std::string>() << ";"
+    param_ss << "method=" << vm["method"].as<std::string>() << ";"
              << "alpha=" << vm["alpha"].as<double>() << ";"
              << "time-limit=" << vm["time-limit"].as<int>() << ";"
              << "heuristic-effort=" << vm["heuristic-effort"].as<double>() << ";"
@@ -255,7 +254,8 @@ int main(int argc, char* argv[]) {
     } else if (methodName == "mip_randomized_construction") {
         json["time_limit"] = vm["time-limit"].as<int>();
     } else if (methodName == "simple_randomized") {
-        // No parameters to add
+        json["alpha"] = vm["alpha"].as<double>();
+        json["beta"] = vm["beta"].as<double>();
     } else {
         json["time_limit"] = vm["time-limit"].as<int>();
         json["heuristic_effort"] = vm["heuristic-effort"].as<double>();
@@ -274,8 +274,13 @@ int main(int argc, char* argv[]) {
         std::filesystem::create_directories(outputDir);
     }
 
-    std::string outputPath = outputDir + "/" + timestamp + "_" + instance->getName() + ".json";
-    std::ofstream outputFile(outputPath);
+    std::string outputPath = outputDir + "/" + instance->getName() + "_" + std::to_string(param_hash) + ".json";
+    std::ofstream outputFile;
+    if (std::filesystem::exists(outputPath)) {
+        outputFile.open(outputPath, std::ios::app); // Open in append mode
+    } else {
+        outputFile.open(outputPath); // Open in default mode (write)
+    }
     if (!outputFile.is_open()) {
         std::cerr << "Error: Could not open output file: " << outputPath << std::endl;
         return 1;
