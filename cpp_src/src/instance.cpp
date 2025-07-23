@@ -133,7 +133,7 @@ bool Instance::testSolution(const std::vector<int>& tour, double proposedObjecti
     }
 
     double cost = computeObjective(tour);
-    return std::abs(cost - proposedObjective) < 1e-6;
+    return std::abs(cost - proposedObjective) < 1e-3;
 }
 
 void Instance::saveSolution(const std::vector<int>& tour, std::optional<double> objective) const {

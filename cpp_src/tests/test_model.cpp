@@ -384,3 +384,18 @@ TEST(GurobiModelTest, MIPStartFromTsp2) {
     model.formulate();
     model.solveModelWithParameters(SolverParameters{.timeLimitSec = 3, .mipStart = true});
 }
+
+TEST(GurobiModelTest, MIPModelWarning) {
+    auto rootDir = std::filesystem::current_path().parent_path().parent_path();
+    auto instancePath = rootDir / "instances" / "instances_generic" / "decrease_n_10_r_200_1.txt";
+
+    auto instance = Instance::loadInstanceFromFile(instancePath.string());
+    GurobiModel model(*instance);
+    model.formulate();
+    model.solveModelWithParameters(SolverParameters{.timeLimitSec = 3});
+    std::cout << "Model status: " << model.getModel().get(GRB_IntAttr_Status) << std::endl;
+    auto [tour, cost] = model.getSolutionAndCost();
+    auto other_cost = instance->computeObjective(tour);
+    EXPECT_EQ(tour.size(), 10);
+    EXPECT_TRUE(std::abs(cost - other_cost) < 1e-2);
+}
