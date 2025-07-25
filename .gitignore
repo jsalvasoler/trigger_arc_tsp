@@ -38,3 +38,9 @@ __pycache__/
 # Ignore the build directory
 build/
 cpp_src/build/ # Being explicit is good
+
+# tex build files
+*.aux
+*.log
+*.out
+*.xwm
