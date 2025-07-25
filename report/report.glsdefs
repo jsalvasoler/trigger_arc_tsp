@@ -54,3 +54,31 @@ parent={},%
 %
 }%
 
+\glsdefs@newdocentry{grasp}%
+{%
+name={\acronymfont {\glsentryshort {grasp}}},%
+sort={GRASP},%
+type={main},%
+first={GRASP},%
+firstplural={GRASPs},%
+text={GRASP},%
+plural={GRASPs},%
+description={Greedy Randomized Adaptive Search Procedures},%
+descriptionplural={Greedy Randomized Adaptive Search Procedures},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Greedy Randomized Adaptive Search Procedures},%
+longplural={Greedy Randomized Adaptive Search Proceduress},%
+short={GRASP},%
+shortplural={GRASPs},%
+counter={page},%
+parent={},%
+%
+}%
+

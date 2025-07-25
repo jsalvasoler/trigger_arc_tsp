@@ -71,7 +71,7 @@
 \newcommand{\orcidauthorB}{0009-0006-4869-9705}
 
 %%%%%%%%%%%%%%%%   Title   %%%%%%%%%%%%%%%%
-\title{A preprint template for LaTeX users}
+\title{Heuristic Solutions for the Trigger Arc Traveling Salesman Problem: An Application of GRASP}
 
 % Add watermark with submission status
 \usepackage{xwatermark}
@@ -101,7 +101,15 @@
 
 \begin{abstract}
 
-Blabla 
+ purus elit, vestibulum ut, placerat ac, adipiscing vitae, felis.
+ Curabitur dictum gravida mauris. Nam arcu libero, nonummy
+ eget, consectetuer id, vulputate a, magna. Donec vehicula au
+gue eu neque. Pellentesque habitant morbi tristique senectus
+ et netus et malesuada fames ac turpis egestas. Mauris ut leo.
+ Cras viverra metus rhoncus sem. Nulla et lectus vestibulum
+ urna fringilla ultrices. Phasellus eu tellus sit amet tortor gravida
+ placerat. Integer sapien est, iaculis in, pretium quis, viverra ac,
+ nunc. Praesent eget sem vel leo ultrices bibendum. Aenean
 
 \end{abstract}
 
@@ -119,6 +127,7 @@ Blabla
 % \linenumbers
 \newacronym{tsp}{TSP}{Traveling Salesman Problem}
 \newacronym{tatsp}{TA-TSP}{Trigger Arc TSP}
+\newacronym{grasp}{GRASP}{Greedy Randomized Adaptive Search Procedures}
 
 \section{Introduction}
 \lipsum[1]
@@ -159,7 +168,21 @@ the underlying road network or system state. Building upon its initial definitio
 aiming to explore its properties and develop methods for its resolution.
 
 \subsection{The GRASP approach}
-\lipsum[4]
+
+The solution developped in this paper mainly rely on a proven metaheuristic introduced by Feo et al.\cite{Feo1995}, #TODO assert this the \gls{grasp}. 
+This powerful and flexible framework is well-suited for tackling complex combinatorial optimization problems, 
+including those exhibiting the intricate path-dependencies seen in the \gls{tatsp}. It operates through an iterative 
+two-phase process: a construction phase and a local search phase. 
+
+The construction phase leverages a greedy randomized strategy to build a feasible solution. This involves creating diverse feasible 
+solutions at minor computationnal costs. The diversity of the solution is carried on by a degree of randomness. 
+
+Following the construction of a solution, the local search phase then systematically explores its neighborhood to improve it, 
+typically by applying moves that lead to better objective function values. The best solution found across multiple iterations of 
+these two phases is ultimately returned. 
+
+This rigorous yet adaptive approach makes \gls{grasp} particularly well-suited for problems where the optimal solution is difficult 
+to find through exact methods.
 
 \section{Methodology}
 Overview of the approach 
@@ -177,7 +200,7 @@ Overview of the approach
 \lipsum[8]
 
 \subsection{Datasets}
-\lipsum[9]
+The method described earlier has been used over 3 datasets 
 
 \subsection{Experimental Setup}
 \lipsum[10]
