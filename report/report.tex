@@ -8,6 +8,7 @@
 \documentclass[twocolumn, switch]{article} % Method A for two-column formatting
 
 \usepackage{preprint}
+\usepackage{glossaries}
 
 %% Math packages
 \usepackage{amsmath, amsthm, amssymb, amsfonts}
@@ -46,7 +47,7 @@
 \usepackage{titlesec}
 \titlespacing\section{0pt}{12pt plus 3pt minus 3pt}{1pt plus 1pt minus 1pt}
 \titlespacing\subsection{0pt}{10pt plus 3pt minus 3pt}{1pt plus 1pt minus 1pt}
-\titlespacing\subsubsection{0pt}{8pt plus 3pt minus 3pt}{1pt plus 1pt minus 1pt}
+\titlespacing\subsection{0pt}{8pt plus 3pt minus 3pt}{1pt plus 1pt minus 1pt}
 
 % ORCiD insertion
 \usepackage{tikz,xcolor,hyperref}
@@ -90,30 +91,6 @@
 \affil[1]{H2O.ai}
 \affil[2]{gregoire.delambertye@gmail.com}
 
-% Option 2 for author list
-%\author{
-%  David S.~Hippocampus\thanks{Use footnote for providing further
-%    information about author (webpage, alternative
-%    address)---\emph{not} for acknowledging funding agencies.} \\
-%  Department of Computer Science\\
-%  Cranberry-Lemon University\\
-%  Pittsburgh, PA 15213 \\
-%  \texttt{hippo@cs.cranberry-lemon.edu} \\
-%  %% examples of more authors
-%   \And
-% Elias D.~Striatum \\
-%  Department of Electrical Engineering\\
-%  Mount-Sheikh University\\
-%  Santa Narimana, Levand \\
-%  \texttt{stariate@ee.mount-sheikh.edu} \\
-%  \AND
-%  Coauthor \\
-%  Affiliation \\
-%  Address \\
-%  \texttt{email} \\
-%  % etc.
-%}
-
 %%%%%%%%%%%%%%    Front matter    %%%%%%%%%%%%%%
 \begin{document}
 
@@ -123,9 +100,13 @@
 \maketitle
 
 \begin{abstract}
-Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Ut purus elit, vestibulum ut, placerat ac, adipiscing vitae, felis. Curabitur dictum gravida mauris. Nam arcu libero, nonummy eget, consectetuer id, vulputate a, magna. Donec vehicula augue eu neque. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Mauris ut leo. Cras viverra metus rhoncus sem. Nulla et lectus vestibulum urna fringilla ultrices. Phasellus eu tellus sit amet tortor gravida placerat. Integer sapien est, iaculis in, pretium quis, viverra ac, nunc. Praesent eget sem vel leo ultrices bibendum. Aenean faucibus. Morbi dolor nulla, malesuada eu, pulvinar at, mollis ac, nulla. Curabitur auctor semper nulla. Donec varius orci eget risus. Duis nibh mi, congue eu, accumsan eleifend, sagittis quis, diam. Duis eget orci sit amet orci dignissim rutrum. Nam dui ligula, fringilla a, euismod sodales, sollicitudin vel, wisi. Morbi auctor lorem non justo. 
+
+Blabla 
+
 \end{abstract}
-%\keywords{First keyword \and Second keyword \and More} % (optional)
+
+\keywords{TSP \and TA TSP \and GRASP \and Local Search \and Trigger Arc TSP \and Optimisation} % (optional)
+
 \vspace{0.35cm}
 
   \end{@twocolumnfalse} % Method A for two-column formatting
@@ -136,91 +117,76 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Ut purus elit, vestibu
 
 %%%%%%%%%%%%%%%  Main text   %%%%%%%%%%%%%%%
 % \linenumbers
+\newacronym{tsp}{TSP}{Traveling Salesman Problem}
+\newacronym{tatsp}{TA-TSP}{Trigger Arc TSP}
 
 \section{Introduction}
-\lipsum[2]
-\lipsum[3]
+\lipsum[1]
+\gls{tsp}
 
+\section{Background}
+\label{sec:background}
 
-\section{Headings: first level}
-\label{sec:headings}
+\subsection{The TA TSP}
 
-\lipsum[7] See Section \ref{sec:headings}.
+The \gls{tatsp}, is a variation of the \gls{tsp} introduced by Cerrone et al.\cite{Cerrone}. 
+Unlike traditional TSP formulations, which typically assume static or purely time-dependent arc costs, 
+the \gls{tatsp} incorporates a dynamic cost mechanism that directly reflects the sequence of traversed arcs within a tour.
 
-\subsection{Headings: second level}
+Specifically, this problem introduces a set of Relations, comprising two distinct arc types:
+\begin{itemize}
+\item Trigger Arcs: These are designated arcs whose traversal can influence the cost of other arcs within the network.
+\item Target Arcs: These are arcs whose traversal cost is subject to dynamic modification.
+\end{itemize}
+Each relation defines a specific cost that a target arc will assume if its corresponding trigger arc is the last trigger 
+arc visited immediately preceding the target arc's traversal. This mechanism is critical, as it establishes a pronounced 
+path-dependency, making the total tour cost contingent on the specific sequence of arcs traversed.
+
+A formal definition of the problem is given by Cerrone et al. \cite{Cerrone} as:
+consider a directed graph $G = (N,A)$ with weights on the arcs. 
+The node $0 \in N$ is designated as the starting node (depot). Let $c(a) \in \mathbb{R}^+ \forall a \in A$ 
+be defined as the cost of traversing the arc $a$. For each arc $a=(h, k)$, a set of relations $R_a = \{(a_1, a)| a_1 \in A\}$ 
+is associated. Finally, let $c(r) \in \mathbb{R}^+ \forall r \in R_a$, be the traversal cost of the arc $a$ if the relation $r$ 
+is active. Let $T = (a_1, a_2, \ldots, a_{|N|})$ be the ordered sequence of arcs starting at node $0$ representing a Hamiltonian 
+cycle in $G$. The relation $r = (a_i, a_j)$ is active if and only if the arcs $a_i, a_j \in T$, and the arc $a_i$ precedes the arc 
+$a_j$ in $T$ and there is no active relation $r_1 = (a_k, a_j) \in R_{a_j}$ such that $a_k$ precedes $a_i$ in $T$. It follows that 
+for each arc $a$, at most one relation can be active. As a result, the traversal cost of the arc $a = (h, k)$ will be equal to $c(a)$ 
+if there are no active relations in $R_a$ or $c(r)$ if $r$ is the only active relation in $R_a$.
+
+This particular problem formulation is designed to facilitate the modeling of complex real-world scenarios where the act of 
+traversing an arc by a vehicle or agent can intrinsically alter the properties or costs associated with subsequent segments of 
+the underlying road network or system state. Building upon its initial definition, this work further investigates the \gls{tatsp}, 
+aiming to explore its properties and develop methods for its resolution.
+
+\subsection{The GRASP approach}
+\lipsum[4]
+
+\section{Methodology}
+Overview of the approach 
+
+\subsection{Constructing initial solution}
 \lipsum[5]
-\begin{equation}
-\xi _{ij}(t)= {\frac {\alpha _{i}(t)a^{w_t}_{ij}\beta _{j}(t+1)b^{v_{t+1}}_{j}(y_{t+1})}{\sum _{i=1}^{N} \sum _{j=1}^{N} \alpha _{i}(t)a^{w_t}_{ij}\beta _{j}(t+1)b^{v_{t+1}}_{j}(y_{t+1})}}
-\end{equation}
 
-\subsubsection{Headings: third level}
+\subsection{Local search}
 \lipsum[6]
 
-\paragraph{Paragraph}
+\subsubsection{Delta evaluation}
 \lipsum[7]
 
-\section{Examples of citations, figures, tables, references}
-\label{sec:others}
-\lipsum[8] \cite{kour2014real,kour2014fast} and see \cite{hadash2018estimate}.
+\section{Experimental Setup and Data}
+\lipsum[8]
 
-The documentation for \verb+natbib+ may be found at
-\begin{center}
-  \url{http://mirrors.ctan.org/macros/latex/contrib/natbib/natnotes.pdf}
-\end{center}
-Of note is the command \verb+\citet+, which produces citations
-appropriate for use in inline text.  For example,
-\begin{verbatim}
-   \citet{hasselmo} investigated\dots
-\end{verbatim}
-produces
-\begin{quote}
-  Hasselmo, et al.\ (1995) investigated\dots
-\end{quote}
+\subsection{Datasets}
+\lipsum[9]
 
-\begin{center}
-  \url{https://www.ctan.org/pkg/booktabs}
-\end{center}
+\subsection{Experimental Setup}
+\lipsum[10]
 
+\section{Results and Discussion}
+\lipsum[11]
 
-\subsection{Figures}
-\lipsum[10] 
-See Figure \ref{fig:fig1}. Here is how you add footnotes. %\footnote{Sample of the first footnote.}
-\lipsum[11] 
-
-\begin{figure}[H]
-  \centering
-  \fbox{\rule[-.5cm]{4cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-  \caption{Sample figure caption.}
-  \label{fig:fig1}
-\end{figure}
-
-\subsection{Tables}
-\lipsum[12]
-See awesome Table \ref{tab:table}.
-
-\begin{table}[H]
- \caption{Sample table title}
-  \centering
-  \begin{tabular}{lll}
-    \toprule
-    \multicolumn{2}{c}{Part}                   \\
-    \cmidrule(r){1-2}
-    Name     & Description     & Size ($\mu$m) \\
-    \midrule
-    Dendrite & Input terminal  & $\sim$100     \\
-    Axon     & Output terminal & $\sim$10      \\
-    Soma     & Cell body       & up to $10^6$  \\
-    \bottomrule
-  \end{tabular}
-  \label{tab:table}
-\end{table}
-
-\subsection{Lists}
-\begin{itemize}
-\item Lorem ipsum dolor sit amet
-\item consectetur adipiscing elit. 
-\item Aliquam dignissim blandit est, in dictum tortor gravida eget. In ac rutrum magna.
-\end{itemize}
+\section{Conclusion}
+\lipsum[12] \cite{Cerrone}
 
 %%%%%%%%%%%% Supplementary Methods %%%%%%%%%%%%
 %\footnotesize

@@ -1,0 +1,56 @@
+\glsdefs@newdocentry{tsp}%
+{%
+name={\acronymfont {\glsentryshort {tsp}}},%
+sort={TSP},%
+type={main},%
+first={TSP},%
+firstplural={TSPs},%
+text={TSP},%
+plural={TSPs},%
+description={Traveling Salesman Problem},%
+descriptionplural={Traveling Salesman Problem},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Traveling Salesman Problem},%
+longplural={Traveling Salesman Problems},%
+short={TSP},%
+shortplural={TSPs},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{tatsp}%
+{%
+name={\acronymfont {\glsentryshort {tatsp}}},%
+sort={TA-TSP},%
+type={main},%
+first={TA-TSP},%
+firstplural={TA-TSPs},%
+text={TA-TSP},%
+plural={TA-TSPs},%
+description={Trigger Arc TSP},%
+descriptionplural={Trigger Arc TSP},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Trigger Arc TSP},%
+longplural={Trigger Arc TSPs},%
+short={TA-TSP},%
+shortplural={TA-TSPs},%
+counter={page},%
+parent={},%
+%
+}%
+
