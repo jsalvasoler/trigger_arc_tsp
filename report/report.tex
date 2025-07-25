@@ -138,7 +138,7 @@ gue eu neque. Pellentesque habitant morbi tristique senectus
 
 \subsection{The TA TSP}
 
-The \gls{tatsp}, is a variation of the \gls{tsp} introduced by Cerrone et al.\cite{Cerrone}. 
+The \gls{tatsp}, is a variation of the \gls{tsp} introduced by~\cite{Cerrone}. 
 Unlike traditional TSP formulations, which typically assume static or purely time-dependent arc costs, 
 the \gls{tatsp} incorporates a dynamic cost mechanism that directly reflects the sequence of traversed arcs within a tour.
 
@@ -151,7 +151,7 @@ Each relation defines a specific cost that a target arc will assume if its corre
 arc visited immediately preceding the target arc's traversal. This mechanism is critical, as it establishes a pronounced 
 path-dependency, making the total tour cost contingent on the specific sequence of arcs traversed.
 
-A formal definition of the problem is given by Cerrone et al. \cite{Cerrone} as:
+A formal definition of the problem is given by~\cite{Cerrone} as:
 consider a directed graph $G = (N,A)$ with weights on the arcs. 
 The node $0 \in N$ is designated as the starting node (depot). Let $c(a) \in \mathbb{R}^+ \forall a \in A$ 
 be defined as the cost of traversing the arc $a$. For each arc $a=(h, k)$, a set of relations $R_a = \{(a_1, a)| a_1 \in A\}$ 
@@ -169,7 +169,7 @@ aiming to explore its properties and develop methods for its resolution.
 
 \subsection{The GRASP approach}
 
-The solution developped in this paper mainly rely on a proven metaheuristic introduced by Feo et al.\cite{Feo1995}, #TODO assert this the \gls{grasp}. 
+The solution developped in this paper mainly rely on a proven metaheuristic introduced by Feo et al.\cite{Feo1995}, the \gls{grasp}. 
 This powerful and flexible framework is well-suited for tackling complex combinatorial optimization problems, 
 including those exhibiting the intricate path-dependencies seen in the \gls{tatsp}. It operates through an iterative 
 two-phase process: a construction phase and a local search phase. 

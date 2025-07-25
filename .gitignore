@@ -43,3 +43,8 @@ cpp_src/build/ # Being explicit is good
 *.log
 *.out
 *.xwm
+*.bbl
+*.blg
+*.bcf
+*.glsdefs
+report.pdf
