@@ -129,8 +129,25 @@ gue eu neque. Pellentesque habitant morbi tristique senectus
 \newacronym{grasp}{GRASP}{Greedy Randomized Adaptive Search Procedures}
 
 \section{Introduction}
-\lipsum[1]
-\gls{tsp}
+The \gls{tsp} is a cornerstone of combinatorial optimization, with a wide range of applications in logistics, transportation, and operations research. 
+However, classical TSP formulations often assume static costs, a simplification that fails to capture the dynamic nature of many real-world scenarios. 
+In modern logistics and industrial automation, the cost of traversing a path can change based on previous actions or the state of the system. 
+One such compelling application arises in warehouses equipped with compactable storage systems. 
+These systems optimize space by using mobile shelving units that move on rails. 
+Accessing an item in one aisle may require moving shelves, which in turn blocks or alters the cost and time required to access other aisles. 
+This path-dependent cost structure requires more sophisticated modeling than what the classical \gls{tsp} offers. 
+
+To address such challenges, the \gls{tatsp} was recently introduced by Cerrone et al.~\cite{Cerrone}. 
+The \gls{tatsp} is a variant of the \gls{tsp} where the cost of an arc can be dynamically altered by traversing another designated "trigger" arc earlier in the tour. 
+Specifically, the problem defines relations between pairs of arcs, where one is a trigger and the other a target. 
+When a trigger arc is traversed, it can modify the cost of its associated target arc. 
+If multiple trigger arcs for the same target arc are traversed, only the last one encountered before the target arc has an effect. 
+This novel formulation provides a powerful tool for modeling problems with state-dependent costs. 
+
+This paper is motivated by the Metaheuristics Summer School (MESS) 2024 competition, which challenged participants to develop effective metaheuristic solutions for the \gls{tatsp}. 
+Our work, which secured a top-three position in the competition, proposes a scalable and fast \gls{grasp}-based approach to find high-quality solutions for this complex problem. 
+We present a construction heuristic to generate diverse and feasible initial solutions, followed by a local search procedure to iteratively improve them. 
+This paper details our methodology, experimental setup, and the results of applying our \gls{grasp} algorithm to a set of benchmark instances, demonstrating its effectiveness and efficiency in tackling the unique challenges posed by the \gls{tatsp}. 
 
 \section{Background}
 \label{sec:background}
