@@ -1,0 +1,231 @@
+%% arara directives
+% arara: xelatex
+% arara: bibtex
+% arara: xelatex
+% arara: xelatex
+
+%\documentclass{article} % One-column default
+\documentclass[twocolumn, switch]{article} % Method A for two-column formatting
+
+\usepackage{preprint}
+\usepackage{glossaries}
+
+%% Math packages
+\usepackage{amsmath, amsthm, amssymb, amsfonts}
+
+%% Bibliography options
+\usepackage[numbers,square]{natbib}
+\bibliographystyle{unsrtnat}
+%\usepackage{natbib}
+%\bibliographystyle{Geology}
+
+%% General packages
+\usepackage[utf8]{inputenc}	% allow utf-8 input
+\usepackage[T1]{fontenc}	% use 8-bit T1 fonts
+\usepackage{xcolor}		% colors for hyperlinks
+\usepackage[colorlinks = true,
+            linkcolor = purple,
+            urlcolor  = blue,
+            citecolor = cyan,
+            anchorcolor = black]{hyperref}	% Color links to references, figures, etc.
+\usepackage{booktabs} 		% professional-quality tables
+\usepackage{nicefrac}		% compact symbols for 1/2, etc.
+\usepackage{microtype}		% microtypography
+\usepackage{lineno}		% Line numbers
+\usepackage{float}			% Allows for figures within multicol
+%\usepackage{multicol}		% Multiple columns (Method B)
+
+\usepackage{lipsum}		%  Filler text
+
+ %% Special figure caption options
+\usepackage{newfloat}
+\DeclareFloatingEnvironment[name={Supplementary Figure}]{suppfigure}
+\usepackage{sidecap}
+\sidecaptionvpos{figure}{c}
+
+% Section title spacing  options
+\usepackage{titlesec}
+\titlespacing\section{0pt}{12pt plus 3pt minus 3pt}{1pt plus 1pt minus 1pt}
+\titlespacing\subsection{0pt}{10pt plus 3pt minus 3pt}{1pt plus 1pt minus 1pt}
+\titlespacing\subsection{0pt}{8pt plus 3pt minus 3pt}{1pt plus 1pt minus 1pt}
+
+% ORCiD insertion
+\usepackage{tikz,xcolor,hyperref}
+
+\definecolor{lime}{HTML}{A6CE39}
+\DeclareRobustCommand{\orcidicon}{
+	\begin{tikzpicture}
+	\draw[lime, fill=lime] (0,0) 
+	circle [radius=0.16] 
+	node[white] {{\fontfamily{qag}\selectfont \tiny ID}};
+	\draw[white, fill=white] (-0.0625,0.095) 
+	circle [radius=0.007];
+	\end{tikzpicture}
+	\hspace{-2mm}
+}
+\foreach \x in {A, ..., Z}{\expandafter\xdef\csname orcid\x\endcsname{\noexpand\href{https://orcid.org/\csname orcidauthor\x\endcsname}
+			{\noexpand\orcidicon}}
+}
+% Define the ORCID iD command for each author separately. Here done for two authors.
+\newcommand{\orcidauthorA}{0000-0000-0000-0001}
+\newcommand{\orcidauthorB}{0009-0006-4869-9705}
+
+%%%%%%%%%%%%%%%%   Title   %%%%%%%%%%%%%%%%
+\title{Heuristic Solutions for the Trigger Arc Traveling Salesman Problem: An Application of GRASP}
+
+% Add watermark with submission status
+\usepackage{xwatermark}
+% Left watermark
+\newwatermark[firstpage,color=gray!60,angle=90,scale=0.32, xpos=-4.05in,ypos=0]{\href{https://doi.org/}{\color{gray}{Publication doi}}}
+% Right watermark
+\newwatermark[firstpage,color=gray!60,angle=90,scale=0.32, xpos=3.9in,ypos=0]{\href{https://doi.org/}{\color{gray}{Preprint doi}}}
+% Bottom watermark
+\newwatermark[firstpage,color=gray!90,angle=0,scale=0.28, xpos=0in,ypos=-5in]{*correspondence: \texttt{email@institution.edu}}
+
+%%%%%%%%%%%%%%%  Author list  %%%%%%%%%%%%%%%
+\usepackage{authblk}
+\renewcommand*{\Authfont}{\bfseries}
+\author[1]{Joan Salva Soler\orcidA{}}
+\author[2]{Grégoire de Lambertye\orcidB{}}
+
+\affil[1]{H2O.ai}
+\affil[2]{gregoire.delambertye@gmail.com}
+
+%%%%%%%%%%%%%%    Front matter    %%%%%%%%%%%%%%
+\begin{document}
+
+\twocolumn[ % Method A for two-column formatting
+  \begin{@twocolumnfalse} % Method A for two-column formatting
+  
+\maketitle
+
+\begin{abstract}
+
+ purus elit, vestibulum ut, placerat ac, adipiscing vitae, felis.
+ Curabitur dictum gravida mauris. Nam arcu libero, nonummy
+ eget, consectetuer id, vulputate a, magna. Donec vehicula au
+gue eu neque. Pellentesque habitant morbi tristique senectus
+ et netus et malesuada fames ac turpis egestas. Mauris ut leo.
+ Cras viverra metus rhoncus sem. Nulla et lectus vestibulum
+ urna fringilla ultrices. Phasellus eu tellus sit amet tortor gravida
+ placerat. Integer sapien est, iaculis in, pretium quis, viverra ac,
+ nunc. Praesent eget sem vel leo ultrices bibendum. Aenean
+
+\end{abstract}
+
+\keywords{TSP \and TA TSP \and GRASP \and Local Search \and Trigger Arc TSP \and Optimisation} % (optional)
+
+\vspace{0.35cm}
+
+  \end{@twocolumnfalse} % Method A for two-column formatting
+] % Method A for two-column formatting
+
+%\begin{multicols}{2} % Method B for two-column formatting (doesn't play well with line numbers), comment out if using method A
+
+
+%%%%%%%%%%%%%%%  Main text   %%%%%%%%%%%%%%%
+% \linenumbers
+\newacronym{tsp}{TSP}{Traveling Salesman Problem}
+\newacronym{tatsp}{TA-TSP}{Trigger Arc TSP}
+\newacronym{grasp}{GRASP}{Greedy Randomized Adaptive Search Procedures}
+
+\section{Introduction}
+\lipsum[1]
+\gls{tsp}
+
+\section{Background}
+\label{sec:background}
+
+\subsection{The TA TSP}
+
+The \gls{tatsp}, is a variation of the \gls{tsp} introduced by~\cite{Cerrone}. 
+Unlike traditional TSP formulations, which typically assume static or purely time-dependent arc costs, 
+the \gls{tatsp} incorporates a dynamic cost mechanism that directly reflects the sequence of traversed arcs within a tour.
+
+Specifically, this problem introduces a set of Relations, comprising two distinct arc types:
+\begin{itemize}
+\item Trigger Arcs: These are designated arcs whose traversal can influence the cost of other arcs within the network.
+\item Target Arcs: These are arcs whose traversal cost is subject to dynamic modification.
+\end{itemize}
+Each relation defines a specific cost that a target arc will assume if its corresponding trigger arc is the last trigger 
+arc visited immediately preceding the target arc's traversal. This mechanism is critical, as it establishes a pronounced 
+path-dependency, making the total tour cost contingent on the specific sequence of arcs traversed.
+
+A formal definition of the problem is given by~\cite{Cerrone} as:
+consider a directed graph $G = (N,A)$ with weights on the arcs. 
+The node $0 \in N$ is designated as the starting node (depot). Let $c(a) \in \mathbb{R}^+ \forall a \in A$ 
+be defined as the cost of traversing the arc $a$. For each arc $a=(h, k)$, a set of relations $R_a = \{(a_1, a)| a_1 \in A\}$ 
+is associated. Finally, let $c(r) \in \mathbb{R}^+ \forall r \in R_a$, be the traversal cost of the arc $a$ if the relation $r$ 
+is active. Let $T = (a_1, a_2, \ldots, a_{|N|})$ be the ordered sequence of arcs starting at node $0$ representing a Hamiltonian 
+cycle in $G$. The relation $r = (a_i, a_j)$ is active if and only if the arcs $a_i, a_j \in T$, and the arc $a_i$ precedes the arc 
+$a_j$ in $T$ and there is no active relation $r_1 = (a_k, a_j) \in R_{a_j}$ such that $a_k$ precedes $a_i$ in $T$. It follows that 
+for each arc $a$, at most one relation can be active. As a result, the traversal cost of the arc $a = (h, k)$ will be equal to $c(a)$ 
+if there are no active relations in $R_a$ or $c(r)$ if $r$ is the only active relation in $R_a$.
+
+This particular problem formulation is designed to facilitate the modeling of complex real-world scenarios where the act of 
+traversing an arc by a vehicle or agent can intrinsically alter the properties or costs associated with subsequent segments of 
+the underlying road network or system state. Building upon its initial definition, this work further investigates the \gls{tatsp}, 
+aiming to explore its properties and develop methods for its resolution.
+
+\subsection{The GRASP approach}
+
+The solution developped in this paper mainly rely on a proven metaheuristic introduced by Feo et al.\cite{Feo1995}, the \gls{grasp}. 
+This powerful and flexible framework is well-suited for tackling complex combinatorial optimization problems, 
+including those exhibiting the intricate path-dependencies seen in the \gls{tatsp}. It operates through an iterative 
+two-phase process: a construction phase and a local search phase. 
+
+The construction phase leverages a greedy randomized strategy to build a feasible solution. This involves creating diverse feasible 
+solutions at minor computationnal costs. The diversity of the solution is carried on by a degree of randomness. 
+
+Following the construction of a solution, the local search phase then systematically explores its neighborhood to improve it, 
+typically by applying moves that lead to better objective function values. The best solution found across multiple iterations of 
+these two phases is ultimately returned. 
+
+This rigorous yet adaptive approach makes \gls{grasp} particularly well-suited for problems where the optimal solution is difficult 
+to find through exact methods.
+
+\section{Methodology}
+Overview of the approach 
+
+\subsection{Constructing initial solution}
+\lipsum[5]
+
+\subsection{Local search}
+\lipsum[6]
+
+\subsubsection{Delta evaluation}
+\lipsum[7]
+
+\section{Experimental Setup and Data}
+\lipsum[8]
+
+\subsection{Datasets}
+The method described earlier has been used over 3 datasets 
+
+\subsection{Experimental Setup}
+\lipsum[10]
+
+\section{Results and Discussion}
+\lipsum[11]
+
+\section{Conclusion}
+\lipsum[12] \cite{Cerrone}
+
+%%%%%%%%%%%% Supplementary Methods %%%%%%%%%%%%
+%\footnotesize
+%\section*{Methods}
+
+%%%%%%%%%%%%% Acknowledgements %%%%%%%%%%%%%
+%\footnotesize
+%\section*{Acknowledgements}
+
+%%%%%%%%%%%%%%   Bibliography   %%%%%%%%%%%%%%
+\normalsize
+\bibliography{references}
+
+%%%%%%%%%%%%  Supplementary Figures  %%%%%%%%%%%%
+%\clearpage
+
+%%%%%%%%%%%%%%%%   End   %%%%%%%%%%%%%%%%
+%\end{multicols}  % Method B for two-column formatting (doesn't play well with line numbers), comment out if using method A
+\end{document}
