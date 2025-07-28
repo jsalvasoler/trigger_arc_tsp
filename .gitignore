@@ -4,6 +4,7 @@
 /cache/
 /build/
 /output/
+/notebooks/*.csv
 *egg-info/
 model.ilp
 

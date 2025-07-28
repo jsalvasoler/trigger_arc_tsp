@@ -34,7 +34,7 @@ std::vector<int> RandomizedGreedyConstruction::getSolution() const {
 }
 
 std::vector<int> RandomizedGreedyConstruction::constructSolution() {
-    const size_t maxAttempts = (alpha_ > 0.0) ? 50 : 1;
+    const size_t maxAttempts = (alpha_ > 0.0) ? 1000 : 1;
     for (size_t i = 0; i < maxAttempts; ++i) {
         std::vector<int> tour;
         tour.reserve(static_cast<size_t>(instance_.getN()));
