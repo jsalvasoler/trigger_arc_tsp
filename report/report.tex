@@ -314,6 +314,11 @@ For our sequential construction heuristics, such as the Randomized Greedy method
 
 However, this approach is not feasible for the local search phase. Standard neighborhood moves, like 2-Opt or Swap, can drastically alter the sequence of the tour. A single swap can change which trigger is the "last" one to activate a target arc located much later in the tour. This creates a cascade effect, where a local change can lead to non-local cost modifications across the entire tour. A true delta evaluation would require a complex procedure to track and re-evaluate the effective trigger for every potentially affected arc, defeating the performance benefits of the technique. For correctness and simplicity, our local search implementation re-evaluates the entire tour cost after every move.
 
+\subsection{MIP Model}
+For benchmarking purposes, we developed a MIP model for the \gls{tatsp}, which shares similarities with the ILP model proposed by~\citet{Cerrone}. We use the commercial solver Gurobi \cite{gurobi}to solve the MIP model.
+The full model is presented in the Appendix.
+
+
 \section{Computational Experiments}
 This section presents the computational experiments conducted to evaluate the performance of the proposed \gls{grasp} algorithm.
 
@@ -344,11 +349,79 @@ All computational experiments were conducted on a machine equipped with an Apple
 
 The complete implementation, along with all instances used in our experiments, is publicly available at \url{https://github.com/jsalvasoler/trigger_arc_tsp}.
 
+\subsection{Metrics}
+
+To evaluate the performance of our \gls{grasp} algorithm, we report the optimality gap, which measures how close our solutions are to the best possible solutions. The gap is calculated as:
+
+\begin{equation}
+\text{Gap} = \frac{\text{Solution Cost} - \text{Best Known Cost}}{\text{Best Known Cost}} \times 100\%
+\end{equation}
+
+For the competition instances (the first two datasets), we use the best known solutions provided by the competition organizers as the reference point. For the synthetic instances (the third dataset), we use the best dual bound obtained after running the Gurobi MIP solver for one minute as the reference point, since optimal solutions are not known for these instances.
+
 \subsection{Results and Discussion}
 \lipsum[11]
 
 \section{Conclusion}
 \lipsum[12] \cite{Cerrone}
+
+\appendix
+\section{MIP Model for the TA-TSP}
+
+This appendix presents the detailed Mixed-Integer Programming (MIP) model for the \gls{tatsp}.
+
+The model uses the following parameters, sets, and decision variables:
+\begin{itemize}
+    \item $V$: Set of nodes $\{0, 1, \dots, N-1\}$.
+    \item $E$: Set of directed arcs $(i,j)$.
+    \item $c_{ij}$: Base cost of traversing arc $(i,j)$.
+    \item $R_a$: Set of trigger arcs for a target arc $a \in E$.
+    \item $r_{ba}$: Additional cost incurred if trigger arc $b$ activates target arc $a$.
+    \item $x_{ij} \in \{0, 1\}$: 1 if arc $(i,j)$ is in the tour, 0 otherwise.
+    \item $u_i \in [0, N-1]$: Position of node $i$ in the tour. For an arc $a=(i,j)$, $u_a$ denotes $u_i$.
+    \item $y_{ba} \in \{0, 1\}$: 1 if relation $(b,a)$ is active, 0 otherwise.
+    \item $z_{a_1a_2} \in \{0, 1\}$: 1 if arc $a_1$ precedes arc $a_2$ in the tour, 0 otherwise.
+\end{itemize}
+
+\footnotesize
+
+The objective function minimizes the total tour cost:
+\begin{equation} \label{eq:obj}
+\min \sum_{(i,j) \in E} c_{ij} x_{ij} + \sum_{a \in E} \sum_{(b,a) \in R_a} r_{ba} y_{ba}
+\end{equation}
+
+Subject to the following constraints:
+\begin{subequations}
+\begin{align}
+    \sum_{j \in V} x_{ij} &= 1 \quad \forall i \in V \label{eq:flow_out} \\
+    \sum_{j \in V} x_{ji} &= 1 \quad \forall i \in V \label{eq:flow_in} \\
+    u_i - u_j + N x_{ij} &\leq N-1 \quad \forall (i,j) \in E, j \neq 0 \label{eq:mtz} \\
+    u_0 &= 0 \label{eq:start_node} \\
+    \sum_{(b,a) \in R_a} y_{ba} &\leq x_a \quad \forall a \in E \label{eq:rel_active_1} \\
+    y_{ba} &\leq x_b \quad \forall a \in E, (b,a) \in R_a \label{eq:rel_active_2} \\
+    u_b + 1 &\leq u_a + N(1-y_{ba}) \quad \forall a \in E, (b,a) \in R_a \label{eq:rel_precedence} \\
+    1 - z_{ab} &\leq \sum_{(c,a) \in R_a} y_{ca} + (1 - x_a) + (1 - x_b) \notag \\
+    &\quad \forall a \in E, (b,a) \in R_a \label{eq:rel_active_3} \\
+    u_{a_1} &\leq u_{a_2} + (N-1)(1-z_{a_1a_2}) \quad \forall a_1, a_2 \in E \label{eq:z_precedence} \\
+    y_{ba} &\leq y_{ca} + z_{cb} + z_{ac} + (1-x_c) + (1-x_b) + (1-x_a) \notag \\
+    &\quad \forall a \in E, (b,a),(c,a) \in R_a, b \neq c \label{eq:rel_last_trigger}
+\end{align}
+\end{subequations}
+
+\normalsize
+
+The objective function \eqref{eq:obj} minimizes the total tour cost, composed of the base arc costs and the additional costs from active relations.
+
+Constraints \eqref{eq:flow_out} and \eqref{eq:flow_in} are flow conservation constraints ensuring that each node is visited exactly once.
+Constraints \eqref{eq:mtz} and \eqref{eq:start_node} are the Miller-Tucker-Zemlin (MTZ) formulations for subtour elimination, which define the sequence of nodes in the tour, with node 0 as the starting point.
+
+The relation activation logic is modeled by constraints \eqref{eq:rel_active_1} through \eqref{eq:rel_last_trigger}.
+Constraint \eqref{eq:rel_active_1} ensures that a relation for a target arc $a$ can only be active if $a$ is part of the tour, and at most one such relation can be active.
+Constraint \eqref{eq:rel_active_2} strengthens this by requiring the trigger arc $b$ to also be in the tour for the relation $(b,a)$ to be active.
+Constraint \eqref{eq:rel_precedence} states that for a relation $(b,a)$ to be active, the trigger arc $b$ must be traversed before the target arc $a$.
+The precedence variable $z_{a_1a_2}$ is defined in constraint \eqref{eq:z_precedence}, where $z_{a_1a_2}=1$ if arc $a_1$ precedes arc $a_2$.
+Constraint \eqref{eq:rel_active_3} ensures that if an arc $a$ and one of its potential triggers $b$ are in the tour, and $b$ precedes $a$, then at least one relation for $a$ must be activated.
+Finally, constraint \eqref{eq:rel_last_trigger} is the core constraint that models the "last trigger" rule. It ensures that if two triggers $b$ and $c$ for the same target $a$ are in the tour, and $c$ is traversed after $b$ but before $a$, then the relation $(b,a)$ cannot be active.
 
 %%%%%%%%%%%% Supplementary Methods %%%%%%%%%%%%
 %\footnotesize
