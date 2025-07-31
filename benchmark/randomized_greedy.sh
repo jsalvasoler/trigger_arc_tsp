@@ -1,10 +1,18 @@
 #!/bin/bash
 cpp_src/build.sh
 
+# Check if instance_set is provided as first argument
+if [ $# -eq 0 ]; then
+    echo "Error: instance_set must be provided as first argument"
+    echo "Usage: $0 <instance_set>"
+    exit 1
+fi
+
+instance_set=$1
+
 n_trials_rg=10
 alpha_grid=(0 0.025 0.05 0.075 0.1 0.25 0.5 1)
 timestamp=$(date +%Y%m%d_%H%M%S)
-instance_set=instances_generic
 output_dir=output/randomized_greedy/$instance_set/$timestamp
 
 echo "=== Starting Randomized Greedy Benchmark ==="
@@ -17,7 +25,6 @@ for instance in $(ls instances/$instance_set/*.txt); do
     done
 done
 
-# echo the timestamp
 echo "--------------------------------"
 echo "Benchmarking finished"
 echo "Timestamp: $timestamp"
