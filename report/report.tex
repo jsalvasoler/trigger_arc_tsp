@@ -33,6 +33,7 @@
             citecolor = cyan,
             anchorcolor = black]{hyperref}	% Color links to references, figures, etc.
 \usepackage{booktabs} 		% professional-quality tables
+\usepackage{multirow}		% multi-row cells in tables
 \usepackage{nicefrac}		% compact symbols for 1/2, etc.
 \usepackage{microtype}		% microtypography
 \usepackage{lineno}		% Line numbers
@@ -341,32 +342,15 @@ The three scenarios are characterized as follows:
     \item \textbf{Decrease}: Relations have random costs less than the base arc cost, in the range $[\frac{c(a_2)}{2}, c(a_2)]$
 \end{itemize}
 
-\subsection{Experimental Setup}
+\input{src/results.tex}
 
-Our \gls{grasp} algorithm is implemented in C++20, leveraging modern language features for efficient memory management and performance. The implementation uses the Boost libraries for data structures and the Gurobi optimization suite for solving the MIP-based construction heuristics.
-
-All computational experiments were conducted on a machine equipped with an Apple M1 Pro processor running macOS 24.5.0 (Darwin Kernel Version 24.5.0). The system architecture is ARM64, providing a modern computing environment for evaluating the algorithm's performance.
-
-The complete implementation, along with all instances used in our experiments, is publicly available at \url{https://github.com/jsalvasoler/trigger_arc_tsp}.
-
-\subsection{Metrics}
-
-To evaluate the performance of our \gls{grasp} algorithm, we report the optimality gap, which measures how close our solutions are to the best possible solutions. The gap is calculated as:
-
-\begin{equation}
-\text{Gap} = \frac{\text{Solution Cost} - \text{Best Known Cost}}{\text{Best Known Cost}} \times 100\%
-\end{equation}
-
-For the competition instances (the first two datasets), we use the best known solutions provided by the competition organizers as the reference point. For the synthetic instances (the third dataset), we use the best dual bound obtained after running the Gurobi MIP solver for one minute as the reference point, since optimal solutions are not known for these instances.
-
-\subsection{Results and Discussion}
-\lipsum[11]
 
 \section{Conclusion}
 \lipsum[12] \cite{Cerrone}
 
 \appendix
 \section{MIP Model for the TA-TSP}
+\label{sec:mip_model}
 
 This appendix presents the detailed Mixed-Integer Programming (MIP) model for the \gls{tatsp}.
 
