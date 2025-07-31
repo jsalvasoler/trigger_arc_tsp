@@ -9,6 +9,7 @@
 
 \usepackage{preprint}
 \usepackage{glossaries}
+\usepackage{graphicx}
 
 %% Math packages
 \usepackage{amsmath, amsthm, amssymb, amsfonts}
@@ -94,7 +95,7 @@
 
 \affil[1]{H2O.ai, TU Wien}
 \affil[2]{TU Wien}
- 
+
 %%%%%%%%%%%%%%    Front matter    %%%%%%%%%%%%%%
 \begin{document}
 
@@ -131,17 +132,19 @@ gue eu neque. Pellentesque habitant morbi tristique senectus
 \newacronym{tsp}{TSP}{Traveling Salesman Problem}
 \newacronym{tatsp}{TA-TSP}{Trigger Arc TSP}
 \newacronym{grasp}{GRASP}{Greedy Randomized Adaptive Search Procedures}
+\newacronym{mip}{MIP}{Mixed-Integer Programming}
 
 \section{Introduction}
-The \gls{tsp} is a cornerstone of combinatorial optimization, with a wide range of applications in logistics, transportation, and operations research. 
-However, classical TSP formulations often assume static costs, a simplification that fails to capture the dynamic nature of many real-world scenarios. 
-In modern logistics and industrial automation, the cost of traversing a path can change based on previous actions or the state of the system. 
+The \gls{tsp} is a foundational problem in combinatorial optimization. In its traditional form, 
+it assumes that the cost of traveling between cities remains constant.
+Such assumption fails to capture the dynamic nature of many real-world scenarios. 
+The cost of traversing a path can change based on previous actions or on the state of the system. 
 One such compelling application arises in warehouses equipped with compactable storage systems. 
 These systems optimize space by using mobile shelving units that move on rails. 
 Accessing an item in one aisle may require moving shelves, which in turn blocks or alters the cost and time required to access other aisles. 
 This path-dependent cost structure requires more sophisticated modeling than what the classical \gls{tsp} offers. 
 
-To address such challenges, the \gls{tatsp} was recently introduced by~\citet{Cerrone}. 
+To address such behaviors, ~\citet{Cerrone} introduced the \gls{tatsp}. 
 The \gls{tatsp} is a variant of the \gls{tsp} where the cost of an arc can be dynamically altered by traversing another designated "trigger" arc earlier in the tour. 
 Specifically, the problem defines relations between pairs of arcs, where one is a trigger and the other a target. 
 When a trigger arc is traversed, it can modify the cost of its associated target arc. 
@@ -151,22 +154,27 @@ This novel formulation provides a powerful tool for modeling problems with state
 This paper is motivated by the Metaheuristics Summer School (MESS) 2024 competition, which challenged participants to develop effective metaheuristic solutions for the \gls{tatsp}. 
 Our work, which secured a top-three position in the competition, proposes a scalable and fast \gls{grasp}-based approach to find high-quality solutions for this complex problem. 
 We present a construction heuristic to generate diverse and feasible initial solutions, followed by a local search procedure to iteratively improve them. 
-This paper details our methodology, experimental setup, and the results of applying our \gls{grasp} algorithm to a set of benchmark instances, demonstrating its effectiveness and efficiency in tackling the unique challenges posed by the \gls{tatsp}. 
+This paper details our methodology, experimental setup, and the results of applying our \gls{grasp} algorithm to a set of benchmark instances, demonstrating its effectiveness and efficiency in tackling the \gls{tatsp}. 
 
 \section{Related Work}
 \label{sec:related_work}
 
-The \gls{tsp} is a foundational problem in combinatorial optimization, seeking the shortest tour through a set of nodes~\cite{Reinelt2003}. 
+\subsection{Variations on the \gls{tsp}}
+
+The \gls{tsp} is fundamentally about discovering the most efficient route that connects a given set of nodes~\cite{Reinelt2003}. 
 Its NP-hard nature makes exact solutions for large instances computationally infeasible, necessitating the use of heuristics and metaheuristics.
-While the classical \gls{tsp} assumes static costs, many real-world applications feature dynamic costs that change based on the traversal path or system state.
-Recent literature has explored several such dynamic variants. These include problems on temporal graphs where edge availability is time-dependent, TSPs where visiting nodes can cause edge deletions, and problems where costs are influenced by the history of visited nodes~\cite{Cerrone}. A notable example is the Node Weight Dependent TSP (W-TSP), where the cost of a tour increases based on the weights of previously visited nodes~\cite{Bossek2020}.
+Their utility becomes even more pronounced when dealing with the intricacies of dynamic TSP variants. These variants introduce 
+real-world complexities, including problems on temporal graphs where edge access is time-sensitive, TSPs where visiting a node 
+has the immediate consequence of deleting specific edges, and scenarios where the cost structure of a tour is directly affected 
+by the historical sequence of visited locations. A prime example is the the Node Weight Dependent TSP (W-TSP), where the cost of a 
+tour increases based on the weights of previously visited nodes~\cite{Bossek2020}.
 
-\subsection{The \gls{tatsp}}
-
-The \gls{tatsp}, introduced by~\citet{Cerrone}, is a novel and more complex variant that introduces dynamic arc costs influenced by the solution's path. 
-In the \gls{tatsp}, the cost of traversing a specific arc can be reset if a predefined "trigger arc" is traversed beforehand, with only the most recently encountered trigger arc affecting the target arc's cost.
-This path-dependent cost structure significantly amplifies the problem's inherent complexity. The problem's inspiration stems from real-world optimization challenges in warehouses utilizing compactable storage systems, where opening one aisle can dynamically alter the access costs of other connected aisles.
-Cerrone et al. proposed an Integer Linear Programming (ILP) model for the \gls{tatsp}, which provides a precise mathematical formulation but is limited in scalability. This inherent complexity and the practical need for fast solutions for large-scale instances underscore the need for robust metaheuristic approaches.
+The \gls{tatsp}, introduced by~\citet{Cerrone}, is a variant that introduces dynamic arc costs influenced by the solution's path. 
+In the \gls{tatsp}, the cost of traversing a specific arc can be reset if a predefined "trigger arc" is traversed beforehand, 
+with only the most recently encountered trigger arc affecting the target arc's cost. In their introduction paper, ~\citet{Cerrone} 
+propose an Integer Linear Programming (ILP) model for the \gls{tatsp}. Their approach provides a precise mathematical formulation 
+but is limited in scalability. This inherent complexity and the practical need for fast solutions for large-scale instances underscore
+ the need for robust metaheuristic approaches.
 
 \subsection{Metaheuristics for the TSP}
 \label{sec:metaheuristics_tsp}
@@ -178,10 +186,10 @@ The computational difficulty of the \gls{tsp} has led to the development of a wi
 
 This work is based on the \gls{grasp} metaheuristic, introduced by Feo and Resende~\cite{Feo1995}, which is a two-phase approach that combines a construction heuristic and a local search procedure.
 The construction phase leverages a greedy randomized strategy to build a diverse set of feasible solutions. Following this, the local search phase systematically explores the neighborhood of each constructed solution to find a local optimum with respect to a set of neighborhood structures.
-The best solution found across all iterations is returned.
-
-The two-phase structure of \gls{grasp} inherently balances diversification (exploration) and intensification (exploitation) of the search space, which is advantageous for complex fitness landscapes.
-Due to its robust performance and adaptability, \gls{grasp} has been successfully applied to the classical \gls{tsp}, often achieving results competitive with highly specialized heuristics~\cite{Oliveira2004}. Its effectiveness can be further enhanced through advanced techniques. Reactive GRASP, for instance, dynamically adjusts its parameters during the search to adapt to the problem's characteristics~\cite{Prais2000}. Path-Relinking is an intensification strategy that explores trajectories between elite solutions to find improved ones~\cite{Resende2019}. The consistent success of GRASP and its variants in related routing problems makes it a compelling choice for addressing the unique challenges of the \gls{tatsp}.
+The best solution found across all iterations is returned.The two-phase structure of \gls{grasp} inherently balances diversification (exploration) and intensification (exploitation) of the search space, which is advantageous for complex fitness landscapes.
+Due to its robust performance and adaptability, \gls{grasp} has been successfully applied to the classical \gls{tsp}, often achieving results competitive with highly specialized heuristics~\cite{Oliveira2004}. 
+Its effectiveness can be further enhanced through advanced techniques. Reactive GRASP, for instance, dynamically adjusts its parameters during the search to adapt to the problem's characteristics~\cite{Prais2000}. 
+Path-Relinking is an intensification strategy that explores trajectories between elite solutions to find improved ones~\cite{Resende2019}. The consistent success of GRASP and its variants in related routing problems makes it a compelling choice for addressing the \gls{tatsp}.
 
 \section{Methodology}
 
@@ -191,15 +199,15 @@ The \gls{tatsp} is formally defined on a directed graph $G = (N, A)$, where $N$ 
 
 \begin{itemize}
 \item \textbf{Base arc costs}: Let $c(a) \in \mathbb{R}^+$ for all $a \in A$ represent the base cost of traversing arc $a$.
-\item \textbf{Relations}: For each arc $a \in A$, a set of relations $R_a = \{(a_1, a) \mid a_1 \in A\}$ is defined, where each relation connects a trigger arc $a_1$ to a target arc $a$.
+\item \textbf{Relations}: For each arc $a_j \in A$, a set of relations $R_a = \{(a_i, a_j) \mid a_i \in A\}$ is defined, where each relation connects a trigger arc $a_i$ to the target arc $a_j$.
 \item \textbf{Relation costs}: Let $c(r) \in \mathbb{R}^+$ for all $r \in R$ represent the cost associated with relation $r$ when active, where $R = \bigcup_{a \in A} R_a$ is the set of all relations.
 \end{itemize}
 
-Given a Hamiltonian cycle $T = (a_1, a_2, \ldots, a_{|N|})$ starting at node $0$, a relation $r = (a_i, a_j) \in R$ is \textbf{active} if and only if:
+Given a Hamiltonian cycle $T = (a_i, a_j, \ldots, a_{|N|})$ starting at node $0$, a relation $r = (a_i, a_j) \in R$ is \textbf{active} if and only if:
 \begin{enumerate}
 \item Both arcs $a_i$ and $a_j$ belong to the tour $T$
 \item Arc $a_i$ precedes arc $a_j$ in the traversal sequence
-\item There is no other relation $r' = (a_k, a_j) \in R_{a_j}$ such that $a_k$ precedes $a_i$ in $T$
+\item There is no other relation $r' = (a_k, a_j) \in R_{a_j}$ such that $a_k$ follows $a_i$ in $T$
 \end{enumerate}
 
 The cost of traversing an arc $a \in A$ in tour $T$ is determined as:
@@ -212,20 +220,23 @@ c(a) & \text{if no relation in } R_a \text{ is active}
 
 The objective of the \gls{tatsp} is to find a Hamiltonian cycle $T^*$ that minimizes the total tour cost:
 \begin{equation}
-T^* = \arg\min_{T} \sum_{a \in T} \text{cost}(a, T)
+T^* = \arg\min_{T} \sum_{a \in T} \text{c}(a)
 \end{equation}
 
-One observation is that the \gls{tatsp} is a generalization of the \gls{tsp} where no relations are defined.
+One observation is that the \gls{tatsp} generalizes the \gls{tsp}. If the relation set within the TA-TSP is empty, 
+the problem formulation simplifies directly to that of the traditional TSP.
 The two problems share the same set of feasible solutions, which is the set of all Hamiltonian cycles.
 However, there is no natural reduction from the \gls{tatsp} to the \gls{tsp} because of the path-dependency of the cost function.
 
-For modeling purposes, it is useful to reformulate the cost function. Instead of viewing the cost of a relation as a replacement for the base arc cost, we can consider it as an additional cost (or discount). For each relation $r = (a_1, a)$ with an associated cost $c(r)$, we can define a delta cost, $\Delta(r) = c(r) - c(a)$. The cost of traversing an arc $a$ in a tour $T$ can then be written as $c(a) + \Delta(r)$ if relation $r$ is active, and $c(a)$ otherwise. This separates the base tour cost from the additional costs incurred by active relations, which is a convenient perspective for developing heuristics and mathematical models.
+For modeling purposes, it is useful to reformulate the cost function. Instead of viewing the cost of a relation as a replacement for the base arc cost, we can consider it as an additional cost (or discount). For each relation $r = (a_i, a)$ with an associated cost $c(r)$, we can define a delta cost, $\Delta(r) = c(r) - c(a)$. The cost of traversing an arc $a$ in a tour $T$ can then be written as $c(a) + \Delta(r)$ if relation $r$ is active, and $c(a)$ otherwise. This separates the base tour cost from the additional costs incurred by active relations, which is a convenient perspective for developing heuristics and mathematical models.
 
-\subsection{The GRASP approach}
+\subsection{The \gls{grasp} approach}
 
-\gls{grasp} is a multi-start metaheuristic that combines a randomized greedy construction phase with a local search phase. Each iteration of \gls{grasp} consists of these two phases, and the best solution found across all iterations is returned. The key components are (1) the Construction Phase, which builds a feasible solution using a randomized construction heuristic, and (2) the Local Search Phase, which applies improvement procedures to the constructed solution until a local optimum is reached.
-
-The general \gls{grasp} framework is presented in Algorithm~\ref{alg:grasp_general}.
+For solving the \gls{tatsp}, we leverage a classic \gls{grasp} approach as introduces by ~\cite{Feo1995}. 
+This framework described in Algorithm~\ref{alg:grasp_general} consists in iterating over these two phases, 
+and the best solution found across all iterations is returned. The first phase is the Construction Phase, which builds a feasible
+solution using a randomized construction heuristic. The second phase, Local Search Phase, applies improvement procedures to the 
+constructed solution until a local optimum is reached. 
 
 \begin{algorithm}
 \caption{General GRASP Framework}
@@ -259,7 +270,7 @@ The algorithm is presented in Algorithm~\ref{alg:local_search}.
     \For{each neighborhood $\mathcal{N}_i \in \mathcal{N}$}
         \For{each move $m \in \mathcal{N}_i(T)$}
             \State $T' \leftarrow \text{ApplyMove}(T, m)$
-            \State $\Delta \leftarrow \text{EvaluateMoveDelta}(T, m)$ \Comment{Compute cost change with trigger effects}
+            \State $\Delta \leftarrow \text{EvaluateMoveCost}(T, m)$ \Comment{Compute cost change with trigger effects}
             \If{$\Delta < 0$}
                 \State $T \leftarrow T'$
                 \State $\text{improved} \leftarrow \text{true}$
@@ -276,15 +287,15 @@ The algorithm is presented in Algorithm~\ref{alg:local_search}.
 \end{algorithm}
 
 \subsection{Construction Heuristics}
-In this section we define all the construction heuristics that we benchmarked. 
+This section defines the construction heuristics benchmarked in this study.
 
 \paragraph{Simple Randomized Construction}
 This heuristic serves as a baseline method for generating feasible solutions. It constructs a tour iteratively, starting from the depot (node 0). At each step, it identifies all unvisited neighbors of the last node added to the tour. From this set of feasible next nodes, one is selected uniformly at random and appended to the tour. This process continues until all nodes have been visited. The final node is only considered feasible if it has an arc connecting back to the depot, thus ensuring a valid Hamiltonian cycle. This method does not consider any cost information during construction, relying purely on random selection to explore the solution space.
 
 \paragraph{Randomized Greedy Construction}
-This method is a semi-greedy heuristic inspired by the construction phase of a \gls{grasp} metaheuristic. Similar to the simple randomized approach, it builds a solution one node at a time. However, the choice of the next node is guided by cost information. At each step, for every feasible successor node, the exact incremental cost of adding the corresponding arc to the partial tour is calculated. This evaluation is non-trivial, as it must account for any changes in the total tour cost due to the activation of trigger-target arc relations.
+This method is a semi-greedy heuristic, similar to the simple randomized approach, it builds a solution one node at a time. However, the choice of the next node is guided by cost information. At each step, for every feasible successor node, the exact incremental cost of adding the corresponding arc to the partial tour is calculated. This evaluation is non-trivial, as it must account for any changes in the total tour cost due to the activation of trigger-target arc relations.
 
-A Restricted Candidate List (RCL) is then formed, containing the most promising arcs based on their incremental cost. The size of the RCL is controlled by a randomization parameter $\alpha \in [0, 1]$. An arc is then selected uniformly at random from the RCL and the corresponding node is added to the tour. A value of $\alpha = 0$ results in a purely greedy construction, where the best arc is always chosen, while $\alpha = 1$ allows for a random selection from all feasible arcs.
+A Restricted Candidate List (RCL) is then formed, containing the most promising arcs based on their incremental cost. The size of the RCL is controlled by a randomization parameter $\alpha \in [0, 1]$. $\alpha$ correesponds to the share of neighbors added to the short list. An arc is then selected uniformly at random from the RCL and the corresponding node is added to the tour. A value of $\alpha = 0$ results in a purely greedy construction, where the best arc is always chosen, while $\alpha = 1$ allows for a random selection from all feasible arcs.
   
 \paragraph{\textit{MIP-based Random Perturbation}}
 This heuristic leverages a full \gls{tsp} solver by transforming the \gls{tatsp} into a classic \gls{tsp}, thereby ignoring all trigger-target relations.
@@ -293,7 +304,7 @@ This instance is then solved to optimality or near-optimality, and its resulting
 In the \textit{Additive Perturbation} approach, the costs are modified using an additive noise factor controlled by a parameter $\alpha$. The new cost $c'_{ij}$ is calculated as $c'_{ij} = c_{ij} + \alpha \cdot U(-1, 1)$, where $U(-1, 1)$ is a random variable from a uniform distribution between -1 and 1. Alternatively, the \textit{Multiplicative Perturbation} method scales the costs by a random factor controlled by a parameter $\beta$, resulting in $c'_{ij} = c_{ij} \cdot (\beta \cdot U(0, 1))$.
   
 \paragraph{\textit{MIP-based Biased Perturbation}}
-This method attempts to incorporate relational information into the \gls{tsp} model by perturbing arc costs based on an estimated probability of relation activation. The process begins by generating a random permutation of nodes, $P$, which serves as a prior for estimating arc usage. The probability of an arc $(i, j)$ being used is assumed to be inversely proportional to the cyclic distance between nodes $i$ and $j$ in the prior permutation $P$. This is defined as $p_{ij} = 1/d_{ij}$, where $d_{ij} = \min(|pos(i)-pos(j)|, |N| - |pos(i)-pos(j)|)$. For a relation $r$ from a trigger arc $a=(t_1, t_2)$ to a target arc $b=(g_1, g_2)$, the activation probability $p_r$ is estimated by considering the usage probabilities of both arcs and their proximity. It is defined as $p_r = p_{t_1t_2} \cdot p_{g_1g_2} / d_{t_2g_1}^\beta$, where $d_{t_2g_1}$ is the cyclic distance between the trigger's endpoint and the target's startpoint, and $\beta$ is a tunable parameter. The costs of the arcs in the base \gls{tsp} instance are modified to reflect the expected impact of the relations. For each relation $r$ between trigger arc $b$ and target arc $a$, a penalty proportional to the relation's activation probability is added to the costs of both arcs. The new cost of an arc $k \in \{a,b\}$ is updated as $c'(k) = c(k) + \alpha \cdot p_r \cdot c_r$, where $c_r$ is the cost when relation $r$ is active, and $\alpha$ is a parameter controlling the penalty's magnitude. Finally, the modified \gls{tsp} instance is solved, and the resulting tours are evaluated on the original \gls{tatsp} instance to find the best solution.
+This method attempts to incorporate relational information into the \gls{tsp} model by perturbing arc costs based on an estimated probability of relation activation. The process begins by generating a random permutation of nodes, $P$, which serves as a prior for estimating arc usage. The probability of an arc $(i, j)$ being used is assumed to be inversely proportional to the cyclic distance between nodes $i$ and $j$ in the prior permutation $P$. This is defined as $p_{ij} = 1/d_{ij}$, where $d_{ij} = \min(|pos(i)-pos(j)|, |N| - |pos(i)-pos(j)|)$. For a relation $r$ from a trigger arc $a=(a_i, a_j)$ to a target arc $b=(b_1, b_2)$, the activation probability $p_r$ is estimated by considering the usage probabilities of both arcs and their proximity. It is defined as $p_r = p_{a_ia_j} \cdot p_{b_1b_2} / d_{a_jb_1}^\beta$, where $d_{t_2g_1}$ is the cyclic distance between the trigger's endpoint and the target's startpoint, and $\beta$ is a tunable parameter. The costs of the arcs in the base \gls{tsp} instance are modified to reflect the expected impact of the relations. For each relation $r$ between trigger arc $b$ and target arc $a$, a penalty proportional to the relation's activation probability is added to the costs of both arcs. The new cost of an arc $k \in \{a,b\}$ is updated as $c'(k) = c(k) + \alpha \cdot p_r \cdot c_r$, where $c_r$ is the cost when relation $r$ is active, and $\alpha$ is a parameter controlling the penalty's magnitude. Finally, the modified \gls{tsp} instance is solved, and the resulting tours are evaluated on the original \gls{tatsp} instance to find the best solution.
 
 \subsection{Local search}
 The local search phase is designed to iteratively improve a solution by exploring its neighborhood. We employ a multi-neighborhood variable search procedure that systematically applies a set of local search operators. The search follows a first-improvement strategy: as soon as a move that reduces the total tour cost is found, the move is applied, and the search is restarted from the beginning of the neighborhood list. This process continues until no further improvements can be found in any of the defined neighborhoods, at which point the solution is considered locally optimal. The neighborhood structures used are 2-Opt, Swap, and Relocate.
@@ -305,7 +316,7 @@ The neighborhoods we employ are standard in the \gls{tsp} literature:
 
 \paragraph{Swap} The Swap (or Exchange) move consists of exchanging the positions of two nodes, $v_i$ and $v_j$, in the tour. The depot node is not considered for this operation. This move alters four arcs in the tour: the two arcs entering and the two arcs leaving the swapped nodes.
 
-\paragraph{Relocate} The Relocate (or Insertion) move selects a node $v_i$ and removes it from its current position in the tour. It is then re-inserted into a different position, between two adjacent nodes $(v_j, v_{j+1})$. This move changes three arcs in the original tour.
+\paragraph{Relocate} The Relocate (or Insertion) move selects a node $v_i$ and removes it from its current position in the tour. It is then re-inserted into a different position, between two adjacent nodes $(v_j, v_{j+1})$.
 
 \subsection{Delta Evaluation}
 A critical aspect of any iterative improvement algorithm is the evaluation of moves. The efficiency of construction heuristics and local search often relies on fast "delta evaluation"—calculating the change in objective value without recomputing the entire solution's cost.
@@ -324,22 +335,48 @@ This section presents the computational experiments conducted to evaluate the pe
 
 \subsection{Datasets}
 
-We evaluate our \gls{grasp} algorithm on three distinct datasets to assess its performance across different problem characteristics and scales. For the random generation of synthetic instances, we follow the same approach as~\citet{Cerrone}, as described in their work on optimizing warehouse picking processes.
 
-The first two datasets were provided by the competition organizers. The first dataset contains 21 instances, while the second dataset contains 34 instances. These instances represent realistic scenarios with varying problem sizes and complexity levels.
+\begin{table*}[!htpb]
+    \centering
+    \caption{Dataset Characteristics}
+    \label{tab:dataset_characteristics}
+    \resizebox{\textwidth}{!}{%
+        \begin{tabular}{|l|l|l|l|l|l|l|}
+        \hline
+        \textbf{Datasets} & \textbf{\# Inst.} & \textbf{\# Nodes (Min/Avg/Max)} & \textbf{\# Arcs (Min/Avg/Max)} & \textbf{\# Rels (Min/Avg/Max)} & \textbf{Avg Arc Cost} & \textbf{Avg Rel Cost} \\
+        \hline
+        instances\_generic & 180 & 10 / 18 / 25 & 90 / 320 / 600 & 100 / 2092 / 10000 & 2587.19 & 3042.15 \\
+        \hline
+        instances\_release\_2 & 34 & 18 / 68 / 142 & 90 / 580 / 1562 & 1144 / 47834 / 208020 & 1.00 & 1.08 \\
+        \hline
+        instances\_release\_1 & 21 & 20 / 40 / 60 & 200 / 1267 / 2700 & 1732 / 556903 / 4527944 & 6.29 & 6.30 \\
+        \hline
+        \end{tabular}%
+    }%
+\end{table*}
 
-The third dataset consists of 180 synthetically generated instances, designed to systematically test the algorithm's performance under controlled conditions. These instances are generated using a random generator that creates complete directed graphs $G(N,A)$ where nodes are placed within a 5 km square Euclidean space. For each pair of nodes $i, j \in N$, directed arcs $(i, j)$ and $(j, i)$ are created, with the base cost $c(a)$ for arc $a = (i, j)$ set to the Euclidean distance between the nodes.
+Three datasets were used to evaluate our \gls{grasp} algorithm and assess its performance across problem having different characteristics.
 
-Relations $r = (a_1, a_2) \in R$ are generated by randomly selecting pairs of arcs $a_1, a_2 \in A$. The cost of each relation $c(r)$ is determined by multiplying $c(a_2)$ by a random value in the range $[\frac{c(a_2)}{2}, 2c(a_2)]$.
+The first dataset contains 180 synthetic instances generated as described in~\citet{Cerrone}.
+Each instance is generated using a random generator that creates complete directed graphs $G(N,A)$ 
+with nodes placed within a 5 km square Euclidean space. 
+For each pair of nodes $i, j \in N$, directed arcs $(i, j)$ and $(j, i)$ are created and associate with a base cost $c(a)$ 
+corresponding to the Euclidean distance between the nodes. The synthetic instances are divided into three scenarios 
+(Balanced, Increase, Decrease), with 60 instances per scenario. Each scenario includes instances with $n \in \{10, 15, 20, 25\}$ 
+nodes and $|\frac{n}{2}, 2n, 4n, 8n, 16n|$ relations per graph. For each combination of node count and relation count, three 
+different instances are created, and all computational results report the average value obtained from these three instances.
+Relations $r = (a_i, a_j) \in R$ are generated by randomly selecting pairs of arcs $a_i, a_j \in A$. The cost of each relation $c(r)$ 
+is determined by generating a random value in the range $[\frac{c(a_j)}{2}, 2c(a_j)]$.
 
-The synthetic instances are divided into three scenarios (Balanced, Increase, Decrease), with 60 instances per scenario. Each scenario includes instances with $n \in \{10, 15, 20, 25\}$ nodes and $|\frac{n}{2}, 2n, 4n, 8n, 16n|$ relations per graph. For each combination of node count and relation count, three different instances are created, and all computational results report the average value obtained from these three instances.
 
 The three scenarios are characterized as follows:
 \begin{itemize}
-    \item \textbf{Balanced}: Relations have random costs that can be either greater or less than the base arc cost, in the range $[\frac{c(a_2)}{2}, 2c(a_2)]$
-    \item \textbf{Increase}: Relations have random costs greater than the base arc cost, in the range $[c(a_2), 2c(a_2)]$
-    \item \textbf{Decrease}: Relations have random costs less than the base arc cost, in the range $[\frac{c(a_2)}{2}, c(a_2)]$
+    \item \textbf{Balanced}: Relations have random costs that can be either greater or less than the base arc cost, in the range $[\frac{c(a_j)}{2}, 2c(a_j)]$
+    \item \textbf{Increase}: Relations have random costs greater than the base arc cost, in the range $[c(a_j), 2c(a_j)]$
+    \item \textbf{Decrease}: Relations have random costs less than the base arc cost, in the range $[\frac{c(a_j)}{2}, c(a_j)]$
 \end{itemize}
+
+Two additional datasets, provided by the competition organizers, offer realistic scenarios with varying problem sizes and complexities. The first of these contains 21 instances, with an average of 580 arcs and 47,834 relations. The second, larger dataset has 34 instances, averaging 1,267 arcs and 556,903 relations. Table \ref{tab:dataset_characteristics} summarizes the key characteristics of all three datasets.
 
 \subsection{Experimental Setup}
 
@@ -363,12 +400,12 @@ For the competition instances (the first two datasets), we use the best known so
 \lipsum[11]
 
 \section{Conclusion}
-\lipsum[12] \cite{Cerrone}
+\lipsum[12]
 
 \appendix
 \section{MIP Model for the TA-TSP}
 
-This appendix presents the detailed Mixed-Integer Programming (MIP) model for the \gls{tatsp}.
+This appendix presents the detailed \gls{mip} model for the \gls{tatsp}.
 
 The model uses the following parameters, sets, and decision variables:
 \begin{itemize}
@@ -380,7 +417,7 @@ The model uses the following parameters, sets, and decision variables:
     \item $x_{ij} \in \{0, 1\}$: 1 if arc $(i,j)$ is in the tour, 0 otherwise.
     \item $u_i \in [0, N-1]$: Position of node $i$ in the tour. For an arc $a=(i,j)$, $u_a$ denotes $u_i$.
     \item $y_{ba} \in \{0, 1\}$: 1 if relation $(b,a)$ is active, 0 otherwise.
-    \item $z_{a_1a_2} \in \{0, 1\}$: 1 if arc $a_1$ precedes arc $a_2$ in the tour, 0 otherwise.
+    \item $z_{a_ia_j} \in \{0, 1\}$: 1 if arc $a_i$ precedes arc $a_j$ in the tour, 0 otherwise.
 \end{itemize}
 
 \footnotesize
@@ -402,7 +439,7 @@ Subject to the following constraints:
     u_b + 1 &\leq u_a + N(1-y_{ba}) \quad \forall a \in E, (b,a) \in R_a \label{eq:rel_precedence} \\
     1 - z_{ab} &\leq \sum_{(c,a) \in R_a} y_{ca} + (1 - x_a) + (1 - x_b) \notag \\
     &\quad \forall a \in E, (b,a) \in R_a \label{eq:rel_active_3} \\
-    u_{a_1} &\leq u_{a_2} + (N-1)(1-z_{a_1a_2}) \quad \forall a_1, a_2 \in E \label{eq:z_precedence} \\
+    u_{a_i} &\leq u_{a_j} + (N-1)(1-z_{a_ia_j}) \quad \forall a_i, a_j \in E \label{eq:z_precedence} \\
     y_{ba} &\leq y_{ca} + z_{cb} + z_{ac} + (1-x_c) + (1-x_b) + (1-x_a) \notag \\
     &\quad \forall a \in E, (b,a),(c,a) \in R_a, b \neq c \label{eq:rel_last_trigger}
 \end{align}
@@ -419,7 +456,7 @@ The relation activation logic is modeled by constraints \eqref{eq:rel_active_1} 
 Constraint \eqref{eq:rel_active_1} ensures that a relation for a target arc $a$ can only be active if $a$ is part of the tour, and at most one such relation can be active.
 Constraint \eqref{eq:rel_active_2} strengthens this by requiring the trigger arc $b$ to also be in the tour for the relation $(b,a)$ to be active.
 Constraint \eqref{eq:rel_precedence} states that for a relation $(b,a)$ to be active, the trigger arc $b$ must be traversed before the target arc $a$.
-The precedence variable $z_{a_1a_2}$ is defined in constraint \eqref{eq:z_precedence}, where $z_{a_1a_2}=1$ if arc $a_1$ precedes arc $a_2$.
+The precedence variable $z_{a_ia_j}$ is defined in constraint \eqref{eq:z_precedence}, where $z_{a_ia_j}=1$ if arc $a_i$ precedes arc $a_j$.
 Constraint \eqref{eq:rel_active_3} ensures that if an arc $a$ and one of its potential triggers $b$ are in the tour, and $b$ precedes $a$, then at least one relation for $a$ must be activated.
 Finally, constraint \eqref{eq:rel_last_trigger} is the core constraint that models the "last trigger" rule. It ensures that if two triggers $b$ and $c$ for the same target $a$ are in the tour, and $c$ is traversed after $b$ but before $a$, then the relation $(b,a)$ cannot be active.
 
