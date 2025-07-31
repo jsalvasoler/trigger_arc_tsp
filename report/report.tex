@@ -288,7 +288,7 @@ This method is a semi-greedy heuristic inspired by the construction phase of a \
 A Restricted Candidate List (RCL) is then formed, containing the most promising arcs based on their incremental cost. The size of the RCL is controlled by a randomization parameter $\alpha \in [0, 1]$. An arc is then selected uniformly at random from the RCL and the corresponding node is added to the tour. A value of $\alpha = 0$ results in a purely greedy construction, where the best arc is always chosen, while $\alpha = 1$ allows for a random selection from all feasible arcs.
   
 \paragraph{\textit{MIP-based Random Perturbation}}
-This heuristic leverages a full \gls{tsp} solver by transforming the \gls{tatsp} into a classic \gls{tsp}, thereby ignoring all trigger-target relations.
+Inspired by the literature on metaheuristic hybridization~\cite{Blum2016}, we propose a new construction heuristic that leverages a full \gls{tsp} solver by transforming the \gls{tatsp} into a classic \gls{tsp}, thereby ignoring all trigger-target relations.
 The core idea is to perturb the original edge costs $c_{ij}$ to generate a new \gls{tsp} instance.
 This instance is then solved to optimality or near-optimality, and its resulting tour (or a pool of high-quality tours) is evaluated using the true \gls{tatsp} objective function.
 In the \textit{Additive Perturbation} approach, the costs are modified using an additive noise factor controlled by a parameter $\alpha$. The new cost $c'_{ij}$ is calculated as $c'_{ij} = c_{ij} + \alpha \cdot U(-1, 1)$, where $U(-1, 1)$ is a random variable from a uniform distribution between -1 and 1. Alternatively, the \textit{Multiplicative Perturbation} method scales the costs by a random factor controlled by a parameter $\beta$, resulting in $c'_{ij} = c_{ij} \cdot (\beta \cdot U(0, 1))$.
@@ -314,11 +314,6 @@ A critical aspect of any iterative improvement algorithm is the evaluation of mo
 For our sequential construction heuristics, such as the Randomized Greedy method, we successfully implement a form of delta evaluation. When considering adding a new node to a partial tour, we only need to compute the cost of the new arc and any trigger effects it may be subject to from arcs already in the partial tour. This is possible because the partial tour is fixed and extended in a single direction, so the trigger states of existing arcs are not altered.
 
 However, this approach is not feasible for the local search phase. Standard neighborhood moves, like 2-Opt or Swap, can drastically alter the sequence of the tour. A single swap can change which trigger is the "last" one to activate a target arc located much later in the tour. This creates a cascade effect, where a local change can lead to non-local cost modifications across the entire tour. A true delta evaluation would require a complex procedure to track and re-evaluate the effective trigger for every potentially affected arc, defeating the performance benefits of the technique. For correctness and simplicity, our local search implementation re-evaluates the entire tour cost after every move.
-
-\subsection{MIP Model}
-For benchmarking purposes, we developed a MIP model for the \gls{tatsp}, which shares similarities with the ILP model proposed by~\citet{Cerrone}. We use the commercial solver Gurobi \cite{gurobi}to solve the MIP model.
-The full model is presented in the Appendix.
-
 
 \section{Computational Experiments}
 This section presents the computational experiments conducted to evaluate the performance of the proposed \gls{grasp} algorithm.
@@ -351,8 +346,8 @@ The three scenarios are characterized as follows:
 \appendix
 \section{MIP Model for the TA-TSP}
 \label{sec:mip_model}
-
-This appendix presents the detailed Mixed-Integer Programming (MIP) model for the \gls{tatsp}.
+For benchmarking purposes, we developed a MIP model for the \gls{tatsp}, which shares similarities with the ILP model proposed by~\citet{Cerrone}.
+The full model is presented in the Appendix.
 
 The model uses the following parameters, sets, and decision variables:
 \begin{itemize}

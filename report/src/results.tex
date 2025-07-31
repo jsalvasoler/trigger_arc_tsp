@@ -21,7 +21,7 @@ For construction heuristics, we also measure the success rate, i.e. the percenta
 \subsection{Gurobi Solver}
 
 
-We use the Gurobi solver to solve the MIP model defined in~\ref{sec:mip_model}.
+We use the Gurobi solver~\cite{gurobi} to solve the MIP model defined in~\ref{sec:mip_model}.
 The competition instances are significantly harder than the synthetic instances, as shown in the Dataset report. In the context of MIP modeling, this is reflected in the fact
 that Gurobi can only solve 6 / 21 instances of the C1 dataset, and 1 / 34 instances of the C2 dataset.
 By solving, we mean that the solver was able to write the model in a reasonable time frame, and was able to provide a solution with a gap less than 1\% in under 5 hours.
