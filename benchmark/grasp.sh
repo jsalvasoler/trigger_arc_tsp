@@ -12,7 +12,7 @@ fi
 instance_set=$1
 local_searches=${2:-"TwoOpt SwapTwo Relocate"}
 
-n_trials_grasp=10
+n_trials_grasp=1000000
 alpha=0.1
 beta=3.0
 timestamp=$(date +%Y%m%d_%H%M%S)
