@@ -78,18 +78,18 @@ We will use this value for the rest of the experiments.
 
 \subsection{MIP Randomized Construction}
 
-We evaluate both additive ($\alpha$) and multiplicative ($\beta$) perturbation strategies for the MIP-based random perturbation construction heuristic across different parameter values.
+We evaluate both additive ($\gamma$) and multiplicative ($\delta$) perturbation strategies for the MIP-based random perturbation construction heuristic across different parameter values.
 We set the time limit of the MIP solver to 2 seconds. Recall that solving the MIP problems to optimality is not relevant in this context, since the objective that the MIP optimizes is not
 the same as the one of the \gls{tatsp}. In the context of a GRASP, exploring more initial solutions and applying local search to them is more advantageous.
 
 \begin{table}[h]
-    \caption{Performance of MIP Random Perturbation with additive noise ($\alpha$). Results show average optimality gap (\%) across different datasets and parameter values.}
-    \label{tab:mip_alpha_results}
+    \caption{Performance of MIP Random Perturbation with additive noise ($\gamma$). Results show average optimality gap (\%) across different datasets and parameter values.}
+    \label{tab:mip_gamma_results}
     \centering
     \setlength{\tabcolsep}{4pt}
     \begin{tabular}{lcccc}
         \toprule
-        \textbf{Set} & \boldmath{$\alpha = 0.0$} & \boldmath{$\alpha = 0.1$} & \boldmath{$\alpha = 1.0$} & \boldmath{$\alpha = 10.0$} \\
+        \textbf{Set} & \boldmath{$\gamma = 0.0$} & \boldmath{$\gamma = 0.1$} & \boldmath{$\gamma = 1.0$} & \boldmath{$\gamma = 10.0$} \\
         \midrule
         RG & $81.7 \pm 82.7$ & $70.9 \pm 75.6$ & $70.6 \pm 76.9$ & $\mathbf{68.9 \pm 75.3}$ \\
         C1 & $5.5 \pm 4.1$ & $\mathbf{4.3 \pm 3.2}$ & $7.3 \pm 3.9$ & $59.1 \pm 36.7$ \\
@@ -98,16 +98,16 @@ the same as the one of the \gls{tatsp}. In the context of a GRASP, exploring mor
     \end{tabular}
 \end{table}
 
-The results for the additive perturbation parameter $\alpha$ show that moderate values ($\alpha = 0.1$) generally perform best across all datasets. On the RG dataset, higher values of $\alpha$ lead to better performance, with $\alpha = 10.0$ achieving the lowest gap of $68.9\%$. However, on the C1 dataset, $\alpha = 0.1$ is optimal ($4.3\%$ gap), while $\alpha = 10.0$ causes severe degradation ($59.1\%$ gap). The C2 dataset also favors $\alpha = 0.1$ ($6.6\%$ gap), with performance degrading for higher values.
+The results for the additive perturbation parameter $\gamma$ show that moderate values ($\gamma = 0.1$) generally perform best across all datasets. On the RG dataset, higher values of $\gamma$ lead to better performance, with $\gamma = 10.0$ achieving the lowest gap of $68.9\%$. However, on the C1 dataset, $\gamma = 0.1$ is optimal ($4.3\%$ gap), while $\gamma = 10.0$ causes severe degradation ($59.1\%$ gap). The C2 dataset also favors $\gamma = 0.1$ ($6.6\%$ gap), with performance degrading for higher values.
 
 \begin{table}[h]
-    \caption{Performance of MIP Random Perturbation with multiplicative noise ($\beta$). Results show average optimality gap (\%) across different datasets and parameter values.}
-    \label{tab:mip_beta_results}
+    \caption{Performance of MIP Random Perturbation with multiplicative noise ($\delta$). Results show average optimality gap (\%) across different datasets and parameter values.}
+    \label{tab:mip_delta_results}
     \centering
     \setlength{\tabcolsep}{4pt}
     \begin{tabular}{lcccc}
         \toprule
-        \textbf{Set} & \boldmath{$\beta = 1.1$} & \boldmath{$\beta = 1.5$} & \boldmath{$\beta = 2.0$} & \boldmath{$\beta = 5.0$} \\
+        \textbf{Set} & \boldmath{$\delta = 1.1$} & \boldmath{$\delta = 1.5$} & \boldmath{$\delta = 2.0$} & \boldmath{$\delta = 5.0$} \\
         \midrule
         RG & $\mathbf{69.1 \pm 72.8}$ & $70.7 \pm 76.0$ & $70.3 \pm 76.3$ & $69.9 \pm 74.6$ \\
         C1 & $4.9 \pm 4.2$ & $4.8 \pm 3.6$ & $\mathbf{4.3 \pm 3.2}$ & $4.4 \pm 3.9$ \\
@@ -116,7 +116,7 @@ The results for the additive perturbation parameter $\alpha$ show that moderate 
     \end{tabular}
 \end{table}
 
-For the multiplicative perturbation parameter $\beta$, the results show that parameters have slightly different effects on datasets, indicating that the parameters are not very relevant, especially under such tight MIP solving time limits. The RG dataset performs best with $\beta = 1.1$ ($69.1\%$ gap), while C1 favors $\beta = 2.0$ ($4.3\%$ gap) and C2 performs best with $\beta = 1.5$ ($6.4\%$ gap). However, we will pick $\alpha = 0.1$ and $\beta = 1.5$ as the best parameters since they perform well on average across all datasets.
+For the multiplicative perturbation parameter $\delta$, the results show that parameters have slightly different effects on datasets, indicating that the parameters are not very relevant, especially under such tight MIP solving time limits. The RG dataset performs best with $\delta = 1.1$ ($69.1\%$ gap), while C1 favors $\delta = 2.0$ ($4.3\%$ gap) and C2 performs best with $\delta = 1.5$ ($6.4\%$ gap). However, we will pick $\gamma = 0.1$ and $\delta = 1.5$ as the best parameters since they perform well on average across all datasets.
 
 
 \subsection{MIP Biased Construction}
@@ -141,7 +141,7 @@ We will use the following parameter values for the rest of the experiments: $\al
 We finally compare the performance of the tuned construction heuristics on all datasets in Table~\ref{tab:construction_comparison}.
 We include another method, namely a Simple Random Construction (SRC) heuristic, in which at every step, randomly selects a feasible edge from the feasible set, without considering the insertion cost.
 
-We find that all datasets show the same ranking pattern: MIP Bias consistently achieves the best performance, followed by MIP $\alpha$-Rand and MIP $\beta$-Rand, with RGC and SRC performing significantly worse.
+We find that all datasets show the same ranking pattern: MIP Bias consistently achieves the best performance, followed by MIP $\gamma$-Rand and MIP $\delta$-Rand, with RGC and SRC performing significantly worse.
 The MIP-based methods demonstrate superior solution quality across all datasets, with gaps ranging from 3.8\% to 6.6\% on competition instances (C1, C2) and around 70\% on synthetic instances (RG).This suggests that leveraging a TSP solver to establish a strong underlying tour structure is highly effective, even when the costs are perturbed.
 In the case of the MIP-Bias method, the perturbations successfully guide the search towards regions of the solution space that are favorable for the TA-TSP objective.
 In contrast, the simpler heuristics (SRC, RGC) show much higher gaps, particularly on the RG dataset where SRC reaches nearly 300\% gap. Notably, SRC fails completely on C2 (0\% success rate), while RGC shows poor performance on C2 (2.9\% success rate).
@@ -161,21 +161,21 @@ Given these results, the construction heuristic that we will use in the GRASP fr
         \midrule
         \multirow[c]{6}{*}{C1} & SRC & $163.6 \pm 128.5$ & $0.0 \pm 0.0$ & $0.95$ \\
         & RGC ($\alpha = 0.1$) & $29.2 \pm 24.6$ & $0.1 \pm 0.1$ & $0.91$ \\
-        & MIP $\alpha$-Rand(0.1) & $4.3 \pm 3.2$ & $3.2 \pm 3.7$ & $1.00$ \\
-        & MIP $\beta$-Rand(1.5) & $4.8 \pm 3.7$ & $3.2 \pm 3.4$ & $1.00$ \\
+        & MIP $\gamma$-Rand(0.1) & $4.3 \pm 3.2$ & $3.2 \pm 3.7$ & $1.00$ \\
+        & MIP $\delta$-Rand(1.5) & $4.8 \pm 3.7$ & $3.2 \pm 3.4$ & $1.00$ \\
         & MIP Bias(0.1, 3.0) & $\mathbf{3.8 \pm 2.8}$ & $4.1 \pm 5.2$ & $1.00$ \\
         \midrule
         \multirow[c]{6}{*}{C2} & SRC & $-$ & $0.0 \pm 0.0$ & $0.00$ \\
         & RGC ($\alpha = 0.1$) & $2.7$ & $1.5 \pm 1.7$ & $0.03$ \\
-        & MIP $\alpha$-Rand(0.1) & $6.6 \pm 2.2$ & $6.1 \pm 3.8$ & $1.00$ \\
-        & MIP $\beta$-Rand(1.5) & $6.4 \pm 1.9$ & $5.9 \pm 3.7$ & $1.00$ \\
+        & MIP $\gamma$-Rand(0.1) & $6.6 \pm 2.2$ & $6.1 \pm 3.8$ & $1.00$ \\
+        & MIP $\delta$-Rand(1.5) & $6.4 \pm 1.9$ & $5.9 \pm 3.7$ & $1.00$ \\
         & MIP Bias(0.1, 3.0) & $\mathbf{6.1 \pm 1.8}$ & $1.9 \pm 1.5$ & $1.00$ \\
         \midrule
         \multirow[c]{6}{*}{RG} & Gurobi & $85.1 \pm 192.5$ & $26.9 \pm 27.5$ & $1.00$ \\
         & SRC & $296.4 \pm 236.0$ & $0.0 \pm 0.0$ & $1.00$ \\
         & RGC ($\alpha = 0.1$) & $66.8 \pm 59.0$ & $0.0 \pm 0.0$ & $1.00$ \\
-        & MIP $\alpha$-Rand(0.1) & $70.9 \pm 75.8$ & $1.1 \pm 1.9$ & $1.00$ \\
-        & MIP $\beta$-Rand(1.5) & $70.7 \pm 76.2$ & $1.1 \pm 1.9$ & $1.00$ \\
+        & MIP $\gamma$-Rand(0.1) & $70.9 \pm 75.8$ & $1.1 \pm 1.9$ & $1.00$ \\
+        & MIP $\delta$-Rand(1.5) & $70.7 \pm 76.2$ & $1.1 \pm 1.9$ & $1.00$ \\
         & MIP Bias(0.1, 3.0) & $\mathbf{69.7 \pm 75.1}$ & $1.1 \pm 1.8$ & $1.00$ \\
         \bottomrule
     \end{tabular}
@@ -184,7 +184,7 @@ Given these results, the construction heuristic that we will use in the GRASP fr
 \subsection{GRASP Framework}
 
 We now report the results of the GRASP framework. 
-Based on the results of the previous section, we used the MIP Bias construction heuristic with parameters $\alpha = 0.1$ and $\beta = 3.0$.
+Based on the results of the previous section, we used the MIP Bias construction heuristic with parameters $\gamma = 0.1$ and $\delta = 3.0$.
 We set a time limit of 60 seconds for the whole algorithm, and 2 seconds for the MIP solver.
 We do not limit the number of trials or iterations of the GRASP. We benchmark the GRASP framework with the three local search operators: Relocate, SwapTwo, and TwoOpt.
 Moreover, we ablate these operators one by one, and report the performance of the GRASP framework without each operator.
@@ -229,7 +229,7 @@ On the C1 and C2 datasets, the GRASP framework is able to provide final mean gap
 
 \paragraph{GRASP settings for the MESS 2024 competition}
 
-We used the full GRASP with the MIP Bias construction heuristic with parameters $\alpha = 0.1$ and $\beta = 3.0$.
+We used the full GRASP with the MIP Bias construction heuristic with parameters $\gamma = 0.1$ and $\delta = 3.0$.
 We used the Relocate, SwapTwo, and TwoOpt local search operators, as suggested by the ablation results.
 We set the time limit of the MIP solver to 5 seconds, and the time limit of the GRASP to 3 hours per instance.
 Again, we did not limit the number of trials or iterations of the GRASP.
