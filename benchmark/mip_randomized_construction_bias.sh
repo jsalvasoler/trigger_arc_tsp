@@ -1,12 +1,20 @@
 #!/bin/bash
 cpp_src/build.sh
 
+# Check if instance_set is provided as first argument
+if [ $# -eq 0 ]; then
+    echo "Error: instance_set must be provided as first argument"
+    echo "Usage: $0 <instance_set>"
+    exit 1
+fi
+
+instance_set=$1
+
 n_trials_rg=5
 alpha_grid=(0.05 0.1 1 3)
 beta_grid=(0.05 0.1 1 3)
 timestamp=$(date +%Y%m%d_%H%M%S)
 time_limit_mip=2    # time limit for MIP TSP model
-instance_set=instances_release_2
 
 output_dir=output/mip_randomized_construction_bias/$instance_set/$timestamp
 
@@ -21,3 +29,8 @@ for instance in $(ls instances/$instance_set/*.txt); do
         done
     done
 done
+
+echo "--------------------------------"
+echo "Benchmarking finished"
+echo "Timestamp: $timestamp"
+echo "--------------------------------"
