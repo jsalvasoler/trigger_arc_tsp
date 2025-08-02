@@ -9,7 +9,7 @@ This implementation uses C++20.
 ## Authors
 
 - **Joan Salvà Soler** - [Website](https://jsalvasoler.vercel.app) - [Email](mailto:jsalvasoler@hotmail.com)
-- **Gregoire deLmabertye** - [Website](https://gdelambertye.vercel.app/) - [Email](mailto:gregoire.delambertye@gmail.com)
+- **Grégoire de Lambertye** - [Website](https://gdelambertye.vercel.app/) - [Email](mailto:gregoire.delambertye@gmail.com)
 
 -----
 
