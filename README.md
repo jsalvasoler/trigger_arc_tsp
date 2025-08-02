@@ -6,16 +6,22 @@ In this [blog post](https://jsalvasoler.vercel.app/i-took-on-the-mess-2024-compu
 
 This implementation uses C++20.
 
+## Authors
+
+- **Joan Salvà Soler** - [Website](https://jsalvasoler.vercel.app) - [Email](mailto:jsalvasoler@hotmail.com)
+- **Gregoire deLmabertye** - [Website](https://gdelambertye.vercel.app/) - [Email](mailto:gregoire.delambertye@gmail.com)
+
 -----
 
 ## Repo structure
 
 - `instances/`: Contains the instances for the competition. They are not pushed, but they can be downloaded from the competition website.
 - `solutions/`: A file for each instance with the list of solutions found.
-- `cpp_src/`: Contains the C++ source code.
+- `src/`: Contains the C++ source code.
 - `report/`: Contains the LaTeX source code for the report.
 - `output/`: Contains the outputs of the experiments.
-- `notebooks/`: Contains the notebooks used to generate the figures for the report and for the dataset generation and exploration.
+- `notebooks/`: Contains the notebooks used to generate the figures for the report and for the dataset generation and exploration. To run them, you can use the python environment defined in `pyproject.toml`.
+- `benchmark/`: Contains scripts to reproduce experimental results.
 
 ## Getting started
 
@@ -27,31 +33,32 @@ This project requires:
 - Boost libraries.
 - Gurobi solver.
 
-The paths for Boost and Gurobi might need to be adjusted in `cpp_src/CMakeLists.txt` depending on your system.
+The paths for Boost and Gurobi might need to be adjusted in `src/CMakeLists.txt` depending on your system.
 
 ### Scripts
 
-The `cpp_src` directory contains several useful scripts:
+The `src` directory contains several useful scripts:
 
-- `build.sh`: Compiles the project. Run this from the `cpp_src` directory.
-- `test.sh`: Runs the tests. Run this from the `cpp_src` directory after building the project.
+- `build.sh`: Compiles the project. Run this from the `src` directory.
+- `test.sh`: Runs the tests. Run this from the `src` directory after building the project.
 - `fmt.sh`: Formats the C++ code using `clang-format`.
 - `benchmark.sh`: A script to run benchmarks. You might need to adapt it to your needs.
 
 ### Building and Running
 
 1.  Place the problem instances in the `instances/` directory at the root of the repository.
-2.  Navigate to the `cpp_src` directory: `cd cpp_src`
+2.  Navigate to the `src` directory: `cd src`
 3.  Run the build script: `./build.sh`
-4.  The executable `trigger_arc_tsp` will be created in `cpp_src/build/`.
+4.  (Optional) Run the test script: `./test.sh`
+5.  The executable `trigger_arc_tsp` will be created in `src/build/`.
 
-You can then run the solver from `cpp_src/build` directory, for example:
+You can then run the solver from `src/build` directory, for example:
 
 ```bash
-./trigger_arc_tsp --method grasp --instance-file ../../instances/instances_release_1/grf1.txt --n-trials 10 --local-searches TwoOpt SwapTwo Relocate --constructive-heuristic SimpleRandomized --logs
+./src/build/trigger_arc_tsp --method grasp --instance-file ../../instances/instances_release_1/grf1.txt --n-trials 10 --local-searches TwoOpt SwapTwo Relocate --constructive-heuristic SimpleRandomized --logs --alpha 0.1 --beta 3.0 --save-solutions
 ```
 
-Run `./trigger_arc_tsp --help` to see all available options.
+Run `./src/build/trigger_arc_tsp --help` to see all available options.
 
 ### GRASP Implementation
 
@@ -104,4 +111,8 @@ To reproduce the results from our experiments, we provide a set of benchmark scr
    chmod +x benchmark/*.sh
    ```
 
-Each script is pre-configured with recommended parameters, but you can edit them to suit your needs. 
+Each script is pre-configured with recommended parameters, but you can edit them to suit your needs.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details. 
