@@ -20,16 +20,16 @@ For the randomized construction heuristics, we also measure the success rate, i.
 \subsection{Benchmarking the MIP model for the \gls{tatsp}}
 
 We use the Gurobi solver~\cite{gurobi} to solve the MIP model defined in~\ref{sec:mip_model}.
-The competition instances are significantly harder than the synthetic instances, as shown in the Dataset report. In the context of MIP modeling, this is reflected in the fact
+The competition instances are significantly harder than the RG dataset, as shown in the Dataset report. In the context of MIP modeling, this is reflected in the fact
 that Gurobi can only solve 6 / 21 instances of the C1 dataset, and 1 / 34 instances of the C2 dataset.
 By solving, we mean that the solver was able to write the model in a reasonable time frame, and was able to provide a solution with a gap less than 1\% in under 5 hours.
 For the other competition instances, the solver was not useful since it takes too long to write the model and does not provide feasible solutions or good bounds in reasonable times.
 In many cases, the solver was running out of CPU memory.
 
-Therefore, we only report the Gurobi results for the synthetic instances, in which we use a time limit of 1 minute and the default settings.
+Therefore, we only report the Gurobi results for the RG dataset, in which we use a time limit of 1 minute and the default settings.
 
 \begin{table}[h]
-    \caption{Performance of Gurobi MIP solver on synthetic instances. Results show average computation time and optimality gap across different scenarios and problem sizes.}
+    \caption{Performance of Gurobi MIP solver on the RG dataset of synthetic instances. Results show average computation time and optimality gap across different scenarios and problem sizes.}
     \label{tab:gurobi_performance}
     \centering
     \begin{tabular}{lrrrr}
@@ -223,7 +223,7 @@ In general, the proposed GRASP framework shows to be very effective to provide f
 The negative gaps on the RG dataset demonstrate the even on small instances, GRASP is more effective than the Gurobi MIP solver when both are operating on short time limits (60 seconds).
 On the C1 and C2 datasets, the GRASP framework is able to provide final mean gaps of 0.77\% and 0.40\% respectively, which is a excellent performance for a heuristic running in a 1-minute time budget.
 
-\paragraph{GRASP settings for the competition}
+\paragraph{GRASP settings for the MESS 2024 competition}
 
 We used the full GRASP with the MIP Bias construction heuristic with parameters $\alpha = 0.1$ and $\beta = 3.0$.
 We used the Relocate, SwapTwo, and TwoOpt local search operators, as suggested by the ablation results.
@@ -231,3 +231,12 @@ We set the time limit of the MIP solver to 5 seconds, and the time limit of the 
 Again, we did not limit the number of trials or iterations of the GRASP.
 
 In the repository, we provide the best solutions and the final objective values for each of the competition instances.
+
+
+\section{Conclusion}
+In this work, we presented a fast and effective GRASP-based metaheuristic for the recently introduced Trigger Arc Traveling Salesman Problem (TA-TSP).
+Our approach combines a novel MIP-based construction heuristic with a multi-neighborhood local search procedure to efficiently explore the complex, path-dependent solution space of the TA-TSP.
+
+Computational experiments on a diverse set of benchmark instances, including those from the MESS 2024 competition, demonstrate the superiority of our method. The proposed GRASP framework consistently finds high-quality solutions, often within a one-minute time budget, achieving near-optimal results on competition instances with average gaps below 1\%. This performance significantly surpasses that of exact MIP solvers like Gurobi, which struggle to find feasible solutions or provide useful bounds for large-scale instances within practical time limits, highlighting the necessity of metaheuristic approaches for this problem.
+
+Future research could extend this work by exploring more sophisticated local search neighborhood structures tailored to the unique trigger-target dynamics of the TA-TSP. Furthermore, a more extensive hyperparameter tuning process, potentially using automated algorithm configuration tools, could further enhance the robustness and performance of the proposed GRASP algorithm.

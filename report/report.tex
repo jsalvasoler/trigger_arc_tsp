@@ -105,16 +105,7 @@
 \maketitle
 
 \begin{abstract}
- purus elit, vestibulum ut, placerat ac, adipiscing vitae, felis.
- Curabitur dictum gravida mauris. Nam arcu libero, nonummy
- eget, consectetuer id, vulputate a, magna. Donec vehicula au
-gue eu neque. Pellentesque habitant morbi tristique senectus
- et netus et malesuada fames ac turpis egestas. Mauris ut leo.
- Cras viverra metus rhoncus sem. Nulla et lectus vestibulum
- urna fringilla ultrices. Phasellus eu tellus sit amet tortor gravida
- placerat. Integer sapien est, iaculis in, pretium quis, viverra ac,
- nunc. Praesent eget sem vel leo ultrices bibendum. Aenean
-
+The Trigger Arc Traveling Salesman Problem (TA-TSP) introduces dynamic arc costs that change based on previously traversed "trigger" arcs, modeling real-world scenarios such as warehouse operations with compactable storage systems. We present a GRASP-based metaheuristic that combines multiple construction heuristics with multi-neighborhood local search to solve this challenging optimization problem. Our approach leverages MIP-based construction methods that transform the TA-TSP into perturbed TSP instances, followed by local search using 2-Opt, Swap, and Relocate operators. Computational experiments on both competition and synthetic datasets demonstrate the effectiveness of our method, achieving average optimality gaps of 0.77\% and 0.40\% on competition instances within 60-second time limits. The algorithm secured a top-three position in the MESS 2024 competition and consistently outperforms exact MIP solvers under comparable time constraints, making it suitable for real-time applications requiring fast, high-quality solutions.
 \end{abstract}
 
 \keywords{TSP \and TA TSP \and GRASP \and Local Search \and Trigger Arc TSP \and Optimisation} % (optional)
@@ -338,10 +329,6 @@ The three scenarios are characterized as follows:
 \end{itemize}
 
 \input{src/results.tex}
-
-
-\section{Conclusion}
-\lipsum[12] \cite{Cerrone}
 
 \appendix
 \section{MIP Model for the TA-TSP}
