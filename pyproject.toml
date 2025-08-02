@@ -20,12 +20,9 @@ classifiers = [
 ]
 dependencies = [
   "pip-tools",
-  "gurobipy",
-  "click",
   "ipython",
   "tqdm",
   "pandas",
-  "pytest",
   "ipykernel",
   "seaborn",
   "jinja2",

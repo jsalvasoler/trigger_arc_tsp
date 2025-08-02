@@ -11,9 +11,11 @@ This implementation uses C++20.
 ## Repo structure
 
 - `instances/`: Contains the instances for the competition. They are not pushed, but they can be downloaded from the competition website.
-- `solutions/`: A file for each instance with the list of solutions found during the competition.
+- `solutions/`: A file for each instance with the list of solutions found.
 - `cpp_src/`: Contains the C++ source code.
-- `py_src/`: Contains the legacy Python source code. See `py_src/README.md` for more information.
+- `report/`: Contains the LaTeX source code for the report.
+- `output/`: Contains the outputs of the experiments.
+- `notebooks/`: Contains the notebooks used to generate the figures for the report and for the dataset generation and exploration.
 
 ## Getting started
 
@@ -41,15 +43,15 @@ The `cpp_src` directory contains several useful scripts:
 1.  Place the problem instances in the `instances/` directory at the root of the repository.
 2.  Navigate to the `cpp_src` directory: `cd cpp_src`
 3.  Run the build script: `./build.sh`
-4.  The executable `trigger_arc_tsp` will be created in `cpp_src/build/bin/`.
+4.  The executable `trigger_arc_tsp` will be created in `cpp_src/build/`.
 
 You can then run the solver from `cpp_src/build` directory, for example:
 
 ```bash
-./bin/trigger_arc_tsp --method grasp --instance-file ../../instances/instances_release_1/grf1.txt --n-trials 10 --local-searches TwoOpt SwapTwo Relocate --constructive-heuristic SimpleRandomized --logs
+./trigger_arc_tsp --method grasp --instance-file ../../instances/instances_release_1/grf1.txt --n-trials 10 --local-searches TwoOpt SwapTwo Relocate --constructive-heuristic SimpleRandomized --logs
 ```
 
-Run `./bin/trigger_arc_tsp --help` to see all available options.
+Run `./trigger_arc_tsp --help` to see all available options.
 
 ### GRASP Implementation
 
@@ -75,20 +77,3 @@ Once a solution is constructed, a local search is applied to improve it until a 
 -   `Relocate`: Moves a node to a different position in the tour.
 
 You can specify one or more local searches to be applied using the `--local-searches` flag. They will be applied in the order they are provided. 
-
-## 📄 Report Compilation (LaTeX)
-
-The report located in the report/ directory is compiled using **LaTeX**.
-
-### Required LaTeX packages
-
-Ensure the following LaTeX packages are installed:
--  texlive-base                           2023.20240207-1                         all          TeX Live: Essential programs and files
--  texlive-binaries                       2023.20230311.66589-9build3             amd64        Binaries for TeX Live
--  texlive-fonts-recommended              2023.20240207-1                         all          TeX Live: Recommended fonts
--  texlive-latex-base                     2023.20240207-1                         all          TeX Live: LaTeX fundamental packages
--  texlive-latex-extra                    2023.20240207-1                         all          TeX Live: LaTeX additional packages
--  texlive-latex-recommended              2023.20240207-1                         all          TeX Live: LaTeX recommended packages
--  texlive-pictures                       2023.20240207-1                         all          TeX Live: Graphics, pictures, diagrams
--  texlive-plain-generic                  2023.20240207-1                         all          TeX Live: Plain (La)TeX packages
--  texlive-extra-utils 
