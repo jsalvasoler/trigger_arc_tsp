@@ -90,7 +90,7 @@
 \pagestyle{fancy}
 \renewcommand{\headrulewidth}{0pt}
 \fancyheadoffset{0pt}
-\lhead{\scshape Preprint -- \@title}
+\chead{\scshape \@shorttitle}
 \rhead{\thepage}
 %\rfoot{\thepage}
 
@@ -256,6 +256,8 @@
 
 % create title (includes both anonymized and non-anonymized versions)
 \providecommand{\@date}{\today}
+\providecommand{\@shorttitle}{\@title}
+\newcommand{\shorttitle}[1]{\renewcommand{\@shorttitle}{#1}}
 \providecommand{\@maketitle}{}
 \renewcommand{\@maketitle}{%
   \vbox{%

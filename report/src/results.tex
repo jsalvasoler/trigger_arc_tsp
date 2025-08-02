@@ -142,8 +142,9 @@ We finally compare the performance of the tuned construction heuristics on all d
 We include another method, namely a Simple Random Construction (SRC) heuristic, in which at every step, randomly selects a feasible edge from the feasible set, without considering the insertion cost.
 
 We find that all datasets show the same ranking pattern: MIP Bias consistently achieves the best performance, followed by MIP $\gamma$-Rand and MIP $\delta$-Rand, with RGC and SRC performing significantly worse.
-The MIP-based methods demonstrate superior solution quality across all datasets, with gaps ranging from 3.8\% to 6.6\% on competition instances (C1, C2) and around 70\% on synthetic instances (RG). This suggests that leveraging a TSP solver to establish a strong underlying tour structure is highly effective, even when the costs are perturbed.
-In the case of the MIP-Bias method, the perturbations successfully guide the search towards regions of the solution space that are favorable for the TA-TSP objective.
+The MIP-based methods demonstrate superior solution quality across all datasets, with gaps ranging from 3.8\% to 6.6\% on competition instances (C1, C2) and around 70\% on synthetic instances (RG).
+This suggests that leveraging a TSP solver to establish a strong underlying tour structure is highly effective, even when the costs are perturbed.
+In the case of the MIP-Bias method, the perturbations successfully guide the search towards regions of the solution space that are favorable for the TA-TSP objective, which provides evidence that introducing the trigger-target relations into the TSP model is effective.
 In contrast, the simpler heuristics (SRC, RGC) show much higher gaps, particularly on the RG dataset where SRC reaches nearly 300\% gap. Notably, SRC fails completely on C2 (0\% success rate), while RGC shows poor performance on C2 (2.9\% success rate).
 The MIP methods maintain 100\% success rates because finding feasibility for the TSP is easy on our datasets. Runtime analysis reveals that SRC and RGC are the fastest (under 0.1 seconds), while MIP methods require 1-6 seconds, with MIP approaches taking a bit longer.
 However, all methods except for Gurobi are fast enough to be used in a real-time application, which is one of our main goals.
