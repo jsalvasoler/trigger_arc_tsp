@@ -106,10 +106,6 @@ To reproduce the results from our experiments, we provide a set of benchmark scr
    ```bash
    ./benchmark/grasp.sh
    ```
-   You may need to make the scripts executable:
-   ```bash
-   chmod +x benchmark/*.sh
-   ```
 
 Each script is pre-configured with recommended parameters, but you can edit them to suit your needs.
 
