@@ -129,58 +129,54 @@ The Trigger Arc Traveling Salesman Problem (TA-TSP) introduces dynamic arc costs
 \newacronym{mip}{MIP}{Mixed-Integer Programming}
 
 \section{Introduction}
-The \gls{tsp} is a foundational problem in combinatorial optimization. In its traditional form, 
-it assumes that the cost of traveling between cities remains constant.
-Such assumption fails to capture the dynamic nature of many real-world scenarios. 
-The cost of traversing a path can change based on previous actions or on the state of the system. 
-One such compelling application arises in warehouses equipped with compactable storage systems. 
-These systems optimize space by using mobile shelving units that move on rails. 
-Accessing an item in one aisle may require moving shelves, which in turn blocks or alters the cost and time required to access other aisles. 
-This path-dependent cost structure requires more sophisticated modeling than what the classical \gls{tsp} offers. 
+The \gls{tsp} is a foundational problem in combinatorial optimization \cite{Applegate2011}. 
+However, its traditional formulation assumes that travel costs between cities are static. 
+This assumption is insufficient for many real-world applications where the cost of traversing a path can change based on prior actions or the system's current state.
+A compelling example of this occurs in warehouses that use mobile shelving units. Accessing an item may require moving a shelf, which can block other aisles or alter the time and cost needed to reach them. This path-dependent cost structure necessitates a more sophisticated modeling approach than the classical TSP can provide.
 
-To address such behaviors, ~\citet{Cerrone} introduced the \gls{tatsp}. 
-The \gls{tatsp} is a variant of the \gls{tsp} where the cost of an arc can be dynamically altered by traversing another designated "trigger" arc earlier in the tour. 
-Specifically, the problem defines relations between pairs of arcs, where one is a trigger and the other a target. 
-When a trigger arc is traversed, it can modify the cost of its associated target arc. 
-If multiple trigger arcs for the same target arc are traversed, only the last one encountered before the target arc has an effect. 
-This novel formulation provides a powerful tool for modeling problems with state-dependent costs. 
+To address these behaviors, \citet{Cerrone} introduced the \gls{tatsp}. 
+The \gls{tatsp} is a variant of the \gls{tsp} where traversing a "trigger" arc can dynamically alter the cost of a "target" arc later in the tour. 
+The problem defines specific relationships between pairs of trigger and target arcs. 
+When a trigger is traversed, it modifies the cost of its associated target. 
+If multiple triggers for the same target are visited, only the last one encountered before the target takes effect. 
+This novel formulation provides a powerful tool for modeling problems with state-dependent costs.
 
-This paper is motivated by the Metaheuristics Summer School (MESS) 2024 competition, which challenged participants to develop effective metaheuristic solutions for the \gls{tatsp}. 
-Our work, which secured a top-three position in the competition, proposes a scalable and fast \gls{grasp}-based approach to find high-quality solutions for this complex problem. 
-We present a construction heuristic to generate diverse and feasible initial solutions, followed by a local search procedure to iteratively improve them. 
-This paper details our methodology, experimental setup, and the results of applying our \gls{grasp} algorithm to a set of benchmark instances, demonstrating its effectiveness and efficiency in tackling the \gls{tatsp}. 
+This paper presents our approach to the \gls{tatsp}, which was developed for the Metaheuristics Summer School (MESS) 2024 competition. 
+Our work secured a top-three position by proposing a scalable and fast \gls{grasp}-based algorithm to find high-quality solutions. 
+We detail a \gls{mip}-based construction heuristic to generate diverse and feasible initial solutions, followed by a local search procedure for iterative improvement. 
+The paper outlines our methodology, experimental setup, and the results of applying our \gls{grasp} algorithm to a set of benchmark instances, demonstrating its effectiveness and efficiency in tackling the \gls{tatsp}.
 
 \section{Related Work}
 \label{sec:related_work}
 
 \subsection{Variations on the \gls{tsp}}
 
-The \gls{tsp} is fundamentally about discovering the most efficient route that connects a given set of nodes~\cite{Reinelt2003}. 
+The \gls{tsp} is fundamentally about discovering the most efficient route that connects a given set of nodes~\cite{Applegate2011}. 
 Its NP-hard nature makes exact solutions for large instances computationally infeasible, necessitating the use of heuristics and metaheuristics.
-Their utility becomes even more pronounced when dealing with the intricacies of dynamic TSP variants. These variants introduce 
-real-world complexities, including problems on temporal graphs where edge access is time-sensitive, TSPs where visiting a node 
-has the immediate consequence of deleting specific edges, and scenarios where the cost structure of a tour is directly affected 
-by the historical sequence of visited locations. A prime example is the the Node Weight Dependent TSP (W-TSP), where the cost of a 
-tour increases based on the weights of previously visited nodes~\cite{Bossek2020}.
+Their utility becomes even more pronounced when dealing with the intricacies of dynamic TSP variants.
+These variants introduce real-world complexities, including problems on temporal graphs where edge access is time-sensitive \cite{timedependenttsp}, 
+TSPs where visiting a node has the immediate consequence of deleting specific edges \cite{traversaldependenttsp}, and scenarios where the cost structure of a tour is directly affected by the historical sequence of visited locations \cite{Bossek2020}
 
 The \gls{tatsp}, introduced by~\citet{Cerrone}, is a variant that introduces dynamic arc costs influenced by the solution's path. 
 In the \gls{tatsp}, the cost of traversing a specific arc can be reset if a predefined "trigger arc" is traversed beforehand, 
 with only the most recently encountered trigger arc affecting the target arc's cost. In their introduction paper, ~\citet{Cerrone} 
-propose an Integer Linear Programming (ILP) model for the \gls{tatsp}. Their approach provides a precise mathematical formulation 
-but is limited in scalability. This inherent complexity and the practical need for fast solutions for large-scale instances underscore
- the need for robust metaheuristic approaches.
+propose a \gls{mip} model for the \gls{tatsp}. Their approach provides a precise mathematical formulation 
+but is limited in scalability, being able to tackle instances with up to 25 nodes and 10000 trigger-target relations. 
+The problem's inherent complexity and the practical need for fast solutions for large-scale instances underscore the need for robust metaheuristic approaches.
 
 \subsection{Metaheuristics for the TSP}
 \label{sec:metaheuristics_tsp}
 
-Metaheuristics are a class of optimization algorithms that provide approximate solutions to complex problems by exploring and exploiting the search space efficiently~\cite{Gendreau2010}. Due to the NP-hard nature of the \gls{tsp}, metaheuristics have been extensively explored and applied to find high-quality solutions within reasonable computational time~\cite{toaza2023}. 
-The computational difficulty of the \gls{tsp} has led to the development of a wide array of metaheuristic approaches. Prominent examples include Genetic Algorithms (GAs), which are inspired by natural evolution; Tabu Search (TS), which uses memory structures to escape local optima; Simulated Annealing (SA), a probabilistic method that accepts worse solutions with a decreasing probability; and Ant Colony Optimization (ACO), which mimics the foraging behavior of ants. These methods have been extensively studied and adapted for the \gls{tsp} and its variants, demonstrating the critical role of metaheuristics in addressing NP-hard optimization problems. The success of these diverse approaches provides a strong precedent for applying a metaheuristic framework to the even more complex \gls{tatsp}.
+Metaheuristics are a class of optimization algorithms that provide approximate solutions to complex problems by efficiently exploring and exploiting the search space~\cite{Gendreau2010}.
+Given the NP-hard nature of the \gls{tsp}, metaheuristics have been extensively explored to find high-quality solutions within a reasonable computational time~\cite{toaza2023}.
+Prominent examples include Genetic (or Evolutionary) Algorithms \cite{Larranaga1999}, Tabu Search \cite{Knox1994}, and Simulated Annealing \cite{anttsp}.
+A classic local search procedure applied to the \gls{tsp} is the 2-Opt algorithm \cite{Croes1958}.
 
 \subsection{The GRASP approach}
 
 This work is based on the \gls{grasp} metaheuristic, introduced by Feo and Resende~\cite{Feo1995}, which is a two-phase approach that combines a construction heuristic and a local search procedure.
 The construction phase leverages a greedy randomized strategy to build a diverse set of feasible solutions. Following this, the local search phase systematically explores the neighborhood of each constructed solution to find a local optimum with respect to a set of neighborhood structures.
-The best solution found across all iterations is returned.The two-phase structure of \gls{grasp} inherently balances diversification (exploration) and intensification (exploitation) of the search space, which is advantageous for complex fitness landscapes.
+The best solution found across all iterations is returned. The two-phase structure of \gls{grasp} inherently balances diversification (exploration) and intensification (exploitation) of the search space, which is advantageous for complex fitness landscapes.
 Due to its robust performance and adaptability, \gls{grasp} has been successfully applied to the classical \gls{tsp}, often achieving results competitive with highly specialized heuristics~\cite{Oliveira2004}. 
 Its effectiveness can be further enhanced through advanced techniques. Reactive GRASP, for instance, dynamically adjusts its parameters during the search to adapt to the problem's characteristics~\cite{Prais2000}. 
 Path-Relinking is an intensification strategy that explores trajectories between elite solutions to find improved ones~\cite{Resende2019}. The consistent success of GRASP and its variants in related routing problems makes it a compelling choice for addressing the \gls{tatsp}.
@@ -217,20 +213,20 @@ The objective of the \gls{tatsp} is to find a Hamiltonian cycle $T^*$ that minim
 T^* = \arg\min_{T} \sum_{a \in T} \text{c}(a)
 \end{equation}
 
-One observation is that the \gls{tatsp} generalizes the \gls{tsp}. If the relation set within the TA-TSP is empty, 
-the problem formulation simplifies directly to that of the traditional TSP.
+The \gls{tatsp} generalizes the \gls{tsp}. If the relation set within the \gls{tatsp} is empty, 
+the problem formulation simplifies directly to that of the traditional \gls{tsp}.
 The two problems share the same set of feasible solutions, which is the set of all Hamiltonian cycles.
 However, there is no natural reduction from the \gls{tatsp} to the \gls{tsp} because of the path-dependency of the cost function.
-
 For modeling purposes, it is useful to reformulate the cost function. Instead of viewing the cost of a relation as a replacement for the base arc cost, we can consider it as an additional cost (or discount). For each relation $r = (a_i, a)$ with an associated cost $c(r)$, we can define a delta cost, $\Delta(r) = c(r) - c(a)$. The cost of traversing an arc $a$ in a tour $T$ can then be written as $c(a) + \Delta(r)$ if relation $r$ is active, and $c(a)$ otherwise. This separates the base tour cost from the additional costs incurred by active relations, which is a convenient perspective for developing heuristics and mathematical models.
 
 \subsection{The \gls{grasp} approach}
 
-For solving the \gls{tatsp}, we leverage a classic \gls{grasp} approach as introduces by ~\cite{Feo1995}. 
-This framework described in Algorithm~\ref{alg:grasp_general} consists in iterating over these two phases, 
-and the best solution found across all iterations is returned. The first phase is the Construction Phase, which builds a feasible
-solution using a randomized construction heuristic. The second phase, Local Search Phase, applies improvement procedures to the 
-constructed solution until a local optimum is reached. 
+For solving the \gls{tatsp}, we leverage the basic version of the \gls{grasp} metaheuristic as introduced by ~\cite{Feo1995}. 
+The algorithm, as described in Algorithm~\ref{alg:grasp_general}, consists of two main phases: a construction phase and a local search phase.
+The construction phase builds a feasible solution using a randomized heuristic. The local search phase then applies improvement procedures to this solution until a local optimum is reached.
+The algorithm iterates through these two phases, and the best solution found across all iterations is returned.
+As a local search procedure, we use a multi-neighborhood local search procedure with a first-improvement policy, which we describe in Algorithm~\ref{alg:local_search}.
+The stopping criterion for the local search is the local optimality with respect to all the neighborhood structures considered.
 
 \begin{algorithm}
 \caption{General GRASP Framework}
@@ -250,8 +246,6 @@ constructed solution until a local optimum is reached.
 \end{algorithmic}
 \end{algorithm}
 
-As a local search procedure, we use a multi-neighborhood local search procedure with a first-improvement policy.
-The algorithm is presented in Algorithm~\ref{alg:local_search}.
 
 \begin{algorithm}
 \caption{Multi-Neighborhood Local Search}
@@ -281,44 +275,51 @@ The algorithm is presented in Algorithm~\ref{alg:local_search}.
 \end{algorithm}
 
 \subsection{Construction Heuristics}
-This section defines the construction heuristics benchmarked in this study.
+This section defines the construction heuristics that we compared in our experiments.
 
 \paragraph{Simple Randomized Construction}
-This heuristic serves as a baseline method for generating feasible solutions. It constructs a tour iteratively, starting from the depot (node 0). At each step, it identifies all unvisited neighbors of the last node added to the tour. From this set of feasible next nodes, one is selected uniformly at random and appended to the tour. This process continues until all nodes have been visited. The final node is only considered feasible if it has an arc connecting back to the depot, thus ensuring a valid Hamiltonian cycle. This method does not consider any cost information during construction, relying purely on random selection to explore the solution space.
+This heuristic serves as a baseline method for generating feasible solutions.
+It constructs a tour iteratively, starting from the depot (node 0).
+At each step, it identifies all unvisited neighbors of the last node added to the tour.
+From this set of feasible next nodes, one is selected uniformly at random and appended to the tour.
+This process continues until all nodes have been visited.
+The final node is only considered feasible if it has an arc connecting back to the depot, thus ensuring a valid Hamiltonian cycle.
+This method does not consider any cost information during construction, relying purely on random selection to explore the solution space.
 
 \paragraph{Randomized Greedy Construction}
-This method is a semi-greedy heuristic, similar to the simple randomized approach, it builds a solution one node at a time. However, the choice of the next node is guided by cost information. At each step, for every feasible successor node, the exact incremental cost of adding the corresponding arc to the partial tour is calculated. This evaluation is non-trivial, as it must account for any changes in the total tour cost due to the activation of trigger-target arc relations.
-
-A Restricted Candidate List (RCL) is then formed, containing the most promising arcs based on their incremental cost. The size of the RCL is controlled by a randomization parameter $\alpha \in [0, 1]$. $\alpha$ correesponds to the share of neighbors added to the short list. An arc is then selected uniformly at random from the RCL and the corresponding node is added to the tour. A value of $\alpha = 0$ results in a purely greedy construction, where the best arc is always chosen, while $\alpha = 1$ allows for a random selection from all feasible arcs.
+This method is a semi-greedy heuristic, similar to the previous approach, builds a solution one node at a time.
+However, the choice of the next node is guided by cost information. At each step, for every feasible successor node, the exact incremental cost of adding the corresponding arc to the partial tour is calculated. This evaluation is non-trivial, as it must account for any changes in the total tour cost due to the activation of trigger-target arc relations.
+A Restricted Candidate List (RCL) is then formed, containing the most promising arcs based on their incremental cost. The size of the RCL is controlled by a randomization parameter, $\alpha \in [0,1]$, which represents the share of neighbors added to the list. An arc is then selected uniformly at random from the RCL, and the corresponding node is added to the tour. A value of $\alpha=0$ results in a purely greedy construction where the best arc is always chosen, while $\alpha=1$ allows for a random selection from all feasible arcs.
   
 \paragraph{\textit{MIP-based Random Perturbation}}
-Inspired by the literature on metaheuristic hybridization~\cite{Blum2016}, we propose a new construction heuristic that leverages a full \gls{tsp} solver by transforming the \gls{tatsp} into a classic \gls{tsp}, thereby ignoring all trigger-target relations.
-This is partially motivated by the fact that TSP associated to the \gls{tatsp} is in general easy to solve with a MIP solver, or at least, primal solutions can be found very fast because of the good amount of TSP-specific primal heuristics of many MIP solvers.
+Inspired by the literature on metaheuristic hybridization~\cite{Blum2016}, we propose a new construction heuristic that transforms the \gls{tatsp} into a classic \gls{tsp}, thereby ignoring all trigger-target relations.
+This is partially motivated by the fact that the \gls{tsp} associated with the \gls{tatsp} is generally easy to solve with a \gls{mip} solver, which can quickly find primal solutions due to the effective \gls{tsp}-specific primal heuristics available in many solvers.
 
-The core idea is to perturb the original edge costs $c_{ij}$ to generate a new \gls{tsp} instance.
-This instance is then solved to optimality or near-optimality, and its resulting tour (or a pool of high-quality tours) is evaluated using the true \gls{tatsp} objective function.
-In the \textit{Additive Perturbation} approach, the costs are modified using an additive noise factor controlled by a parameter $\gamma$. The new cost $c'_{ij}$ is calculated as $c'_{ij} = c_{ij} + \gamma \cdot U(-1, 1)$, where $U(-1, 1)$ is a random variable from a uniform distribution between -1 and 1. Alternatively, the \textit{Multiplicative Perturbation} method scales the costs by a random factor controlled by a parameter $\delta$, resulting in $c'_{ij} = c_{ij} \cdot (\delta \cdot U(0, 1))$.
-  
+The core idea is to perturb the original edge costs, $c_{ij}$, to create a new \gls{tsp} instance.
+This instance is then solved to optimality or near-optimality. The resulting tour, or a pool of high-quality tours, is then evaluated using the true \gls{tatsp} objective function.
+
+We explore two perturbation methods. In the \textit{Additive Perturbation} approach, costs are modified using an additive noise factor controlled by a parameter $\alpha$. The new cost, $c'_{ij}$, is calculated as $c'_{ij} = c_{ij} + \alpha \cdot U(-1, 1)$, where $U(-1, 1)$ is a random variable from a uniform distribution between $-1$ and $1$. Alternatively, the \textit{Multiplicative Perturbation} method scales the costs by a random factor controlled by a parameter $\beta$, resulting in $c'_{ij} = c_{ij} \cdot (\beta \cdot U(0, 1))$.
+
 \paragraph{\textit{MIP-based Biased Perturbation}}
 This method attempts to incorporate relational information into the \gls{tsp} model by perturbing arc costs based on an estimated probability of relation activation. The process begins by generating a random permutation of nodes, $P$, which serves as a prior for estimating arc usage. The probability of an arc $(i, j)$ being used is assumed to be inversely proportional to the cyclic distance between nodes $i$ and $j$ in the prior permutation $P$. This is defined as $p_{ij} = 1/d_{ij}$, where $d_{ij} = \min(|pos(i)-pos(j)|, |N| - |pos(i)-pos(j)|)$. For a relation $r$ from a trigger arc $a=(a_i, a_j)$ to a target arc $b=(b_1, b_2)$, the activation probability $p_r$ is estimated by considering the usage probabilities of both arcs and their proximity. It is defined as $p_r = p_{a_ia_j} \cdot p_{b_1b_2} / d_{a_jb_1}^\beta$, where $d_{t_2g_1}$ is the cyclic distance between the trigger's endpoint and the target's startpoint, and $\beta$ is a tunable parameter. The costs of the arcs in the base \gls{tsp} instance are modified to reflect the expected impact of the relations. For each relation $r$ between trigger arc $b$ and target arc $a$, a penalty proportional to the relation's activation probability is added to the costs of both arcs. The new cost of an arc $k \in \{a,b\}$ is updated as $c'(k) = c(k) + \alpha \cdot p_r \cdot c_r$, where $c_r$ is the cost when relation $r$ is active, and $\alpha$ is a parameter controlling the penalty's magnitude. Finally, the modified \gls{tsp} instance is solved, and the resulting tours are evaluated on the original \gls{tatsp} instance to find the best solution.
 
 \subsection{Local search}
-The local search phase is designed to iteratively improve a solution by exploring its neighborhood. We employ a multi-neighborhood variable search procedure that systematically applies a set of local search operators. The search follows a first-improvement strategy: as soon as a move that reduces the total tour cost is found, the move is applied, and the search is restarted from the beginning of the neighborhood list. This process continues until no further improvements can be found in any of the defined neighborhoods, at which point the solution is considered locally optimal. The neighborhood structures used are 2-Opt, Swap, and Relocate.
-
-The neighborhoods we employ are standard in the \gls{tsp} literature:
+The local search phase is designed to iteratively improve a solution by exploring its neighborhood. We employ a multi-neighborhood variable search procedure that systematically applies a set of local search operators. The search follows a first-improvement strategy: as soon as a move that reduces the total tour cost is found, the move is applied, and the search is restarted from the beginning of the neighborhood list.
+This process continues until no further improvements can be found in any of the defined neighborhoods, at which point the solution is considered locally optimal. The neighborhood structures used are 2-Opt, Swap, and Relocate, which we describe below.
 
 \paragraph{2-Opt} The 2-Opt move is a powerful neighborhood operator for path-improvement~\cite{Croes1958}. Given a tour, it works by removing two non-adjacent arcs, $(v_i, v_{i+1})$ and $(v_j, v_{j+1})$, and reconnecting the two resulting paths in the only other possible way. This is equivalent to reconnecting them with arcs $(v_i, v_j)$ and $(v_{i+1}, v_{j+1})$, which has the effect of reversing the segment of the tour between nodes $v_{i+1}$ and $v_j$.
 
 \paragraph{Swap} The Swap (or Exchange) move consists of exchanging the positions of two nodes, $v_i$ and $v_j$, in the tour. The depot node is not considered for this operation. This move alters four arcs in the tour: the two arcs entering and the two arcs leaving the swapped nodes.
 
-\paragraph{Relocate} The Relocate (or Insertion) move selects a node $v_i$ and removes it from its current position in the tour. It is then re-inserted into a different position, between two adjacent nodes $(v_j, v_{j+1})$.
+\paragraph{Relocate} The Relocate (or Insertion) move selects a node $v_i$ and removes it from its current position in the tour. It is then re-inserted into a different position, between two adjacent nodes:
+the tour $(\ldots, v_i, \ldots, v_j, \ldots)$ becomes $(\ldots, v_{i-1}, v_{i+1}, \ldots, v_j, v_i, v_{j+1}, \ldots)$.
 
 \subsection{Delta Evaluation}
-A critical aspect of any iterative improvement algorithm is the evaluation of moves. The efficiency of construction heuristics and local search often relies on fast "delta evaluation"—calculating the change in objective value without recomputing the entire solution's cost.
+A critical aspect of any iterative improvement algorithm is the efficient evaluation of moves, often achieved through fast "delta evaluation" to avoid recomputing the entire solution cost.
 
-For our sequential construction heuristics, such as the Randomized Greedy method, we successfully implement a form of delta evaluation. When considering adding a new node to a partial tour, we only need to compute the cost of the new arc and any trigger effects it may be subject to from arcs already in the partial tour. This is possible because the partial tour is fixed and extended in a single direction, so the trigger states of existing arcs are not altered.
+For our sequential construction heuristics, such as the Randomized Greedy method, we successfully employ delta evaluation. When a new node is added to a partial tour, we only need to compute the cost of the new arc and its trigger effects from existing arcs. This is feasible because the tour is extended in a single direction, so the trigger states of existing arcs remain unaltered.
 
-However, this approach is not feasible for the local search phase. Standard neighborhood moves, like 2-Opt or Swap, can drastically alter the sequence of the tour. A single swap can change which trigger is the "last" one to activate a target arc located much later in the tour. This creates a cascade effect, where a local change can lead to non-local cost modifications across the entire tour. A true delta evaluation would require a complex procedure to track and re-evaluate the effective trigger for every potentially affected arc, defeating the performance benefits of the technique. For correctness and simplicity, our local search implementation re-evaluates the entire tour cost after every move.
+However, this approach is not practical for the local search phase. Standard neighborhood moves, like 2-Opt or Swap, can drastically alter the tour's sequence. A single change can trigger a cascade effect, leading to non-local cost modifications across the entire tour. Implementing true delta evaluation would require a complex procedure to track every affected arc, which would negate its performance benefits. Consequently, our local search implementation re-evaluates the entire tour cost after every move to ensure correctness and simplicity.
 
 \section{Computational Experiments}
 This section presents the computational experiments conducted to evaluate the performance of the proposed \gls{grasp} algorithm.
