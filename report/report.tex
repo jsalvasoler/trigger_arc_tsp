@@ -325,26 +325,6 @@ This section presents the computational experiments conducted to evaluate the pe
 
 \subsection{Datasets}
 
-
-\begin{table*}[!htpb]
-    \centering
-    \caption{Dataset Characteristics}
-    \label{tab:dataset_characteristics}
-    \resizebox{\textwidth}{!}{%
-        \begin{tabular}{|l|l|l|l|l|l|l|}
-        \hline
-        \textbf{Datasets} & \textbf{\# Inst.} & \textbf{\# Nodes (Min/Avg/Max)} & \textbf{\# Arcs (Min/Avg/Max)} & \textbf{\# Rels (Min/Avg/Max)} & \textbf{Avg Arc Cost} & \textbf{Avg Rel Cost} \\
-        \hline
-        instances\_generic & 180 & 10 / 18 / 25 & 90 / 320 / 600 & 100 / 2092 / 10000 & 2587.19 & 3042.15 \\
-        \hline
-        instances\_release\_2 & 34 & 18 / 68 / 142 & 90 / 580 / 1562 & 1144 / 47834 / 208020 & 1.00 & 1.08 \\
-        \hline
-        instances\_release\_1 & 21 & 20 / 40 / 60 & 200 / 1267 / 2700 & 1732 / 556903 / 4527944 & 6.29 & 6.30 \\
-        \hline
-        \end{tabular}%
-    }%
-\end{table*}
-
 Three datasets were used to evaluate our \gls{grasp} algorithm and assess its performance across problem having different characteristics.
 
 The first dataset contains 180 synthetic instances generated as described in~\citet{Cerrone}.
@@ -367,6 +347,24 @@ The three scenarios are characterized as follows:
 \end{itemize}
 
 Two additional datasets, provided by the competition organizers, offer realistic scenarios with varying problem sizes and complexities. The first of these contains 21 instances, with an average of 580 arcs and 47,834 relations. The second, larger dataset has 34 instances, averaging 1,267 arcs and 556,903 relations. Table \ref{tab:dataset_characteristics} summarizes the key characteristics of all three datasets.
+
+\begin{table*}[t]
+    \setlength{\belowcaptionskip}{8pt}
+    \caption{Dataset Characteristics}
+    \label{tab:dataset_characteristics}
+    \centering
+    % \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{lrrrrrr}
+        \toprule
+        \textbf{Set} & \textbf{\# Inst.} & \textbf{\# Nodes} & \textbf{\# Arcs} & \textbf{\# Rels} & \textbf{Avg Arc Cost} & \textbf{Avg Rel Cost} \\
+        & & \textbf{(Min/Avg/Max)} & \textbf{(Min/Avg/Max)} & \textbf{(Min/Avg/Max)} & & \\
+        \midrule
+        RG & 180 & 10 / 18 / 25 & 90 / 320 / 600 & 100 / 2092 / 10000 & $2587.19$ & $3042.15$ \\
+        C2 & 34 & 18 / 68 / 142 & 90 / 580 / 1562 & 1144 / 47834 / 208020 & $1.00$ & $1.08$ \\
+        C1 & 21 & 20 / 40 / 60 & 200 / 1267 / 2700 & 1732 / 556903 / 4527944 & $6.29$ & $6.30$ \\
+        \bottomrule
+    \end{tabular}
+\end{table*}
 
 \input{src/results.tex}
 
