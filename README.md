@@ -1,4 +1,4 @@
-# Trigger Arc TSP
+# GRASP for the Trigger Arc TSP
 
 This is the C++ implementation for the Trigger Arc TSP competition hosted by the [Metaheuristics Summer School](https://fourclicks.eu/fck/mess2024/frontend/#/home/dashboard) organizers.
 
@@ -34,6 +34,10 @@ This project requires:
 - Gurobi solver.
 
 The paths for Boost and Gurobi might need to be adjusted in `src/CMakeLists.txt` depending on your system.
+
+### Instances
+
+The instances can be downloaded from the [release page](https://github.com/jsalvasoler/trigger_arc_tsp/releases/tag/v1.0.0/instances.zip). They should be unzipped and placed in the `instances/` directory at the root of the repository.
 
 ### Scripts
 
