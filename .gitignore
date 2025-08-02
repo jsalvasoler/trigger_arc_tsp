@@ -34,10 +34,10 @@ __pycache__/
 # Pytest
 .cache/
 
-# --- C++ / CMake ---
+# --- C++ / CMake / LaTeX ---
 # Ignore the build directory
-build/
-cpp_src/build/ # Being explicit is good
+cpp_src/build/
+report/build/
 
 # tex build files
 *.aux
