@@ -1,7 +1,7 @@
 \subsection{Experimental Setup}
 
 Our \gls{grasp} algorithm is implemented in C++20, leveraging modern language features for efficient memory management and performance.
-The implementation uses the Boost libraries for data structures and the Gurobi optimization suite (Gurobi Optimizer version 12.0.2 build v12.0.2rc0 (ARM64 - Darwin 24.5.0 24F74)) for solving the problems associated to the MIP-based heuristics.
+The implementation uses the Boost libraries for data structures and the Gurobi optimization suite (Gurobi Optimizer version 12.0.2 build v12.0.2rc0 (ARM64 - Darwin 24.5.0 24F74)) for solving the problems associated with the MIP-based heuristics.
 
 All computational experiments were conducted on a machine equipped with an Apple M1 Pro processor running macOS 24.5.0 and an ARM64 architecture with 16GB of RAM.
 The complete implementation, along with all instances used in our experiments, is publicly available at \url{https://github.com/jsalvasoler/trigger_arc_tsp}.
@@ -16,7 +16,7 @@ To evaluate the performance of our \gls{grasp} algorithm, we report the optimali
 
 For the competition instances (C1 and C2), we use the best solutions achieved during the competition as the reference point.
 For the synthetic instances (RG), we use the best integer solution obtained after running the Gurobi MIP solver for one minute.
-For the randomized construction heuristics, we also measure the success rate, i.e. the percentage of instances for which a solution was found.
+For the randomized construction heuristics, we also measure the success rate, i.e., the percentage of instances for which a solution was found.
 
 \subsection{Benchmarking the MIP model for the \gls{tatsp}}
 
@@ -61,10 +61,10 @@ The Decrease scenario exhibits slightly higher gaps and longer runtimes compared
 \subsection{Randomized Greedy}
 We want to explore the effect of the parameter $\alpha$ on the performance of the Randomized Greedy Construction heuristic (RGC).
 We run the RGC for 10 trials on each instance and each value of $\alpha$, and take the best solution found.
-Recall that $\alpha \in [0, 1]$ controls the restricted candidate list (RCL) size, i.e. the fraction of the feasible edges that are considered in the greedy step, sorted by insertion cost.
+Recall that $\alpha \in [0, 1]$ controls the restricted candidate list (RCL) size, i.e., the fraction of the feasible edges that are considered in the greedy step, sorted by insertion cost.
 Figure~\ref{fig:alpha_vs_mean_gap_randomized_greedy} shows the expected behavior of the RGC:
 increasing values of $\alpha$ lead to higher gaps (since edge insertions are more expensive on average), but higher success rates (since more edges are considered).
-The plot for dataset C2 shows some variability in the success rate, but we hypothesize that this behavior would dissapate with more trials.
+The plot for dataset C2 shows some variability in the success rate, but we hypothesize that this behavior would dissipate with more trials.
 The figure allows us to identify $\alpha = 0.1$ as a good choice for the RGC, as it provides a good balance between gap and success rate.
 We will use this value for the rest of the experiments.
 
@@ -142,7 +142,7 @@ We finally compare the performance of the tuned construction heuristics on all d
 We include another method, namely a Simple Random Construction (SRC) heuristic, in which at every step, randomly selects a feasible edge from the feasible set, without considering the insertion cost.
 
 We find that all datasets show the same ranking pattern: MIP Bias consistently achieves the best performance, followed by MIP $\gamma$-Rand and MIP $\delta$-Rand, with RGC and SRC performing significantly worse.
-The MIP-based methods demonstrate superior solution quality across all datasets, with gaps ranging from 3.8\% to 6.6\% on competition instances (C1, C2) and around 70\% on synthetic instances (RG).This suggests that leveraging a TSP solver to establish a strong underlying tour structure is highly effective, even when the costs are perturbed.
+The MIP-based methods demonstrate superior solution quality across all datasets, with gaps ranging from 3.8\% to 6.6\% on competition instances (C1, C2) and around 70\% on synthetic instances (RG). This suggests that leveraging a TSP solver to establish a strong underlying tour structure is highly effective, even when the costs are perturbed.
 In the case of the MIP-Bias method, the perturbations successfully guide the search towards regions of the solution space that are favorable for the TA-TSP objective.
 In contrast, the simpler heuristics (SRC, RGC) show much higher gaps, particularly on the RG dataset where SRC reaches nearly 300\% gap. Notably, SRC fails completely on C2 (0\% success rate), while RGC shows poor performance on C2 (2.9\% success rate).
 The MIP methods maintain 100\% success rates because finding feasibility for the TSP is easy on our datasets. Runtime analysis reveals that SRC and RGC are the fastest (under 0.1 seconds), while MIP methods require 1-6 seconds, with MIP approaches taking a bit longer.
@@ -220,12 +220,12 @@ Moreover, we ablate these operators one by one, and report the performance of th
 \end{table}
 
 The results show that the different local search operators have varying effects across datasets.
-The ablation results clearly indicate that using all three local search operators—Relocate, SwapTwo, and TwoOpt—simultaneously yields the best overall performance
+The ablation results clearly indicate that using all three local search operators—Relocate, SwapTwo, and TwoOpt—simultaneously yields the best overall performance.
 The Relocate operator is particularly important on all datasets, since removing it leads to a significant increase in the gap.
 
 In general, the proposed GRASP framework shows to be very effective to provide fast and good solutions for the \gls{tatsp}.
-The negative gaps on the RG dataset demonstrate the even on small instances, GRASP is more effective than the Gurobi MIP solver when both are operating on short time limits (60 seconds).
-On the C1 and C2 datasets, the GRASP framework is able to provide final mean gaps of 0.77\% and 0.40\% respectively, which is a excellent performance for a heuristic running in a 1-minute time budget.
+The negative gaps on the RG dataset demonstrate that even on small instances, GRASP is more effective than the Gurobi MIP solver when both are operating on short time limits (60 seconds).
+On the C1 and C2 datasets, the GRASP framework is able to provide final mean gaps of 0.77\% and 0.40\% respectively, which is an excellent performance for a heuristic running in a 1-minute time budget.
 
 \paragraph{GRASP settings for the MESS 2024 competition}
 

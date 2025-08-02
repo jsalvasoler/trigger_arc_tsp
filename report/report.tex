@@ -76,7 +76,8 @@
 \newcommand{\orcidauthorB}{0009-0006-4869-9705}
 
 %%%%%%%%%%%%%%%%   Title   %%%%%%%%%%%%%%%%
-\title{A Fast GRASP Metaheuristic for the Trigger Arc TSP}
+\date{August 2, 2025}
+\title{A Fast GRASP Metaheuristic for the Trigger Arc TSP with MIP-Based Construction and Multi-Neighborhood Local Search}
 
 % Add watermark with submission status
 \usepackage{xwatermark}
@@ -90,7 +91,7 @@
 %%%%%%%%%%%%%%%  Author list  %%%%%%%%%%%%%%%
 \usepackage{authblk}
 \renewcommand*{\Authfont}{\bfseries}
-\author[1]{Joan Salva Soler\orcidA{}}
+\author[1]{Joan Salva Soler$^*$\orcidA{}}
 \author[2]{Grégoire de Lambertye\orcidB{}}
 
 \affil[1]{H2O.ai, TU Wien}
@@ -108,7 +109,7 @@
 The Trigger Arc Traveling Salesman Problem (TA-TSP) introduces dynamic arc costs that change based on previously traversed "trigger" arcs, modeling real-world scenarios such as warehouse operations with compactable storage systems. We present a GRASP-based metaheuristic that combines multiple construction heuristics with multi-neighborhood local search to solve this challenging optimization problem. Our approach leverages MIP-based construction methods that transform the TA-TSP into perturbed TSP instances, followed by local search using 2-Opt, Swap, and Relocate operators. Computational experiments on both competition and synthetic datasets demonstrate the effectiveness of our method, achieving average optimality gaps of 0.77\% and 0.40\% on competition instances within 60-second time limits. The algorithm secured a top-three position in the MESS 2024 competition and consistently outperforms exact MIP solvers under comparable time constraints, making it suitable for real-time applications requiring fast, high-quality solutions.
 \end{abstract}
 
-\keywords{TSP \and TA TSP \and GRASP \and Local Search \and Trigger Arc TSP \and Optimisation} % (optional)
+\keywords{TSP \and GRASP \and Trigger Arc TSP \and Combinatorial Optimization \and Metaheuristics} % (optional)
 
 \vspace{0.35cm}
 

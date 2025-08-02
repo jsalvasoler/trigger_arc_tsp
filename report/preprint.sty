@@ -255,6 +255,7 @@
 }
 
 % create title (includes both anonymized and non-anonymized versions)
+\providecommand{\@date}{\today}
 \providecommand{\@maketitle}{}
 \renewcommand{\@maketitle}{%
   \vbox{%
@@ -263,7 +264,7 @@
     \centering
     {\LARGE\sc \@title\par}
     \vskip 0.1in
-    \textsc{Preprint, compiled \today}\\
+    \textsc{\@date}\\
     \def\And{%
       \end{tabular}\hfil\linebreak[0]\hfil%
       \begin{tabular}[t]{c}\bf\rule{\z@}{24\p@}\ignorespaces%
