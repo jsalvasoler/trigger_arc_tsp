@@ -1,6 +1,7 @@
 \subsection{Experimental Setup}
 
-Our \gls{grasp} algorithm is implemented in C++20, leveraging modern language features for efficient memory management and performance. The implementation uses the Boost libraries for data structures and the Gurobi optimization suite for solving the problems associated to the MIP-based heuristics.
+Our \gls{grasp} algorithm is implemented in C++20, leveraging modern language features for efficient memory management and performance.
+The implementation uses the Boost libraries for data structures and the Gurobi optimization suite (Gurobi Optimizer version 12.0.2 build v12.0.2rc0 (ARM64 - Darwin 24.5.0 24F74)) for solving the problems associated to the MIP-based heuristics.
 
 All computational experiments were conducted on a machine equipped with an Apple M1 Pro processor running macOS 24.5.0 and an ARM64 architecture with 16GB of RAM.
 The complete implementation, along with all instances used in our experiments, is publicly available at \url{https://github.com/jsalvasoler/trigger_arc_tsp}.
@@ -138,8 +139,11 @@ We will use the following parameter values for the rest of the experiments: $\al
 \subsection{Comparison of Construction Heuristics}
 
 We finally compare the performance of the tuned construction heuristics on all datasets in Table~\ref{tab:construction_comparison}.
+We include another method, namely a Simple Random Construction (SRC) heuristic, in which at every step, randomly selects a feasible edge from the feasible set, without considering the insertion cost.
+
 We find that all datasets show the same ranking pattern: MIP Bias consistently achieves the best performance, followed by MIP $\alpha$-Rand and MIP $\beta$-Rand, with RGC and SRC performing significantly worse.
-The MIP-based methods demonstrate superior solution quality across all datasets, with gaps ranging from 3.8\% to 6.6\% on competition instances (C1, C2) and around 70\% on synthetic instances (RG).
+The MIP-based methods demonstrate superior solution quality across all datasets, with gaps ranging from 3.8\% to 6.6\% on competition instances (C1, C2) and around 70\% on synthetic instances (RG).This suggests that leveraging a TSP solver to establish a strong underlying tour structure is highly effective, even when the costs are perturbed.
+In the case of the MIP-Bias method, the perturbations successfully guide the search towards regions of the solution space that are favorable for the TA-TSP objective.
 In contrast, the simpler heuristics (SRC, RGC) show much higher gaps, particularly on the RG dataset where SRC reaches nearly 300\% gap. Notably, SRC fails completely on C2 (0\% success rate), while RGC shows poor performance on C2 (2.9\% success rate).
 The MIP methods maintain 100\% success rates because finding feasibility for the TSP is easy on our datasets. Runtime analysis reveals that SRC and RGC are the fastest (under 0.1 seconds), while MIP methods require 1-6 seconds, with MIP approaches taking a bit longer.
 However, all methods except for Gurobi are fast enough to be used in a real-time application, which is one of our main goals.

@@ -280,6 +280,8 @@ A Restricted Candidate List (RCL) is then formed, containing the most promising 
   
 \paragraph{\textit{MIP-based Random Perturbation}}
 Inspired by the literature on metaheuristic hybridization~\cite{Blum2016}, we propose a new construction heuristic that leverages a full \gls{tsp} solver by transforming the \gls{tatsp} into a classic \gls{tsp}, thereby ignoring all trigger-target relations.
+This is partially motivated by the fact that TSP associated to the \gls{tatsp} is in general easy to solve with a MIP solver, or at least, primal solutions can be found very fast because of the good amount of TSP-specific primal heuristics of many MIP solvers.
+
 The core idea is to perturb the original edge costs $c_{ij}$ to generate a new \gls{tsp} instance.
 This instance is then solved to optimality or near-optimality, and its resulting tour (or a pool of high-quality tours) is evaluated using the true \gls{tatsp} objective function.
 In the \textit{Additive Perturbation} approach, the costs are modified using an additive noise factor controlled by a parameter $\alpha$. The new cost $c'_{ij}$ is calculated as $c'_{ij} = c_{ij} + \alpha \cdot U(-1, 1)$, where $U(-1, 1)$ is a random variable from a uniform distribution between -1 and 1. Alternatively, the \textit{Multiplicative Perturbation} method scales the costs by a random factor controlled by a parameter $\beta$, resulting in $c'_{ij} = c_{ij} \cdot (\beta \cdot U(0, 1))$.
@@ -290,7 +292,6 @@ This method attempts to incorporate relational information into the \gls{tsp} mo
 \subsection{Local search}
 The local search phase is designed to iteratively improve a solution by exploring its neighborhood. We employ a multi-neighborhood variable search procedure that systematically applies a set of local search operators. The search follows a first-improvement strategy: as soon as a move that reduces the total tour cost is found, the move is applied, and the search is restarted from the beginning of the neighborhood list. This process continues until no further improvements can be found in any of the defined neighborhoods, at which point the solution is considered locally optimal. The neighborhood structures used are 2-Opt, Swap, and Relocate.
 
-\subsubsection{Neighborhood Structures}
 The neighborhoods we employ are standard in the \gls{tsp} literature:
 
 \paragraph{2-Opt} The 2-Opt move is a powerful neighborhood operator for path-improvement~\cite{Croes1958}. Given a tour, it works by removing two non-adjacent arcs, $(v_i, v_{i+1})$ and $(v_j, v_{j+1})$, and reconnecting the two resulting paths in the only other possible way. This is equivalent to reconnecting them with arcs $(v_i, v_j)$ and $(v_{i+1}, v_{j+1})$, which has the effect of reversing the segment of the tour between nodes $v_{i+1}$ and $v_j$.
