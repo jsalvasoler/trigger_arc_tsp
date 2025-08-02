@@ -1,19 +1,28 @@
 #!/bin/bash
 cpp_src/build.sh
 
-n_trials_rg=5
-alpha_grid=(0 0.1 1 10) # edge = edge + alpha * random_uniform(-1, 1)
-beta_grid=(1.1 1.5 2 5) # edge = edge * beta * random_uniform(0, 1)
-timestamp=$(date +%Y%m%d_%H%M%S)
-time_limit_mip=2    # time limit for MIP TSP model
-instance_set=instances_release_2
+# Check if instance_set and which are provided as arguments
+if [ $# -lt 2 ]; then
+    echo "Error: instance_set and which must be provided as arguments"
+    echo "Usage: $0 <instance_set> <which>"
+    echo "  where which is 'alpha' or 'beta'"
+    exit 1
+fi
 
-which=$1 # alpha or beta, read from script arguments
+instance_set=$1
+which=$2 # alpha or beta, read from script arguments
+
 # raise error if which is not alpha or beta
 if [ "$which" != "alpha" ] && [ "$which" != "beta" ]; then
     echo "Error: which must be alpha or beta"
     exit 1
 fi
+
+n_trials_rg=5
+alpha_grid=(0 0.1 1 10) # edge = edge + alpha * random_uniform(-1, 1)
+beta_grid=(1.1 1.5 2 5) # edge = edge * beta * random_uniform(0, 1)
+timestamp=$(date +%Y%m%d_%H%M%S)
+time_limit_mip=2    # time limit for MIP TSP model
 
 output_dir=output/mip_randomized_construction_random_${which}/$instance_set/$timestamp
 
@@ -44,3 +53,8 @@ if [ "$which" == "beta" ]; then
         done
     done
 fi
+
+echo "--------------------------------"
+echo "Benchmarking finished"
+echo "Timestamp: $timestamp"
+echo "--------------------------------"

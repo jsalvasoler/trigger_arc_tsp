@@ -63,7 +63,9 @@ int main(int argc, char* argv[]) {
         "Local searches for GRASP (TwoOpt, SwapTwo, Relocate)")(
         "output-dir,o",
         po::value<std::string>()->default_value("output"),
-        "Path to the output directory");
+        "Path to the output directory")(
+        "save-solutions",
+        "Save solution files (default: false)");
 
     try {
         po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -275,7 +277,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    if (!tour.empty()) {
+    if (!tour.empty() && vm.count("save-solutions")) {
         instance->saveSolution(tour, cost);
     }
 

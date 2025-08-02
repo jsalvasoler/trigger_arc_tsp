@@ -168,7 +168,6 @@ void GRASP::run() {
             log_iteration(current_cost, best_cost_, get_time_elapsed(), true);
             best_tour_ = tour;
             best_cost_ = current_cost;
-            instance_.saveSolution(best_tour_, best_cost_);
         }
         iteration_++;
     }
