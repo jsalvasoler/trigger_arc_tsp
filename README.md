@@ -77,3 +77,31 @@ Once a solution is constructed, a local search is applied to improve it until a 
 -   `Relocate`: Moves a node to a different position in the tour.
 
 You can specify one or more local searches to be applied using the `--local-searches` flag. They will be applied in the order they are provided. 
+
+## Reproducing Results
+
+To reproduce the results from our experiments, we provide a set of benchmark scripts in the `benchmark/` directory. These scripts automate the process of running the solver with different methods and configurations.
+
+### Available Benchmark Scripts
+
+- `grasp.sh`: Runs the solver using the GRASP metaheuristic.
+- `gurobi.sh`: Runs the solver using the Gurobi MIP solver.
+- `randomized_greedy.sh`: Runs the solver with the randomized greedy heuristic.
+- `simple_randomized.sh`: Runs the solver with the simple randomized construction heuristic.
+- `mip_randomized_construction_bias.sh`: Runs the solver with the MIP randomized construction (biased version).
+- `mip_randomized_construction_random.sh`: Runs the solver with the MIP randomized construction (random version).
+
+### How to Use
+
+1. Make sure you have built the project as described above.
+2. Place your problem instances in the `instances/` directory.
+3. From the project root, run any of the scripts in the `benchmark/` directory. For example:
+   ```bash
+   ./benchmark/grasp.sh
+   ```
+   You may need to make the scripts executable:
+   ```bash
+   chmod +x benchmark/*.sh
+   ```
+
+Each script is pre-configured with recommended parameters, but you can edit them to suit your needs. 
