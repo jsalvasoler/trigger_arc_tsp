@@ -93,7 +93,7 @@
 %%%%%%%%%%%%%%%  Author list  %%%%%%%%%%%%%%%
 \usepackage{authblk}
 \renewcommand*{\Authfont}{\bfseries}
-\author[1]{Joan Salva Soler$^*$\orcidA{}}
+\author[1]{Joan Salvà Soler$^*$\orcidA{}}
 \author[2]{Grégoire de Lambertye\orcidB{}}
 
 \affil[1]{H2O.ai, TU Wien}
@@ -198,7 +198,7 @@ The \gls{tatsp} is formally defined on a directed graph $G = (N, A)$, where $N$ 
 \item \textbf{Relation costs}: Let $c(r) \in \mathbb{R}^+$ for all $r \in R$ represent the cost associated with relation $r$ when active, where $R = \bigcup_{a \in A} R_a$ is the set of all relations.
 \end{itemize}
 
-Given a Hamiltonian cycle $T = (a_i, a_j, \ldots, a_{|N|})$ starting at node $0$, a relation $r = (a_i, a_j) \in R$ is \textbf{active} if and only if:
+Given a Hamiltonian cycle $T = (a_i, a_j, \ldots, a_{|N|})$ starting at node $0$, a relation $r = (a_i, a_j) \in R$ is active if and only if:
 \begin{enumerate}
 \item Both arcs $a_i$ and $a_j$ belong to the tour $T$.
 \item Arc $a_i$ precedes arc $a_j$ in the traversal sequence.
@@ -346,9 +346,9 @@ is determined by generating a random value in the range $[c(a_j)/2, 2c(a_j)]$.
 
 The three scenarios are characterized as follows:
 \begin{itemize}
-    \item \textbf{Balanced}: Relations have random costs that can be either greater or less than the base arc cost, in the range $[\frac{c(a_j)}{2}, 2c(a_j)]$.
+    \item \textbf{Balanced}: Relations have random costs that can be either greater or less than the base arc cost, in the range $[c(a_j)/2, 2c(a_j)]$.
     \item \textbf{Increase}: Relations have random costs greater than the base arc cost, in the range $[c(a_j), 2c(a_j)]$.
-    \item \textbf{Decrease}: Relations have random costs less than the base arc cost, in the range $[\frac{c(a_j)}{2}, c(a_j)]$.
+    \item \textbf{Decrease}: Relations have random costs less than the base arc cost, in the range $[c(a_j)/2, c(a_j)]$.
 \end{itemize}
 
 Two additional datasets, provided by the competition organizers, offer realistic scenarios with varying problem sizes and complexities. We will refer to them as C1 and C2. The first of these contains 21 instances, with an average of 580 arcs and 47,834 relations. The second, larger dataset has 34 instances, averaging 1,267 arcs and 556,903 relations. Table~\ref{tab:dataset_characteristics} summarizes the key characteristics of all three datasets.
