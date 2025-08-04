@@ -21,7 +21,7 @@ This implementation uses C++20.
 - `report/`: Contains the LaTeX source code for the report.
 - `output/`: Contains the outputs of the experiments.
 - `notebooks/`: Contains the notebooks used to generate the figures for the report and for the dataset generation and exploration. To run them, you can use the python environment defined in `pyproject.toml`.
-- `benchmark/`: Contains scripts to reproduce experimental results.
+- `benchmark/`: Contains scripts to reproduce experimental results. The file `competition_solutions.csv` contains the best solutions for each instance that we submitted to the competition.
 
 ## Getting started
 
@@ -41,28 +41,28 @@ The instances can be downloaded from the [release page](https://github.com/jsalv
 
 ### Scripts
 
-The `src` directory contains several useful scripts:
+The `cpp_src` directory contains several useful scripts:
 
-- `build.sh`: Compiles the project. Run this from the `src` directory.
-- `test.sh`: Runs the tests. Run this from the `src` directory after building the project.
+- `build.sh`: Compiles the project. Run this from the `cpp_src` directory.
+- `test.sh`: Runs the tests. Run this from the `cpp_src` directory after building the project.
 - `fmt.sh`: Formats the C++ code using `clang-format`.
 - `benchmark.sh`: A script to run benchmarks. You might need to adapt it to your needs.
 
 ### Building and Running
 
 1.  Place the problem instances in the `instances/` directory at the root of the repository.
-2.  Navigate to the `src` directory: `cd src`
+2.  Navigate to the `cpp_src` directory: `cd cpp_src`
 3.  Run the build script: `./build.sh`
 4.  (Optional) Run the test script: `./test.sh`
-5.  The executable `trigger_arc_tsp` will be created in `src/build/`.
+5.  The executable `trigger_arc_tsp` will be created in `cpp_src/build/`.
 
-You can then run the solver from `src/build` directory, for example:
+You can then run the solver from the `cpp_src/build` directory, for example:
 
 ```bash
-./src/build/trigger_arc_tsp --method grasp --instance-file ../../instances/instances_release_1/grf1.txt --n-trials 10 --local-searches TwoOpt SwapTwo Relocate --constructive-heuristic SimpleRandomized --logs --alpha 0.1 --beta 3.0 --save-solutions
+./cpp_src/build/trigger_arc_tsp --method grasp --instance-file instances/instances_release_1/grf1.txt --n-trials 10 --local-searches TwoOpt SwapTwo Relocate --constructive-heuristic SimpleRandomized --logs --alpha 0.1 --beta 3.0 --save-solutions
 ```
 
-Run `./src/build/trigger_arc_tsp --help` to see all available options.
+Run `./cpp_src/build/trigger_arc_tsp --help` to see all available options.
 
 ### GRASP Implementation
 
