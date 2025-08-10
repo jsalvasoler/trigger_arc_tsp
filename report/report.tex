@@ -383,7 +383,7 @@ To evaluate the performance of the \gls{grasp} algorithm, the optimality gap is 
 \end{equation}
 
 For the competition instances (C1 and C2), the best solutions achieved during the competition are used as the reference point. Section~\ref{sec:grasp_settings_for_competition} provides more details on the settings used in the competition.
-For the synthetic instances (RG), the best integer solution obtained after running the Gurobi \gls{mip} with a time limit of 1 minute and the default settings is used.
+For the synthetic instances (RG), the best integer solution obtained after running the Gurobi \gls{mip} solver with a time limit of 1 minute and the default settings is used.
 For the randomized construction heuristics, the success rate is also measured, i.e., the percentage of instances for which a solution was found.
 
 \subsection{Benchmarking the MIP model for the \gls{tatsp}}
@@ -483,7 +483,7 @@ For the multiplicative perturbation parameter $\beta$, the results show that par
 
 \subsection{MIP Biased Construction}
 
-The performance of the \gls{mip}-based biased construction heuristic is evaluated
+The performance of the \gls{mip} biased construction heuristic is evaluated
 using the grid of values $\alpha \in [0.05, 0.1, 1.0, 3.0]$ and $\beta \in [0.05, 0.1, 1.0, 3.0]$.
 Figure~\ref{fig:alpha_beta_grid_mip_randomized_construction_bias} shows the heatmap of average gaps across different $\alpha$ and $\beta$ combinations for each dataset.
 The darker colors indicate better performance (lower gaps), allowing identification of optimal parameter combinations for each dataset. 
@@ -495,7 +495,7 @@ The following parameter values are used for the rest of the experiments: $\alpha
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.49\textwidth]{figures/alpha_beta_grid_mip_randomized_construction_bias.png}
-    \caption{Performance comparison of \gls{mip} Biased Construction with parameters $\alpha$ and $\beta$ on different datasets. Results show the average gap (\%) across different parameter combinations.}
+    \caption{Performance comparison of \gls{mip} biased construction with parameters $\alpha$ and $\beta$ on different datasets. Results show the average gap (\%) across different parameter combinations.}
     \label{fig:alpha_beta_grid_mip_randomized_construction_bias} 
 \end{figure} 
 
@@ -504,15 +504,15 @@ The following parameter values are used for the rest of the experiments: $\alpha
 A comparison of the performance of the tuned construction heuristics on all datasets is presented in Table~\ref{tab:construction_comparison}.
 Another method is included, namely a Simple Random Construction (SRC) heuristic, in which at every step, a feasible edge is randomly selected from the feasible set, without considering the insertion cost.
 
-All datasets show the same ranking pattern: \gls{mip} Bias consistently achieves the best performance, followed by \gls{mip} $\alpha$-Rand and \gls{mip} $\beta$-Rand, with RGC and SRC performing significantly worse.
+All datasets show the same ranking pattern: \gls{mip} biased construction consistently achieves the best performance, followed by \gls{mip} $\alpha$-Rand and \gls{mip} $\beta$-Rand, with RGC and SRC performing significantly worse.
 The \gls{mip}-based methods demonstrate superior solution quality across all datasets, with gaps ranging from 3.8\% to 6.6\% on competition instances (C1, C2) and around 70\% on synthetic instances (RG).
 This suggests that leveraging a TSP solver to establish a strong underlying tour structure is highly effective, even when the costs are perturbed.
 In the case of the \gls{mip}-Bias method, the perturbations successfully guide the search towards regions of the solution space that are favorable for the TA-TSP objective, which provides evidence that introducing the trigger-target relations into the TSP model is effective.
 In contrast, the simpler heuristics (SRC, RGC) show much higher gaps, particularly on the RG dataset where SRC reaches nearly 300\% gap. Notably, SRC fails completely on C2 (0\% success rate), while RGC shows poor performance on C2 (2.9\% success rate).
 The \gls{mip} methods maintain 100\% success rates because finding feasibility for the TSP is easy on these datasets.
-Runtime analysis reveals that SRC and RGC are the fastest (under 0.1 seconds), while \gls{mip} methods require 1-6 seconds.
+Runtime analysis reveals that SRC and RGC are the fastest (under 0.1 seconds), while \gls{mip}-based methods require 1-6 seconds.
 However, all methods except for Gurobi are fast enough to be used as the construction heuristic backbone of a \gls{grasp} framework.
-Given these results, the construction heuristic used in the \gls{grasp} framework is \gls{mip} Bias.
+Given these results, the construction heuristic used in the \gls{grasp} framework is \gls{mip} biased construction.
 
 
 \begin{table}[h]
@@ -594,7 +594,7 @@ On the C1 and C2 datasets, the \gls{grasp} framework is able to provide final me
 \paragraph{GRASP settings for the MESS 2024 competition}
 \label{sec:grasp_settings_for_competition}
 
-When solving the competition instances during the competition, the full \gls{grasp} with the \gls{mip} Bias construction heuristic with parameters $\alpha = 0.1$ and $\beta = 3.0$ was used.
+When solving the competition instances during the competition, the full \gls{grasp} with the \gls{mip} biased construction heuristic with parameters $\alpha = 0.1$ and $\beta = 3.0$ was used.
 All three local search operators were used, as suggested by the ablation results.
 The time limit of the \gls{mip} solver was set to 5 seconds, and the time limit of the \gls{grasp} to 3 hours per instance.
 No limit was imposed on the number of trials or iterations of the \gls{grasp}.
@@ -669,22 +669,8 @@ The precedence variable $z_{a_ia_j}$ is defined in constraint~\eqref{eq:z_preced
 Constraint~\eqref{eq:rel_active_3} ensures that if an arc $a$ and one of its potential triggers $b$ are in the tour, and $b$ precedes $a$, then at least one relation for $a$ must be activated.
 Finally, constraint~\eqref{eq:rel_last_trigger} is the core constraint that models the "last trigger" rule. It ensures that if two triggers $b$ and $c$ for the same target $a$ are in the tour, and $c$ is traversed after $b$ but before $a$, then the relation $(b,a)$ cannot be active.
 
-%%%%%%%%%%%% Supplementary Methods %%%%%%%%%%%%
-%\footnotesize
-%\section*{Methods}
-
-%%%%%%%%%%%%% Acknowledgements %%%%%%%%%%%%%
-\footnotesize
-\section*{Acknowledgements}
-% thanks to the competition organizers and everything
-
 %%%%%%%%%%%%%%   Bibliography   %%%%%%%%%%%%%%
 \normalsize
 \bibliography{references}
 
-%%%%%%%%%%%%  Supplementary Figures  %%%%%%%%%%%%
-%\clearpage
-
-%%%%%%%%%%%%%%%%   End   %%%%%%%%%%%%%%%%
-%\end{multicols}  % Method B for two-column formatting (doesn't play well with line numbers), comment out if using method A
 \end{document}
