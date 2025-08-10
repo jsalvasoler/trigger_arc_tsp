@@ -141,15 +141,15 @@ When a trigger is traversed, it modifies the cost of its associated target.
 If multiple triggers for the same target are visited, only the last one encountered before the target takes effect. 
 This novel formulation provides a powerful tool for modeling problems with state-dependent costs.
 
-This paper presents our approach to the \gls{tatsp}, which was developed for the Metaheuristics Summer School (MESS) 2024 competition~\cite{mess2024}. 
-Our work secured a top-three position by proposing a scalable and fast \gls{grasp}-based algorithm to find high-quality solutions. 
+This paper presents a GRASP-based approach to the \gls{tatsp}, developed for the Metaheuristics Summer School (MESS) 2024 competition~\cite{mess2024}. 
+A top-three position was secured by proposing a scalable and fast \gls{grasp}-based algorithm to find high-quality solutions. 
 A \gls{mip}-based construction heuristic is employed to generate diverse and feasible initial solutions, followed by a local search procedure for iterative improvement.
-The paper outlines our methodology and the results of applying our \gls{grasp} algorithm to a set of benchmark instances, demonstrating its effectiveness and efficiency in tackling the \gls{tatsp}.
+The methodology and the results of applying the \gls{grasp} algorithm to a set of benchmark instances are outlined, demonstrating effectiveness and efficiency in tackling the \gls{tatsp}.
 
 \section{Related Work}
 \label{sec:related_work}
 
-\subsection{Variations on the \gls{tsp}}
+\subsection{Variations of the \gls{tsp}}
 
 The \gls{tsp} is fundamentally about discovering the most efficient route that connects a given set of nodes~\cite{Applegate2011}. 
 Its NP-hard nature makes exact solutions for large instances computationally infeasible, necessitating the use of heuristics and metaheuristics.
@@ -174,7 +174,7 @@ A classic local search procedure applied to the \gls{tsp} is the 2-Opt algorithm
 
 \subsection{Greedy Randomized Adaptive Search Procedures (\gls{grasp})}
 
-This work is based on the \gls{grasp} metaheuristic, introduced by Feo and Resende~\cite{Feo1995}, which is a two-phase approach that combines a construction heuristic and a local search procedure.
+The present work is based on the \gls{grasp} metaheuristic, introduced by Feo and Resende~\cite{Feo1995}, which is a two-phase approach that combines a construction heuristic and a local search procedure.
 The construction phase leverages a greedy randomized strategy to build a diverse set of feasible solutions. Following this, the local search phase systematically explores the neighborhood of each constructed solution to find a local optimum with respect to a set of neighborhood structures.
 The best solution found across all iterations is returned. The two-phase structure of \gls{grasp} inherently balances diversification (exploration) and intensification (exploitation) of the search space, which is advantageous for complex fitness landscapes.
 Due to its robust performance and adaptability, \gls{grasp} has been successfully applied to the classical \gls{tsp}, often achieving results competitive with highly specialized heuristics~\cite{Oliveira2004}. 
@@ -221,7 +221,7 @@ For modeling purposes, it is useful to reformulate the cost function. Instead of
 
 \subsection{A \gls{grasp} for the \gls{tatsp}}
 
-The original version of the \gls{grasp} metaheuristic, as introduced by~\cite{Feo1995}, is leveraged in our work to solve the \gls{tatsp}. 
+The original version of the \gls{grasp} metaheuristic, as introduced by~\cite{Feo1995}, is leveraged in this study to solve the \gls{tatsp}. 
 The algorithm, as described in Algorithm~\ref{alg:grasp_general}, consists of two main phases: a construction phase and a local search phase.
 The construction phase builds a feasible solution using a randomized heuristic. The local search phase then applies improvement procedures to this solution until a local optimum is reached.
 The algorithm iterates through these two phases, and the best solution found across all iterations is returned.
@@ -298,7 +298,7 @@ This is partially motivated by the fact that the \gls{tsp} associated with the \
 The core idea is to perturb the original edge costs, $c_{ij}$, to create a new \gls{tsp} instance.
 This instance is then solved to optimality or near-optimality. The resulting tour, or a pool of high-quality tours, is then evaluated using the true \gls{tatsp} objective function.
 
-We explore two perturbation methods. In the \textit{Additive Perturbation} approach, costs are modified using an additive noise factor controlled by a parameter $\alpha$. The new cost, $c'_{ij}$, is calculated as $c'_{ij} = c_{ij} + \alpha \cdot U(-1, 1)$, where $U(-1, 1)$ is a random variable from a uniform distribution between $-1$ and $1$. Alternatively, the \textit{Multiplicative Perturbation} method scales the costs by a random factor controlled by a parameter $\beta$, resulting in $c'_{ij} = c_{ij} \cdot (\beta \cdot U(0, 1))$.
+Two perturbation methods are explored. In the \textit{Additive Perturbation} approach, costs are modified using an additive noise factor controlled by a parameter $\alpha$. The new cost, $c'_{ij}$, is calculated as $c'_{ij} = c_{ij} + \alpha \cdot U(-1, 1)$, where $U(-1, 1)$ is a random variable from a uniform distribution between $-1$ and $1$. Alternatively, the \textit{Multiplicative Perturbation} method scales the costs by a random factor controlled by a parameter $\beta$, resulting in $c'_{ij} = c_{ij} \cdot (\beta \cdot U(0, 1))$.
 
 \paragraph{\textit{\gls{mip}-based Biased Perturbation}}
 This method attempts to incorporate relational information into the \gls{tsp} model by perturbing arc costs based on an estimated probability of relation activation. The process begins by generating a random permutation of nodes, $P$, which serves as a prior for estimating arc usage. The probability of an arc $(i, j)$ being used is assumed to be inversely proportional to the cyclic distance between nodes $i$ and $j$ in the prior permutation $P$. This is defined as $p_{ij} = 1/d_{ij}$, where $d_{ij} = \min(|pos(i)-pos(j)|, |N| - |pos(i)-pos(j)|)$. For a relation $r$ from a trigger arc $a=(a_i, a_j)$ to a target arc $b=(b_1, b_2)$, the activation probability $p_r$ is estimated by considering the usage probabilities of both arcs and their proximity. It is defined as $p_r = p_{a_ia_j} \cdot p_{b_1b_2} / d_{a_jb_1}^\beta$, where $d_{a_jb_1}$ is the cyclic distance between the trigger's endpoint and the target's startpoint, and $\beta$ is a tunable parameter. The costs of the arcs in the base \gls{tsp} instance are modified to reflect the expected impact of the relations. For each relation $r$ between trigger arc $b$ and target arc $a$, a penalty proportional to the relation's activation probability is added to the costs of both arcs. The new cost of an arc $k \in \{a,b\}$ is updated as $c'(k) = c(k) + \alpha \cdot p_r \cdot c_r$, where $c_r$ is the cost when relation $r$ is active, and $\alpha$ is a parameter controlling the penalty's magnitude. Finally, the modified \gls{tsp} instance is solved, and the resulting tours are evaluated on the original \gls{tatsp} instance to find the best solution.
@@ -319,14 +319,14 @@ A critical aspect of any iterative improvement algorithm is the efficient evalua
 
 For sequential construction heuristics, such as the Randomized Greedy method, delta evaluation is successfully employed. When a new node is added to a partial tour, only the cost of the new arc and its trigger effects from existing arcs need to be computed. This is feasible because the tour is extended in a single direction, so the trigger states of existing arcs remain unchanged.
 
-However, this approach is not practical for the local search phase. Standard neighborhood moves, like 2-Opt or Swap, can drastically alter the tour's sequence. A single change can trigger a cascade effect, leading to non-local cost modifications across the entire tour. Implementing true delta evaluation would require a complex procedure to track every affected arc, which would negate its performance benefits. Consequently, our local search implementation re-evaluates the entire tour cost after every move to ensure correctness and simplicity.
+However, this approach is not practical for the local search phase. Standard neighborhood moves, like 2-Opt or Swap, can drastically alter the tour's sequence. A single change can trigger a cascade effect, leading to non-local cost modifications across the entire tour. Implementing true delta evaluation would require a complex procedure to track every affected arc, which would negate its performance benefits. Consequently, the local search implementation re-evaluates the entire tour cost after every move to ensure correctness and simplicity.
 
 \section{Computational Experiments}
 This section presents the computational experiments conducted to evaluate the performance of the proposed \gls{grasp} algorithm.
 
 \subsection{Datasets}
 
-Three datasets were used to evaluate our \gls{grasp} algorithm and assess its performance across problems having different characteristics.
+Three datasets were used to evaluate the \gls{grasp} algorithm and assess its performance across problems having different characteristics.
 
 The first dataset contains 180 synthetic instances generated as described in~\citet{Cerrone}.
 Each instance is generated using a random generator that creates complete directed graphs $G(N,A)$ 
@@ -368,32 +368,32 @@ Two additional datasets, provided by the competition organizers, offer realistic
 
 \subsection{Experimental Setup}
 
-Our \gls{grasp} algorithm is implemented in C++20, leveraging modern language features for efficient memory management and performance.
-The implementation uses the Boost libraries for data structures and the Gurobi optimization suite (Gurobi Optimizer version 12.0.2 build v12.0.2rc0) for solving the problems associated with the \gls{mip}-based heuristics.
+The \gls{grasp} algorithm is implemented in C++20, and uses the Boost library for additional data structures.
+The Gurobi optimization suite (Gurobi Optimizer version 12.0.2 build v12.0.2rc0) is used for solving the \gls{mip} instances arising from the \gls{mip}-based heuristics.
 
 All computational experiments were conducted on a machine equipped with an Apple M1 Pro processor running macOS 24.5.0 and an ARM64 architecture with 16GB of RAM.
-The complete implementation, along with all instances used in our experiments, is publicly available at \url{https://github.com/jsalvasoler/trigger_arc_tsp}.
+The complete implementation, along with all instances used in the experiments, is publicly available at \url{https://github.com/jsalvasoler/trigger_arc_tsp}.
 
 \subsection{Metrics}
 
-To evaluate the performance of our \gls{grasp} algorithm, we report the optimality gap, which measures how close our solutions are to the best possible solutions. The gap is calculated as:
+To evaluate the performance of the \gls{grasp} algorithm, the optimality gap is reported, which measures how close the solutions are to the best possible solutions. The gap is calculated as:
 
 \begin{equation}
 \text{Gap} = \frac{\text{Solution Cost} - \text{Best Known Cost}}{\text{Best Known Cost}} \times 100\%
 \end{equation}
 
-For the competition instances (C1 and C2), we use the best solutions achieved during the competition as the reference point. Section~\ref{sec:grasp_settings_for_competition} provides more details on the settings used in the competition.
-For the synthetic instances (RG), we use the best integer solution obtained after running the Gurobi \gls{mip} with a time limit of 1 minute and the default settings.
-For the randomized construction heuristics, we also measure the success rate, i.e., the percentage of instances for which a solution was found.
+For the competition instances (C1 and C2), the best solutions achieved during the competition are used as the reference point. Section~\ref{sec:grasp_settings_for_competition} provides more details on the settings used in the competition.
+For the synthetic instances (RG), the best integer solution obtained after running the Gurobi \gls{mip} with a time limit of 1 minute and the default settings is used.
+For the randomized construction heuristics, the success rate is also measured, i.e., the percentage of instances for which a solution was found.
 
 \subsection{Benchmarking the MIP model for the \gls{tatsp}}
 
-We use the Gurobi solver~\cite{gurobi} to solve the \gls{mip} model defined in Appendix~\ref{sec:mip_model}.
+The Gurobi solver~\cite{gurobi} is used to solve the \gls{mip} model defined in Appendix~\ref{sec:mip_model}.
 The competition instances are significantly larger than the instances in the RG dataset. In the context of \gls{mip} modeling, this is reflected in the fact
 that Gurobi can only solve 6 / 21 instances of the C1 dataset, 1 / 34 instances of the C2 dataset, but every instance of the RG dataset.
-By solving, we mean that the solver was able to write the model in a reasonable time frame, and was able to provide a solution with a gap less than 1\% in under 5 hours.
+By solving, it is meant that the solver was able to write the model in a reasonable time frame, and was able to provide a solution with a gap less than 1\% in under 5 hours.
 In many cases, the solver was running out of CPU memory.
-Therefore, we only report the Gurobi results for the RG dataset, in which we use a time limit of 1 minute and the default settings.
+Therefore, only the Gurobi results for the RG dataset are reported, in which a time limit of 1 minute and the default settings are used.
 
 \begin{table}[h]
     \caption{Performance of Gurobi \gls{mip} solver on the RG dataset of synthetic instances. Results show average computation time and mean gap (\%) across different scenarios and problem sizes.}
@@ -425,8 +425,8 @@ The three scenarios show similar behavior: all small instances (10 nodes) are so
 The Decrease scenario exhibits slightly higher gaps and longer runtimes compared to the other scenarios.
 
 \subsection{Randomized Greedy Construction heuristic}
-We want to explore the effect of the parameter $\alpha$ on the performance of the RGC.
-We run the RGC for 10 trials on each instance and each value of $\alpha$, and take the best solution found.
+The effect of the parameter $\alpha$ on the performance of the RGC is explored.
+The RGC is run for 10 trials on each instance and each value of $\alpha$, and the best solution found is taken.
 Recall that $\alpha \in [0, 1]$ controls the restricted candidate list size, i.e., the fraction of the feasible edges that are considered in the greedy step, sorted by insertion cost.
 Figure~\ref{fig:alpha_vs_mean_gap_randomized_greedy} shows that increasing values of~$\alpha$ result in larger gaps (as edge insertions become, on average, more expensive) and higher success rates (as more edges are considered). For dataset~C2, some variability in the success rate is observed; however, this effect is expected to diminish with a larger number of trials. The results suggest that $\alpha = 0.1$ provides a favorable trade-off between gap and success rate, and this value is adopted for the remainder of the experiments.
 
@@ -478,19 +478,19 @@ The results for the additive perturbation parameter $\alpha$ show that moderate 
     \end{tabular}
 \end{table}
 
-For the multiplicative perturbation parameter $\beta$, the results show that parameters have slightly different effects on datasets, indicating that the parameters are not very relevant, especially under such tight \gls{mip} solving time limits. The RG dataset performs best with $\beta = 1.1$ ($69.1\%$ gap), while C1 favors $\beta = 2.0$ ($4.3\%$ gap) and C2 performs best with $\beta = 1.5$ ($6.4\%$ gap). However, we will pick $\alpha = 0.1$ and $\beta = 1.5$ as the best parameters since they perform well on average across all datasets.
+For the multiplicative perturbation parameter $\beta$, the results show that parameters have slightly different effects on datasets, indicating that the parameters are not very relevant, especially under such tight \gls{mip} solving time limits. The RG dataset performs best with $\beta = 1.1$ ($69.1\%$ gap), while C1 favors $\beta = 2.0$ ($4.3\%$ gap) and C2 performs best with $\beta = 1.5$ ($6.4\%$ gap). However, $\alpha = 0.1$ and $\beta = 1.5$ are selected as the best parameters since they perform well on average across all datasets.
 
 
 \subsection{MIP Biased Construction}
 
-We evaluate the performance of the \gls{mip}-based biased construction heuristic
+The performance of the \gls{mip}-based biased construction heuristic is evaluated
 using the grid of values $\alpha \in [0.05, 0.1, 1.0, 3.0]$ and $\beta \in [0.05, 0.1, 1.0, 3.0]$.
 Figure~\ref{fig:alpha_beta_grid_mip_randomized_construction_bias} shows the heatmap of average gaps across different $\alpha$ and $\beta$ combinations for each dataset.
-The darker colors indicate better performance (lower gaps), allowing us to identify optimal parameter combinations for each dataset. 
+The darker colors indicate better performance (lower gaps), allowing identification of optimal parameter combinations for each dataset. 
 
 For the RG and C1 datasets, higher values of $\alpha$ are better, while for the C2 dataset, lower values of $\alpha$ are better.
 On all datasets, higher values of $\beta$ are better.
-We will use the following parameter values for the rest of the experiments: $\alpha = 0.1$ and $\beta = 3.0$, which are a good trade-off in all datasets.
+The following parameter values are used for the rest of the experiments: $\alpha = 0.1$ and $\beta = 3.0$, which are a good trade-off in all datasets.
 
 \begin{figure}[h]
     \centering
@@ -501,18 +501,18 @@ We will use the following parameter values for the rest of the experiments: $\al
 
 \subsection{Comparison of Construction Heuristics}
 
-We finally compare the performance of the tuned construction heuristics on all datasets in Table~\ref{tab:construction_comparison}.
-We include another method, namely a Simple Random Construction (SRC) heuristic, in which at every step, randomly selects a feasible edge from the feasible set, without considering the insertion cost.
+A comparison of the performance of the tuned construction heuristics on all datasets is presented in Table~\ref{tab:construction_comparison}.
+Another method is included, namely a Simple Random Construction (SRC) heuristic, in which at every step, a feasible edge is randomly selected from the feasible set, without considering the insertion cost.
 
-We find that all datasets show the same ranking pattern: \gls{mip} Bias consistently achieves the best performance, followed by \gls{mip} $\alpha$-Rand and \gls{mip} $\beta$-Rand, with RGC and SRC performing significantly worse.
+All datasets show the same ranking pattern: \gls{mip} Bias consistently achieves the best performance, followed by \gls{mip} $\alpha$-Rand and \gls{mip} $\beta$-Rand, with RGC and SRC performing significantly worse.
 The \gls{mip}-based methods demonstrate superior solution quality across all datasets, with gaps ranging from 3.8\% to 6.6\% on competition instances (C1, C2) and around 70\% on synthetic instances (RG).
 This suggests that leveraging a TSP solver to establish a strong underlying tour structure is highly effective, even when the costs are perturbed.
 In the case of the \gls{mip}-Bias method, the perturbations successfully guide the search towards regions of the solution space that are favorable for the TA-TSP objective, which provides evidence that introducing the trigger-target relations into the TSP model is effective.
 In contrast, the simpler heuristics (SRC, RGC) show much higher gaps, particularly on the RG dataset where SRC reaches nearly 300\% gap. Notably, SRC fails completely on C2 (0\% success rate), while RGC shows poor performance on C2 (2.9\% success rate).
-The \gls{mip} methods maintain 100\% success rates because finding feasibility for the TSP is easy on our datasets.
+The \gls{mip} methods maintain 100\% success rates because finding feasibility for the TSP is easy on these datasets.
 Runtime analysis reveals that SRC and RGC are the fastest (under 0.1 seconds), while \gls{mip} methods require 1-6 seconds.
 However, all methods except for Gurobi are fast enough to be used as the construction heuristic backbone of a \gls{grasp} framework.
-Given these results, the construction heuristic that we will use in the \gls{grasp} framework is \gls{mip} Bias.
+Given these results, the construction heuristic used in the \gls{grasp} framework is \gls{mip} Bias.
 
 
 \begin{table}[h]
@@ -548,12 +548,12 @@ Given these results, the construction heuristic that we will use in the \gls{gra
 
 \subsection{GRASP Framework}
 
-We now report the results of the \gls{grasp} framework. 
-Based on the results of the previous section, we used the \gls{mip} Bias construction heuristic with parameters $\alpha = 0.1$ and $\beta = 3.0$.
-We set a time limit of 60 seconds for the whole algorithm, and 2 seconds for the \gls{mip} solver.
-We do not limit the number of trials or iterations of the \gls{grasp}. 
-We benchmark the \gls{grasp} framework with the three local search operators: Relocate, SwapTwo, and TwoOpt.
-Moreover, we ablate these operators one by one, and report the performance of the \gls{grasp} framework without each operator.
+The results of the \gls{grasp} framework are now reported. 
+Based on the results of the previous section, the \gls{mip} Bias construction heuristic with parameters $\alpha = 0.1$ and $\beta = 3.0$ is used.
+A time limit of 60 seconds is set for the whole algorithm, and 2 seconds for the \gls{mip} solver.
+No limit is imposed on the number of trials or iterations of the \gls{grasp}. 
+The \gls{grasp} framework is benchmarked with the three local search operators: Relocate, SwapTwo, and TwoOpt.
+Moreover, these operators are ablated one by one, and the performance of the \gls{grasp} framework without each operator is reported.
 
 
 \begin{table}[h]
@@ -587,19 +587,19 @@ Moreover, we ablate these operators one by one, and report the performance of th
 
 The ablation results clearly indicate that using all three local search operators (Relocate, SwapTwo, and TwoOpt) simultaneously yields the best overall performance.
 The Relocate operator is particularly important on all datasets, since removing it leads to a significant increase in the gap.
-The \gls{grasp} framework shows to be very effective to provide fast and good solutions for the \gls{tatsp}.
+The \gls{grasp} framework is shown to be very effective in providing fast and high-quality solutions for the \gls{tatsp}.
 The negative gaps on the RG dataset demonstrate that even on small instances, \gls{grasp} is more effective than the Gurobi \gls{mip} solver when both are operating on short time limits (60 seconds).
 On the C1 and C2 datasets, the \gls{grasp} framework is able to provide final mean gaps of 0.77\% and 0.40\% respectively, which is an excellent performance for a heuristic running in a 1-minute time budget.
 
 \paragraph{GRASP settings for the MESS 2024 competition}
 \label{sec:grasp_settings_for_competition}
 
-When solving the competition instances during the competition, we used the full \gls{grasp} with the \gls{mip} Bias construction heuristic with parameters $\alpha = 0.1$ and $\beta = 3.0$.
-We used all three local search operators, as suggested by the ablation results.
-We set the time limit of the \gls{mip} solver to 5 seconds, and the time limit of the \gls{grasp} to 3 hours per instance.
-We did not limit the number of trials or iterations of the \gls{grasp}.
+When solving the competition instances during the competition, the full \gls{grasp} with the \gls{mip} Bias construction heuristic with parameters $\alpha = 0.1$ and $\beta = 3.0$ was used.
+All three local search operators were used, as suggested by the ablation results.
+The time limit of the \gls{mip} solver was set to 5 seconds, and the time limit of the \gls{grasp} to 3 hours per instance.
+No limit was imposed on the number of trials or iterations of the \gls{grasp}.
 
-In the repository, we provide the best solutions and the final objective values for each of the competition instances.
+In the repository, the best solutions and the final objective values for each of the competition instances are provided.
 
 
 \section{Conclusion}
@@ -613,7 +613,7 @@ Furthermore, a more extensive hyperparameter tuning process, potentially using a
 \appendix
 \section{MIP Model for the TA-TSP}
 \label{sec:mip_model}
-For benchmarking purposes, we developed a \gls{mip} model for the \gls{tatsp}, which shares similarities with the ILP model proposed by~\citet{Cerrone}.
+For benchmarking purposes, a \gls{mip} model for the \gls{tatsp} was developed, which shares similarities with the ILP model proposed by~\citet{Cerrone}.
 The full model is presented in the Appendix.
 
 The model uses the following parameters, sets, and decision variables:
