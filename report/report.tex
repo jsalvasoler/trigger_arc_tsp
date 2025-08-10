@@ -172,7 +172,7 @@ Given the NP-hard nature of the \gls{tsp}, metaheuristics have been extensively 
 Prominent examples include Genetic (or Evolutionary) Algorithms~\cite{Larranaga1999}, Tabu Search~\cite{Knox1994}, and Simulated Annealing~\cite{anttsp}.
 A classic local search procedure applied to the \gls{tsp} is the 2-Opt algorithm~\cite{Croes1958}.
 
-\subsection{The GRASP approach}
+\subsection{Greedy Randomized Adaptive Search Procedures (\gls{grasp})}
 
 This work is based on the \gls{grasp} metaheuristic, introduced by Feo and Resende~\cite{Feo1995}, which is a two-phase approach that combines a construction heuristic and a local search procedure.
 The construction phase leverages a greedy randomized strategy to build a diverse set of feasible solutions. Following this, the local search phase systematically explores the neighborhood of each constructed solution to find a local optimum with respect to a set of neighborhood structures.
@@ -219,9 +219,9 @@ The two problems share the same set of feasible solutions, which is the set of a
 However, there is no natural reduction from the \gls{tatsp} to the \gls{tsp} because of the path-dependency of the cost function.
 For modeling purposes, it is useful to reformulate the cost function. Instead of viewing the cost of a relation as a replacement for the base arc cost, it can be considered as an additional cost (or discount). For each relation $r = (a_i, a)$ with an associated cost $c(r)$, a delta cost can be defined as $\Delta(r) = c(r) - c(a)$. The cost of traversing an arc $a$ in a tour $T$ is then $c(a) + \Delta(r)$ if relation $r$ is active, and $c(a)$ otherwise. This separates the base tour cost from the additional costs incurred by active relations, which is a convenient perspective for developing heuristics and mathematical models.
 
-\subsection{The \gls{grasp} approach}
+\subsection{A \gls{grasp} for the \gls{tatsp}}
 
-The original version of the \gls{grasp} metaheuristic, as introduced by~\cite{Feo1995}, is leveraged to solve the \gls{tatsp}. 
+The original version of the \gls{grasp} metaheuristic, as introduced by~\cite{Feo1995}, is leveraged in our work to solve the \gls{tatsp}. 
 The algorithm, as described in Algorithm~\ref{alg:grasp_general}, consists of two main phases: a construction phase and a local search phase.
 The construction phase builds a feasible solution using a randomized heuristic. The local search phase then applies improvement procedures to this solution until a local optimum is reached.
 The algorithm iterates through these two phases, and the best solution found across all iterations is returned.
