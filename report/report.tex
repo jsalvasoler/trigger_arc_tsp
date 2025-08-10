@@ -142,7 +142,7 @@ This novel formulation provides a powerful tool for modeling problems with state
 
 This paper presents our approach to the \gls{tatsp}, which was developed for the Metaheuristics Summer School (MESS) 2024 competition~\cite{mess2024}. 
 Our work secured a top-three position by proposing a scalable and fast \gls{grasp}-based algorithm to find high-quality solutions. 
-A \gls{mip}-based construction heuristic is employed to generate diverse and feasible initial solutions, followed by a local search procedure for iterative improvement
+A \gls{mip}-based construction heuristic is employed to generate diverse and feasible initial solutions, followed by a local search procedure for iterative improvement.
 The paper outlines our methodology and the results of applying our \gls{grasp} algorithm to a set of benchmark instances, demonstrating its effectiveness and efficiency in tackling the \gls{tatsp}.
 
 \section{Related Work}
@@ -387,9 +387,9 @@ For the randomized construction heuristics, we also measure the success rate, i.
 
 \subsection{Benchmarking the MIP model for the \gls{tatsp}}
 
-We use the Gurobi solver~\cite{gurobi} to solve the \gls{mip} model defined in Annexe~\ref{sec:mip_model}.
+We use the Gurobi solver~\cite{gurobi} to solve the \gls{mip} model defined in Appendix~\ref{sec:mip_model}.
 The competition instances are significantly larger than the instances in the RG dataset. In the context of \gls{mip} modeling, this is reflected in the fact
-that Gurobi can only solve 6 / 21 instances of the C1 dataset, 1 / 34 instances of the C2 dataset, but every instances of the RG dataset.
+that Gurobi can only solve 6 / 21 instances of the C1 dataset, 1 / 34 instances of the C2 dataset, but every instance of the RG dataset.
 By solving, we mean that the solver was able to write the model in a reasonable time frame, and was able to provide a solution with a gap less than 1\% in under 5 hours.
 In many cases, the solver was running out of CPU memory.
 Therefore, we only report the Gurobi results for the RG dataset, in which we use a time limit of 1 minute and the default settings.
@@ -424,7 +424,7 @@ The three scenarios show similar behavior: all small instances (10 nodes) are so
 The Decrease scenario exhibits slightly higher gaps and longer runtimes compared to the other scenarios.
 
 \subsection{Randomized Greedy Construction heuristic}
-We want to explore the effect of the parameter $\alpha$ on the performance of the .
+We want to explore the effect of the parameter $\alpha$ on the performance of the RGC.
 We run the RGC for 10 trials on each instance and each value of $\alpha$, and take the best solution found.
 Recall that $\alpha \in [0, 1]$ controls the restricted candidate list size, i.e., the fraction of the feasible edges that are considered in the greedy step, sorted by insertion cost.
 Figure~\ref{fig:alpha_vs_mean_gap_randomized_greedy} shows that increasing values of~$\alpha$ result in larger gaps (as edge insertions become, on average, more expensive) and higher success rates (as more edges are considered). For dataset~C2, some variability in the success rate is observed; however, this effect is expected to diminish with a larger number of trials. The results suggest that $\alpha = 0.1$ provides a favorable trade-off between gap and success rate, and this value is adopted for the remainder of the experiments.
