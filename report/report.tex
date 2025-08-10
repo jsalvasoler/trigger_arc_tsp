@@ -149,7 +149,7 @@ The methodology and the results of applying the \gls{grasp} algorithm to a set o
 \section{Related Work}
 \label{sec:related_work}
 
-\subsection{Variations of the \gls{tsp}}
+\subsection{Variants of the \gls{tsp}}
 
 The \gls{tsp} is fundamentally about discovering the most efficient route that connects a given set of nodes~\cite{Applegate2011}. 
 Its NP-hard nature makes exact solutions for large instances computationally infeasible, necessitating the use of heuristics and metaheuristics.
@@ -425,9 +425,9 @@ The three scenarios show similar behavior: all small instances (10 nodes) are so
 The Decrease scenario exhibits slightly higher gaps and longer runtimes compared to the other scenarios.
 
 \subsection{Randomized Greedy Construction heuristic}
-The effect of the parameter $\alpha$ on the performance of the RGC is explored.
-The RGC is run for 10 trials on each instance and each value of $\alpha$, and the best solution found is taken.
-Recall that $\alpha \in [0, 1]$ controls the restricted candidate list size, i.e., the fraction of the feasible edges that are considered in the greedy step, sorted by insertion cost.
+The effect of the parameter $\alpha$ on the performance of the RGC is investigated by evaluating a grid of $\alpha$ values within the interval $[0, 1]$. 
+For each value of $\alpha$ in this grid, the RGC is run for 10 trials on each instance, and the best solution found across the trials is recorded. 
+Recall that $\alpha \in [0, 1]$ controls the restricted candidate list size, i.e., the fraction of feasible edges considered in the greedy step, sorted by insertion cost.
 Figure~\ref{fig:alpha_vs_mean_gap_randomized_greedy} shows that increasing values of~$\alpha$ result in larger gaps (as edge insertions become, on average, more expensive) and higher success rates (as more edges are considered). For dataset~C2, some variability in the success rate is observed; however, this effect is expected to diminish with a larger number of trials. The results suggest that $\alpha = 0.1$ provides a favorable trade-off between gap and success rate, and this value is adopted for the remainder of the experiments.
 
 \begin{figure}[h]
