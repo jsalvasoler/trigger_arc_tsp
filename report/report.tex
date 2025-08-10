@@ -1,11 +1,10 @@
+\pdfoutput=1
 %% arara directives
 % arara: xelatex
 % arara: bibtex
 % arara: xelatex
 % arara: xelatex
-
-%\documentclass{article} % One-column default
-\documentclass[twocolumn, switch]{article} % Method A for two-column formatting
+\documentclass[twocolumn]{article} % Method A for two-column formatting
 
 \usepackage{preprint}
 \usepackage{glossaries}
@@ -55,6 +54,9 @@
 \titlespacing\subsection{0pt}{10pt plus 3pt minus 3pt}{1pt plus 1pt minus 1pt}
 \titlespacing\subsubsection{0pt}{8pt plus 3pt minus 3pt}{1pt plus 1pt minus 1pt}
 
+% Fix for fancyhdr \headheight warning
+\setlength{\headheight}{12pt}
+
 % ORCiD insertion
 \usepackage{tikz,xcolor,hyperref}
 
@@ -103,7 +105,6 @@
 \begin{document}
 
 \twocolumn[ % Method A for two-column formatting
-  \begin{@twocolumnfalse} % Method A for two-column formatting
   
 \maketitle
 
@@ -116,7 +117,6 @@ The algorithm finished in the top three at MESS 2024, demonstrating its suitabil
 
 \vspace{0.35cm}
 
-  \end{@twocolumnfalse} % Method A for two-column formatting
 ] % Method A for two-column formatting
 
 %\begin{multicols}{2} % Method B for two-column formatting (doesn't play well with line numbers), comment out if using method A
