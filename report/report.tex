@@ -1,4 +1,3 @@
-\pdfoutput=1
 %% arara directives
 % arara: xelatex
 % arara: bibtex
@@ -77,29 +76,25 @@
 % Define the ORCID iD command for each author separately. Here done for two authors.
 \newcommand{\orcidauthorA}{0009-0004-5890-4819}
 \newcommand{\orcidauthorB}{0009-0006-4869-9705}
+\newacronym{tsp}{TSP}{Traveling Salesman Problem}
+\newacronym{tatsp}{TA-TSP}{Trigger Arc TSP}
+\newacronym{grasp}{GRASP}{Greedy Randomized Adaptive Search Procedures}
+\newacronym{mip}{MIP}{Mixed-Integer Programming}
+\newacronym{rgc}{RGC}{Randomized Greedy Construction heuristic} 
 
 %%%%%%%%%%%%%%%%   Title   %%%%%%%%%%%%%%%%
 \date{August 2, 2025}
 \title{A Fast GRASP Metaheuristic for the Trigger Arc TSP with MIP-Based Construction and Multi-Neighborhood Local Search}
 \shorttitle{A Fast GRASP Metaheuristic for the Trigger Arc TSP}
 
-% Add watermark with submission status
-\usepackage{xwatermark}
-% Left watermark
-\newwatermark[firstpage,color=gray!60,angle=90,scale=0.32, xpos=-4.05in,ypos=0]{\href{https://doi.org/}{\color{gray}{Publication doi}}}
-% Right watermark
-\newwatermark[firstpage,color=gray!60,angle=90,scale=0.32, xpos=3.9in,ypos=0]{\href{https://doi.org/}{\color{gray}{Preprint doi}}}
-% Bottom watermark
-\newwatermark[firstpage,color=gray!90,angle=0,scale=0.28, xpos=0in,ypos=-5in]{*correspondence: \texttt{joan.salvasoler@h2o.ai}}
-
 %%%%%%%%%%%%%%%  Author list  %%%%%%%%%%%%%%%
 \usepackage{authblk}
 \renewcommand*{\Authfont}{\bfseries}
-\author[1]{Joan Salvà Soler$^*$\orcidA{}}
-\author[2]{Grégoire de Lambertye\orcidB{}}
+\author[1,2]{Joan Salvà Soler*\orcidA{}} 
+\author[1]{Grégoire de Lambertye\orcidB{}}
 
-\affil[1]{H2O.ai, TU Wien}
-\affil[2]{TU Wien}
+\affil[1]{Technische Universität Wien}
+\affil[2]{H2O.ai}
 
 %%%%%%%%%%%%%%    Front matter    %%%%%%%%%%%%%%
 \begin{document}
@@ -124,13 +119,9 @@ The algorithm finished in the top three at MESS 2024, demonstrating its suitabil
 
 %%%%%%%%%%%%%%%  Main text   %%%%%%%%%%%%%%%
 % \linenumbers
-\newacronym{tsp}{TSP}{Traveling Salesman Problem}
-\newacronym{tatsp}{TA-TSP}{Trigger Arc TSP}
-\newacronym{grasp}{GRASP}{Greedy Randomized Adaptive Search Procedures}
-\newacronym{mip}{MIP}{Mixed-Integer Programming}
-\newacronym{rgc}{RGC}{Randomized Greedy Construction heuristic}
 
 \section{Introduction}
+
 The \gls{tsp} is a foundational problem in combinatorial optimization~\cite{Applegate2011}. 
 However, its traditional formulation assumes that travel costs between cities are static, which is insufficient for many real-world applications where the cost of traversing a path can change based on prior actions or the system's current state.
 An example of this occurs in warehouses that use mobile shelving units. Accessing an item may require moving a shelf, which can block other aisles or alter the time and cost needed to reach them. This path-dependent cost structure necessitates a more sophisticated modeling approach than the classical TSP can provide.
