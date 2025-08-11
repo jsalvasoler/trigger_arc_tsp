@@ -168,7 +168,7 @@ A classic local search procedure applied to the \gls{tsp} is the 2-Opt algorithm
 The present work is based on the \gls{grasp} metaheuristic, introduced by Feo and Resende~\cite{Feo1995}, which is a two-phase approach that combines a construction heuristic and a local search procedure.
 The construction phase leverages a greedy randomized strategy to build a diverse set of feasible solutions. Following this, the local search phase systematically explores the neighborhood of each constructed solution to find a local optimum with respect to a set of neighborhood structures.
 The best solution found across all iterations is returned. The two-phase structure of \gls{grasp} inherently balances diversification (exploration) and intensification (exploitation) of the search space, which is advantageous for complex fitness landscapes.
-Due to its robust performance and adaptability, \gls{grasp} has been successfully applied to the classical \gls{tsp}, often achieving competitive results with highly specialized heuristics~\cite{Oliveira2004}. 
+Due to its robust performance and adaptability, \gls{grasp} has been successfully applied to the classical \gls{tsp}, often achieving results that are competitive with highly specialized heuristics~\cite{Oliveira2004}. 
 Its effectiveness can be further enhanced through advanced techniques. Reactive GRASP, for instance, dynamically adjusts its parameters during the search to adapt to the problem's characteristics~\cite{Prais2000}. 
 Path-Relinking is an intensification strategy that explores trajectories between elite solutions to find improved ones~\cite{Resende2019}. The consistent success of \gls{grasp} and its variants in related routing problems makes it a compelling choice for addressing the \gls{tatsp}.
 
