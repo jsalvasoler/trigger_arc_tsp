@@ -214,8 +214,7 @@ For modeling purposes, it is useful to reformulate the cost function. Instead of
 
 The original version of the \gls{grasp} metaheuristic, as introduced by~\cite{Feo1995}, is leveraged in this study to solve the \gls{tatsp}. 
 The algorithm, as described in Algorithm~\ref{alg:grasp_general}, consists of two main phases: a construction phase and a local search phase.
-The construction phase builds a feasible solution using a randomized heuristic. The local search phase then applies improvement procedures to this solution until a local optimum is reached.
-The algorithm iterates through these two phases, and the best solution found across all iterations is returned.
+As construction heuristics, we consider the Simple Randomized Construction, the Randomized Greedy Construction, and the \gls{mip}-based Random Perturbation.
 As the local search procedure, a multi-neighborhood local search with a first-improvement policy is employed, described in Algorithm~\ref{alg:local_search}.
 The stopping criterion for the local search is the local optimality with respect to all the neighborhood structures considered.
 
