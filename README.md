@@ -2,7 +2,7 @@
 
 This is the C++ implementation for the Trigger Arc TSP competition hosted by the [Metaheuristics Summer School](https://fourclicks.eu/fck/mess2024/frontend/#/home/dashboard) organizers.
 
-In this [blog post](https://jsalvasoler.vercel.app/i-took-on-the-mess-2024-computational-optimization-challenge#1614370afad080cd977ddf6f8abf8ba0) we explain the approach we took to solve the problem.
+In this [technical report](https://arxiv.org/abs/2508.08477) we detail the approach we took to solve the problem.
 
 This implementation uses C++20.
 
@@ -113,6 +113,21 @@ To reproduce the results from our experiments, we provide a set of benchmark scr
 
 Each script is pre-configured with recommended parameters, but you can edit them to suit your needs.
 
+## Citation
+
+If you use this implementation in your research, please cite our paper:
+
+```bibtex
+@misc{soler2025fast,
+    title={A Fast GRASP Metaheuristic for the Trigger Arc TSP with MIP-Based Construction and Multi-Neighborhood Local Search},
+    author={Joan Salvà Soler and Grégoire de Lambertye},
+    year={2025},
+    eprint={2508.08477},
+    archivePrefix={arXiv},
+    primaryClass={cs.AI}
+}
+```
+
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details. 
+This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
